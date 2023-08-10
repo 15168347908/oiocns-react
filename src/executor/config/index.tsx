@@ -6,6 +6,7 @@ import OperateModal from './operateModal';
 import SettingAuth from './settingModal/settingAuth';
 import SettingStation from './settingModal/settingStation';
 import SettingIdentity from './settingModal/settingIdentity';
+import TransferModal from './transferModal';
 
 const entityMap: any = {
   目录: 'Dir',
@@ -63,6 +64,8 @@ const ConfigExecutor: React.FC<IProps> = ({ cmd, args, finished }) => {
         return <EntityForm cmd={cmd} entity={args[0]} finished={finished} />;
       }
       break;
+    case "newTransferConfig":
+      return <TransferModal dir={args[0]} finished={finished}></TransferModal>
     default:
       if (cmd === 'pull' || cmd.startsWith('join')) {
         return <OperateModal cmd={cmd} entity={args[0]} finished={finished} />;
