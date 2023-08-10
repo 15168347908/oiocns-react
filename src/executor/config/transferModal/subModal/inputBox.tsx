@@ -1,21 +1,31 @@
 import { DownOutlined } from '@ant-design/icons';
 import { Dropdown, Input, Space } from 'antd';
-import { ItemType } from 'rc-menu/lib/interface';
+import { AxiosRequestConfig } from 'axios';
 import React, { useState } from 'react';
+import { Method } from '@/utils/api/types';
 
-class IProps {}
+interface IProps {
+  axiosConfig: AxiosRequestConfig;
+  send: () => void;
+}
 
 const InputBox: React.FC<IProps> = (props: IProps) => {
-  let types = ['POST', 'GET'];
-  let menus: ItemType[] = types.map((item) => {
-    return {
-      key: item,
-      label: item,
-    };
-  });
-  const [method, setMethod] = useState<string>('GET');
+  props.axiosConfig.method ??= Method.GET;
+  const [method, setMethod] = useState<string>(props.axiosConfig.method || Method.GET);
   let before = (
-    <Dropdown menu={{ items: menus, onClick: (info) => setMethod(info.key) }}>
+    <Dropdown
+      menu={{
+        items: Object.keys(Method).map((item) => {
+          return {
+            key: item,
+            label: item,
+          };
+        }),
+        onClick: (info) => {
+          setMethod(info.key);
+          props.axiosConfig.method = info.key;
+        },
+      }}>
       <div
         style={{
           display: 'flex',
@@ -35,18 +45,11 @@ const InputBox: React.FC<IProps> = (props: IProps) => {
         justifyContent: 'center',
         userSelect: 'none',
       }}
-      onClick={() => {}}>
+      onClick={() => props.send()}>
       Send
     </Space>
   );
-  return (
-    <Input
-      addonBefore={before}
-      addonAfter={after}
-      size="large"
-      placeholder="输入 URL 地址"
-    />
-  );
+  return <Input addonBefore={before} addonAfter={after} placeholder="输入 URL 地址" />;
 };
 
 export default InputBox;

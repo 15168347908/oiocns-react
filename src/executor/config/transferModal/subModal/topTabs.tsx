@@ -4,12 +4,14 @@ import { Tab } from 'rc-tabs/lib/interface';
 import cls from './../index.module.less';
 import { MenuItemType } from 'typings/globelType';
 import React from 'react';
+import { AxiosRequestConfig } from 'axios';
 
 interface IProps {
   menus: MenuItemType[];
-  setMenus: any;
+  setMenus: (menus: MenuItemType[]) => void;
   curTab?: string;
-  setCurTab: any;
+  setCurTab: (key: string) => void;
+  addTab: (axiosConfig: AxiosRequestConfig) => void;
 }
 
 const TopTabs: React.FC<IProps> = (props: IProps) => {
@@ -30,9 +32,14 @@ const TopTabs: React.FC<IProps> = (props: IProps) => {
       props.setCurTab(tabs[0].key);
     }
   };
+  const add = () => {
+    props.addTab({});
+  };
   const onEdit = (key: any, action: string) => {
     if (action == 'remove') {
       remove(key);
+    } else if (action == 'add') {
+      add();
     }
   };
   return (

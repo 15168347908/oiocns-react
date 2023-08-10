@@ -52,6 +52,29 @@ const TransferModal: React.FC<IProps> = (props: IProps) => {
 
   if (!rootMenu || !selectMenu) return <></>;
 
+  const Children: React.FC<any> = () => {
+    if (!axiosConfig) {
+      return <></>;
+    }
+    return (
+      <Layout key={curTab} style={{ height: '100%' }}>
+        <Content style={{ height: '100%' }}>
+          <Row>
+            <InputBox send={() => {}} axiosConfig={axiosConfig!}></InputBox>
+          </Row>
+          <Row style={{ marginTop: 10, height: '100%' }}>
+            <Col span={12}>
+              <RequestPart></RequestPart>
+            </Col>
+            <Col span={12}>
+              <Editor style={{ margin: 10 }}></Editor>
+            </Col>
+          </Row>
+        </Content>
+      </Layout>
+    );
+  };
+
   return (
     <FullScreenModal
       open
@@ -71,6 +94,7 @@ const TransferModal: React.FC<IProps> = (props: IProps) => {
             setMenus={setTabs}
             curTab={curTab}
             setCurTab={setCurTab}
+            addTab={(axiosConfig) => setAxiosConfig(axiosConfig)}
           />
         }
         onSelect={(data) => {
@@ -78,21 +102,7 @@ const TransferModal: React.FC<IProps> = (props: IProps) => {
           createTab(data);
           setCurTab(data.key);
         }}>
-        <Layout key={curTab} style={{ height: '100%' }}>
-          <Content style={{ height: '100%' }}>
-            <Row>
-              <InputBox></InputBox>
-            </Row>
-            <Row style={{ marginTop: 10, height: '100%' }}>
-              <Col span={12}>
-                <RequestPart></RequestPart>
-              </Col>
-              <Col span={12}>
-                <Editor style={{ margin: 10 }}></Editor>
-              </Col>
-            </Row>
-          </Content>
-        </Layout>
+        <Children></Children>
       </MainLayout>
     </FullScreenModal>
   );

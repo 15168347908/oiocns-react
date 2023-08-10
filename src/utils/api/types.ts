@@ -3,6 +3,16 @@ import { FileItemModel } from '@/ts/base/model';
 
 export type Parameters = Record<string, any>;
 
+export interface XRequestConfig {
+  id: string;
+  axiosConfig: AxiosRequestConfig;
+}
+
+export enum Method {
+  POST = 'POST',
+  GET = 'GET',
+}
+
 enum Retention {
   Runtime,
   Static,
@@ -15,7 +25,7 @@ export interface IEnvironment {
   parameters: Parameters;
 
   /** 联合一些其他环境变量 */
-  union(other: IEnvironment);
+  union(other: IEnvironment): void;
 }
 
 /** 可执行类型 */
