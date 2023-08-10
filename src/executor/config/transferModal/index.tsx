@@ -4,23 +4,18 @@ import FullScreenModal from '@/executor/tools/fullScreen';
 import useMenuUpdate from '@/hooks/useMenuUpdate';
 import { Controller } from '@/ts/controller';
 import { IDirectory } from '@/ts/core';
-import { DownOutlined } from '@ant-design/icons';
-import { ProTable } from '@ant-design/pro-components';
-import { Col, Dropdown, Input, Layout, Row, Space, Tabs } from 'antd';
+import { Col, Layout, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
-import { ItemType } from 'rc-menu/lib/interface';
-import { Tab } from 'rc-tabs/lib/interface';
-import React, { ReactNode, useState } from 'react';
-import * as im from 'react-icons/im';
+import React, { useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
-import cls from './index.module.less';
+import InputBox from './subModal/inputBox';
 import Editor from './subModal/monacor';
+import RequestPart from './subModal/requestPart';
+import TopTabs from './subModal/topTabs';
+import { AxiosRequestConfig } from 'axios';
 
-interface IDir {
+interface IProps {
   dir: IDirectory;
-}
-
-interface IProps extends IDir {
   finished: () => void;
 }
 
@@ -39,7 +34,7 @@ const TransferModal: React.FC<IProps> = (props: IProps) => {
     };
     return menu;
   };
-  const [key, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(
+  const [_, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(
     () => loadDirectoryMenu(props.dir),
     new Controller(props.dir.key),
   );
@@ -53,8 +48,10 @@ const TransferModal: React.FC<IProps> = (props: IProps) => {
   };
   const [tabs, setTabs] = useState<MenuItemType[]>([]);
   const [curTab, setCurTab] = useState<string>();
+  const [axiosConfig, setAxiosConfig] = useState<AxiosRequestConfig>();
 
   if (!rootMenu || !selectMenu) return <></>;
+
   return (
     <FullScreenModal
       open
@@ -81,203 +78,23 @@ const TransferModal: React.FC<IProps> = (props: IProps) => {
           createTab(data);
           setCurTab(data.key);
         }}>
-        <Layout key={key} style={{ height: '100%' }}>
-          <RequestPart></RequestPart>
+        <Layout key={curTab} style={{ height: '100%' }}>
+          <Content style={{ height: '100%' }}>
+            <Row>
+              <InputBox></InputBox>
+            </Row>
+            <Row style={{ marginTop: 10, height: '100%' }}>
+              <Col span={12}>
+                <RequestPart></RequestPart>
+              </Col>
+              <Col span={12}>
+                <Editor style={{ margin: 10 }}></Editor>
+              </Col>
+            </Row>
+          </Content>
         </Layout>
       </MainLayout>
     </FullScreenModal>
-  );
-};
-
-interface ITabs {
-  menus: MenuItemType[];
-  setMenus: any;
-  curTab?: string;
-  setCurTab: any;
-}
-
-const TopTabs: React.FC<ITabs> = (props: ITabs) => {
-  let tabs: Tab[] = props.menus.map((item) => {
-    return {
-      key: item.key,
-      label: item.label,
-    };
-  });
-  const remove = (key: any) => {
-    // 设置当前菜单项
-    let index = props.menus.findIndex((item) => item.key == key);
-    let menus = props.menus.filter((_, item) => item != index);
-    props.setMenus(menus);
-
-    // 设置当前 Tab
-    if (tabs.length > 0) {
-      props.setCurTab(tabs[0].key);
-    }
-  };
-  const onEdit = (key: any, action: string) => {
-    if (action == 'remove') {
-      remove(key);
-    }
-  };
-  return (
-    <Tabs
-      type="editable-card"
-      activeKey={props.curTab}
-      style={{ marginLeft: 10 }}
-      items={tabs}
-      addIcon={
-        <div style={{ height: 42 }} className={cls['flex-center']}>
-          <im.ImPlus />
-        </div>
-      }
-      onChange={(key) => props.setCurTab(key)}
-      onEdit={onEdit}
-      onSelect={() => {}}></Tabs>
-  );
-};
-
-const RequestPart: React.FC<{}> = () => {
-  return (
-    <Content style={{ height: '100%' }}>
-      <Row>
-        <InputBox></InputBox>
-      </Row>
-      <Row style={{ marginTop: 10, height: '100%' }}>
-        <Col span={12}>
-          <RequestConfig></RequestConfig>
-        </Col>
-        <Col span={12}>
-          <Editor style={{ margin: 10 }}></Editor>
-        </Col>
-      </Row>
-    </Content>
-  );
-};
-
-const InputBox: React.FC<{}> = () => {
-  let types = ['POST', 'GET'];
-  let menus: ItemType[] = types.map((item) => {
-    return {
-      key: item,
-      label: item,
-    };
-  });
-  const [method, setMethod] = useState<string>('GET');
-  let before = (
-    <Dropdown menu={{ items: menus, onClick: (info) => setMethod(info.key) }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-        <Space style={{ width: 80, userSelect: 'none' }}>{method}</Space>
-        <DownOutlined />
-      </div>
-    </Dropdown>
-  );
-  let after = (
-    <Space
-      style={{
-        width: 60,
-        display: 'flex',
-        justifyContent: 'center',
-        userSelect: 'none',
-      }}
-      onClick={() => {}}>
-      发 送
-    </Space>
-  );
-  return (
-    <Input
-      addonBefore={before}
-      addonAfter={after}
-      size="large"
-      placeholder="输入 URL 地址"
-    />
-  );
-};
-
-const RequestConfig: React.FC<{}> = () => {
-  const keys: { [key: string]: () => ReactNode } = {
-    Params: () => <Params></Params>,
-    Authorization: () => <Authorization></Authorization>,
-    Headers: () => <Headers></Headers>,
-    Body: () => <Editor style={{ margin: 4 }}></Editor>,
-  };
-  const [key, setKey] = useState<string>('Params');
-  return (
-    <div style={{ height: '100%' }}>
-      <Tabs
-        activeKey={key}
-        items={Object.keys(keys).map((key) => {
-          return {
-            key: key,
-            label: key,
-          };
-        })}
-        onChange={(item) => setKey(item)}
-      />
-      {keys[key]()}
-    </div>
-  );
-};
-
-const Params: React.FC<{}> = () => {
-  let params: any[] = [];
-  return (
-    <ProTable
-      dataSource={params}
-      cardProps={{ bodyStyle: { padding: 0 } }}
-      scroll={{ y: 300 }}
-      options={false}
-      search={false}
-      columns={[
-        {
-          title: 'Key',
-          valueType: 'key',
-        },
-        {
-          title: 'Value',
-          dataIndex: 'value',
-        },
-        {
-          title: 'Description',
-          dataIndex: 'description',
-        },
-      ]}
-    />
-  );
-};
-
-const Authorization: React.FC<{}> = () => {
-  return <></>;
-};
-
-const Headers: React.FC<{}> = () => {
-  let headers: any[] = [];
-  return (
-    <ProTable
-      dataSource={headers}
-      cardProps={{ bodyStyle: { padding: 0 } }}
-      scroll={{ y: 300 }}
-      options={false}
-      search={false}
-      columns={[
-        {
-          title: 'Key',
-          valueType: 'key',
-        },
-        {
-          title: 'Value',
-          dataIndex: 'value',
-        },
-        {
-          title: 'Description',
-          dataIndex: 'description',
-        },
-      ]}
-    />
   );
 };
 

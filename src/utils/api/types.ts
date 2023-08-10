@@ -1,5 +1,4 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { IDirectory } from '@/ts/core';
 import { FileItemModel } from '@/ts/base/model';
 
 export type Parameters = Record<string, any>;
@@ -45,34 +44,18 @@ export interface IExecutable {
 }
 
 /** 请求配置，需要持久化 */
-export interface IRequestConfig<D> {
-  axiosConfig: AxiosRequestConfig<D>;
-  directory: IDirectory;
+export interface IRequestConfig {
+  config: AxiosRequestConfig<any>;
 
-  /** 添加一个请求头 */
-  addHeader(key: string, value: string): IRequestConfig<D>;
-  /** 删除一个请求头 */
-  delHeader(key: string, value: string): IRequestConfig<D>;
-  /** 添加一个参数 */
-  addParam(key: string, value: string): IRequestConfig<D>;
-  /** 删除一个参数 */
-  delParam(key: string, value: string): IRequestConfig<D>;
-  /** 设置数据 */
-  setData(any: D): IRequestConfig<D>;
-  /** 添加一个可执行脚本 */
-  addExecutable(exec: IExecutable);
-  /** 移除一个可执行脚本 */
-  delExecutable(key: string);
-  /** 保存配置文件 */
+  /** 替换占位符 */
+  replaceHolder(env: IEnvironment): void;
   save(): FileItemModel;
 }
 
 /** 请求执行 */
-export interface IRequestExecutor<D> {
-  config: IRequestConfig<D>;
-  next?: IRequestExecutor<any>;
+export interface IRequestExecutor {
+  config: IRequestConfig;
 
   /** 执行请求 */
-  exec(env: IEnvironment): Promise<AxiosResponse>;
+  exec(env?: IEnvironment): Promise<AxiosResponse>;
 }
-
