@@ -25,7 +25,7 @@ export function createProxy() {
       ws: true,
     },
     '/jx': {
-      target: 'http://gzzcytest-gz-assetstore.demo.test.hzjuxiu.com:81',
+      target: 'https://hzjx-gzzcy-saber-assetstore-ssl.zcyonline.hzjuxiu.com',
       changeOrigin: true, // 是否允许跨域
       rewrite: (path) => path.replace(/^\/jx/, ''),
     },

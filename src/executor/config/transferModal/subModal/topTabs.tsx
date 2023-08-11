@@ -1,37 +1,27 @@
-import { Tabs } from 'antd';
-import * as im from 'react-icons/im';
-import { Tab } from 'rc-tabs/lib/interface';
-import cls from './../index.module.less';
-import { MenuItemType } from 'typings/globelType';
+import { Modal, Tabs } from 'antd';
 import React from 'react';
-import { Modal } from 'antd';
-import RequestConfigModal from './topTabs/requestConfigModal';
-import { XRequestConfig } from '@/utils/api/types';
+import * as im from 'react-icons/im';
+import { TabContext } from './../index';
+import cls from './../index.module.less';
+import RequestConfigModal from './forms/requestConfigModal';
 
 interface IProps {
-  menus: MenuItemType[];
-  setMenus: (menus: MenuItemType[]) => void;
-  curTab?: string;
-  setCurTab: (key: string) => void;
-  addConfig: (config: XRequestConfig) => void;
+  context: TabContext;
 }
 
 const TopTabs: React.FC<IProps> = (props: IProps) => {
-  let tabs: Tab[] = props.menus.map((item) => {
-    return {
-      key: item.key,
-      label: item.label,
-    };
-  });
+  const context = props.context;
   const remove = (key: any) => {
     // 设置当前菜单项
-    let index = props.menus.findIndex((item) => item.key == key);
-    let menus = props.menus.filter((_, item) => item != index);
-    props.setMenus(menus);
+    let index = context.tabs.findIndex((item) => item.key == key);
+    let tabs = context.tabs.filter((_, item) => item != index);
+    context.setTabs(tabs);
 
     // 设置当前 Tab
     if (tabs.length > 0) {
-      props.setCurTab(tabs[0].key);
+      context.setCurTab(tabs[0]);
+    } else {
+      context.setCurTab(undefined);
     }
   };
   const add = () => {
@@ -39,16 +29,20 @@ const TopTabs: React.FC<IProps> = (props: IProps) => {
       content: (
         <RequestConfigModal
           save={(config) => {
-            props.addConfig(config);
-            props.setMenus([
-              ...props.menus,
-              { key: config.code, label: config.name, itemType: 'file', children: [] },
-            ]);
-            props.setCurTab(config.code);
+            let newTab = {
+              item: config,
+              key: config.code,
+              label: config.name,
+              itemType: 'file',
+              children: [],
+            };
+            context.setTabs([...context.tabs, newTab]);
+            context.setCurTab(newTab);
           }}
           finished={() => modal.destroy()}
         />
       ),
+      onCancel: () => modal.destroy(),
     });
   };
   const onEdit = (key: any, action: string) => {
@@ -61,15 +55,26 @@ const TopTabs: React.FC<IProps> = (props: IProps) => {
   return (
     <Tabs
       type="editable-card"
-      activeKey={props.curTab}
+      activeKey={context.curTab?.key}
       style={{ marginLeft: 10 }}
-      items={tabs}
+      items={context.tabs.map((item) => {
+        return {
+          key: item.key,
+          label: item.label,
+        };
+      })}
       addIcon={
         <div style={{ height: 42 }} className={cls['flex-center']}>
           <im.ImPlus />
         </div>
       }
-      onChange={(key) => props.setCurTab(key)}
+      onChange={(key) => {
+        for (let tab of context.tabs) {
+          if (tab.key == key) {
+            context.curTab = tab;
+          }
+        }
+      }}
       onEdit={onEdit}
     />
   );

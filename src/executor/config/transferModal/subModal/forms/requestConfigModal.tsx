@@ -37,7 +37,7 @@ const RequestConfigModal = (props: IProps) => {
       layoutType="ModalForm"
       onFinish={async (values) => {
         values.axiosConfig = {
-          method: Method.POST,
+          method: Method.GET,
         };
         props.save(values);
         props.finished();

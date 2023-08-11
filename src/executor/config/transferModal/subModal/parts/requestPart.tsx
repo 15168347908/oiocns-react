@@ -3,12 +3,16 @@ import { Tabs } from 'antd';
 import React, { ReactNode, useState } from 'react';
 import Editor from './monacor';
 
-const RequestPart: React.FC<{}> = () => {
+interface IProps {
+  setBody: (value: string) => void;
+}
+
+const RequestPart: React.FC<IProps> = (props: IProps) => {
   const keys: { [key: string]: () => ReactNode } = {
     Params: () => <Params></Params>,
     Authorization: () => <Authorization></Authorization>,
     Headers: () => <Headers></Headers>,
-    Body: () => <Editor style={{ margin: 4 }}></Editor>,
+    Body: () => <Body setBody={props.setBody}></Body>,
   };
   const [key, setKey] = useState<string>('Params');
   return (
@@ -84,6 +88,10 @@ const Headers: React.FC<{}> = () => {
       ]}
     />
   );
+};
+
+const Body: React.FC<IProps> = (props: IProps) => {
+  return <Editor style={{ margin: 4 }} onChange={props.setBody}></Editor>;
 };
 
 export default RequestPart;

@@ -4,24 +4,36 @@ import FullScreenModal from '@/executor/tools/fullScreen';
 import useMenuUpdate from '@/hooks/useMenuUpdate';
 import { Controller } from '@/ts/controller';
 import { IDirectory } from '@/ts/core';
-import { XRequestConfig } from '@/utils/api/types';
-import { Col, Layout, Row } from 'antd';
-import { Content } from 'antd/lib/layout/layout';
 import React, { useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
-import InputBox from './subModal/inputBox';
-import Editor from './subModal/monacor';
-import RequestPart from './subModal/requestPart';
+import ContainerLayout from './subModal/layout';
 import TopTabs from './subModal/topTabs';
-import RequestConfig from '@/utils/api/impl/config';
-import RequestExecutor from '@/utils/api/impl/executor';
+import { AxiosResponse } from 'axios';
 
 interface IProps {
   dir: IDirectory;
   finished: () => void;
 }
 
+export interface TabContext {
+  tabs: MenuItemType[];
+  setTabs: React.Dispatch<React.SetStateAction<MenuItemType[]>>;
+  curTab?: MenuItemType;
+  setCurTab: React.Dispatch<React.SetStateAction<MenuItemType | undefined>>;
+}
+
+export interface RespContext {
+  res: AxiosResponse | undefined;
+  setRes: React.Dispatch<React.SetStateAction<AxiosResponse | undefined>>;
+}
+
 const TransferModal: React.FC<IProps> = (props: IProps) => {
+  const [tabs, setTabs] = useState<MenuItemType[]>([]);
+  const [curTab, setCurTab] = useState<MenuItemType>();
+  const [res, setRes] = useState<AxiosResponse>();
+  const tabContext: TabContext = { tabs, setTabs, curTab, setCurTab };
+  const respContext: RespContext = { res, setRes };
+
   // 文件夹菜单
   const loadDirectoryMenu = (directory: IDirectory): MenuItemType => {
     let menu: MenuItemType = {
@@ -41,50 +53,13 @@ const TransferModal: React.FC<IProps> = (props: IProps) => {
     new Controller(props.dir.key),
   );
 
-  // 顶部 tabs
-  const createTab = (menu: MenuItemType) => {
-    let index = tabs.findIndex((item) => item.key == menu.key);
-    if (index == -1) {
-      setTabs([...tabs, menu]);
-    }
-  };
-  const [tabs, setTabs] = useState<MenuItemType[]>([]);
-  const [curTab, setCurTab] = useState<string>();
-  const [config, setConfig] = useState<XRequestConfig>();
-
   if (!rootMenu || !selectMenu) return <></>;
 
-  const Children: React.FC<any> = () => {
-    if (!config) {
+  const Container: React.FC<any> = () => {
+    if (!curTab) {
       return <></>;
     }
-    return (
-      <Layout key={curTab} style={{ height: '100%' }}>
-        <Content style={{ height: '100%' }}>
-        <Row>
-            <InputBox
-              send={async () => {
-                let requestConfig = new RequestConfig(config!);
-                let executor = new RequestExecutor(requestConfig);
-                let res = await executor.exec();
-                console.log(res);
-              }}
-              config={config!}
-              onChange={(value) => {
-                config.axiosConfig.url = value;
-              }}></InputBox>
-          </Row>
-          <Row style={{ marginTop: 10, height: '100%' }}>
-            <Col span={12}>
-              <RequestPart></RequestPart>
-            </Col>
-            <Col span={12}>
-              <Editor style={{ margin: 10 }}></Editor>
-            </Col>
-          </Row>
-        </Content>
-      </Layout>
-    );
+    return <ContainerLayout curTab={curTab!} context={respContext}></ContainerLayout>;
   };
 
   return (
@@ -100,21 +75,11 @@ const TransferModal: React.FC<IProps> = (props: IProps) => {
       <MainLayout
         siderMenuData={rootMenu}
         selectMenu={selectMenu}
-        top={
-          <TopTabs
-            menus={tabs}
-            setMenus={setTabs}
-            curTab={curTab}
-            setCurTab={setCurTab}
-            addConfig={(axiosConfig) => setConfig(axiosConfig)}
-          />
-        }
+        top={<TopTabs context={tabContext} />}
         onSelect={(data) => {
           setSelectMenu(data);
-          createTab(data);
-          setCurTab(data.key);
         }}>
-        <Children></Children>
+        <Container></Container>
       </MainLayout>
     </FullScreenModal>
   );

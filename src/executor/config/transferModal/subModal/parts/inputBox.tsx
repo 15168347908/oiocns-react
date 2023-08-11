@@ -10,7 +10,8 @@ interface IProps {
 }
 
 const InputBox: React.FC<IProps> = (props: IProps) => {
-  let initMethod = props.config.axiosConfig?.method || Method.GET;
+  let axiosConfig = props.config.axiosConfig;
+  let initMethod = axiosConfig?.method || Method.GET;
   const [method, setMethod] = useState<string>(initMethod);
   let before = (
     <Dropdown
@@ -53,6 +54,7 @@ const InputBox: React.FC<IProps> = (props: IProps) => {
     <Input
       addonBefore={before}
       addonAfter={after}
+      value={axiosConfig.url}
       placeholder="输入 URL 地址"
       onChange={(event) => {
         props.onChange(event.target.value);
