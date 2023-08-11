@@ -4,14 +4,16 @@ import { Tab } from 'rc-tabs/lib/interface';
 import cls from './../index.module.less';
 import { MenuItemType } from 'typings/globelType';
 import React from 'react';
-import { AxiosRequestConfig } from 'axios';
+import { Modal } from 'antd';
+import RequestConfigModal from './topTabs/requestConfigModal';
+import { XRequestConfig } from '@/utils/api/types';
 
 interface IProps {
   menus: MenuItemType[];
   setMenus: (menus: MenuItemType[]) => void;
   curTab?: string;
   setCurTab: (key: string) => void;
-  addTab: (axiosConfig: AxiosRequestConfig) => void;
+  addConfig: (config: XRequestConfig) => void;
 }
 
 const TopTabs: React.FC<IProps> = (props: IProps) => {
@@ -33,7 +35,21 @@ const TopTabs: React.FC<IProps> = (props: IProps) => {
     }
   };
   const add = () => {
-    props.addTab({});
+    const modal = Modal.info({
+      content: (
+        <RequestConfigModal
+          save={(config) => {
+            props.addConfig(config);
+            props.setMenus([
+              ...props.menus,
+              { key: config.code, label: config.name, itemType: 'file', children: [] },
+            ]);
+            props.setCurTab(config.code);
+          }}
+          finished={() => modal.destroy()}
+        />
+      ),
+    });
   };
   const onEdit = (key: any, action: string) => {
     if (action == 'remove') {
@@ -55,7 +71,6 @@ const TopTabs: React.FC<IProps> = (props: IProps) => {
       }
       onChange={(key) => props.setCurTab(key)}
       onEdit={onEdit}
-      onSelect={() => {}}
     />
   );
 };

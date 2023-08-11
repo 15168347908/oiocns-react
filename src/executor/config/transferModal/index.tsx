@@ -4,6 +4,7 @@ import FullScreenModal from '@/executor/tools/fullScreen';
 import useMenuUpdate from '@/hooks/useMenuUpdate';
 import { Controller } from '@/ts/controller';
 import { IDirectory } from '@/ts/core';
+import { XRequestConfig } from '@/utils/api/types';
 import { Col, Layout, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import React, { useState } from 'react';
@@ -12,7 +13,8 @@ import InputBox from './subModal/inputBox';
 import Editor from './subModal/monacor';
 import RequestPart from './subModal/requestPart';
 import TopTabs from './subModal/topTabs';
-import { AxiosRequestConfig } from 'axios';
+import RequestConfig from '@/utils/api/impl/config';
+import RequestExecutor from '@/utils/api/impl/executor';
 
 interface IProps {
   dir: IDirectory;
@@ -48,19 +50,29 @@ const TransferModal: React.FC<IProps> = (props: IProps) => {
   };
   const [tabs, setTabs] = useState<MenuItemType[]>([]);
   const [curTab, setCurTab] = useState<string>();
-  const [axiosConfig, setAxiosConfig] = useState<AxiosRequestConfig>();
+  const [config, setConfig] = useState<XRequestConfig>();
 
   if (!rootMenu || !selectMenu) return <></>;
 
   const Children: React.FC<any> = () => {
-    if (!axiosConfig) {
+    if (!config) {
       return <></>;
     }
     return (
       <Layout key={curTab} style={{ height: '100%' }}>
         <Content style={{ height: '100%' }}>
-          <Row>
-            <InputBox send={() => {}} axiosConfig={axiosConfig!}></InputBox>
+        <Row>
+            <InputBox
+              send={async () => {
+                let requestConfig = new RequestConfig(config!);
+                let executor = new RequestExecutor(requestConfig);
+                let res = await executor.exec();
+                console.log(res);
+              }}
+              config={config!}
+              onChange={(value) => {
+                config.axiosConfig.url = value;
+              }}></InputBox>
           </Row>
           <Row style={{ marginTop: 10, height: '100%' }}>
             <Col span={12}>
@@ -94,7 +106,7 @@ const TransferModal: React.FC<IProps> = (props: IProps) => {
             setMenus={setTabs}
             curTab={curTab}
             setCurTab={setCurTab}
-            addTab={(axiosConfig) => setAxiosConfig(axiosConfig)}
+            addConfig={(axiosConfig) => setConfig(axiosConfig)}
           />
         }
         onSelect={(data) => {

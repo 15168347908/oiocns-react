@@ -5,6 +5,8 @@ export type Parameters = Record<string, any>;
 
 export interface XRequestConfig {
   id: string;
+  name: string;
+  code: string;
   axiosConfig: AxiosRequestConfig;
 }
 
@@ -55,7 +57,7 @@ export interface IExecutable {
 
 /** 请求配置，需要持久化 */
 export interface IRequestConfig {
-  config: AxiosRequestConfig<any>;
+  config: XRequestConfig;
 
   /** 替换占位符 */
   replaceHolder(env: IEnvironment): void;
@@ -64,7 +66,7 @@ export interface IRequestConfig {
 
 /** 请求执行 */
 export interface IRequestExecutor {
-  config: IRequestConfig;
+  requestConfig: IRequestConfig;
 
   /** 执行请求 */
   exec(env?: IEnvironment): Promise<AxiosResponse>;

@@ -1,17 +1,17 @@
 import { DownOutlined } from '@ant-design/icons';
 import { Dropdown, Input, Space } from 'antd';
-import { AxiosRequestConfig } from 'axios';
 import React, { useState } from 'react';
-import { Method } from '@/utils/api/types';
+import { Method, XRequestConfig } from '@/utils/api/types';
 
 interface IProps {
-  axiosConfig: AxiosRequestConfig;
+  config: XRequestConfig;
+  onChange: (value: string) => void;
   send: () => void;
 }
 
 const InputBox: React.FC<IProps> = (props: IProps) => {
-  props.axiosConfig.method ??= Method.GET;
-  const [method, setMethod] = useState<string>(props.axiosConfig.method || Method.GET);
+  let initMethod = props.config.axiosConfig?.method || Method.GET;
+  const [method, setMethod] = useState<string>(initMethod);
   let before = (
     <Dropdown
       menu={{
@@ -23,7 +23,7 @@ const InputBox: React.FC<IProps> = (props: IProps) => {
         }),
         onClick: (info) => {
           setMethod(info.key);
-          props.axiosConfig.method = info.key;
+          props.config.axiosConfig.method = info.key;
         },
       }}>
       <div
@@ -49,7 +49,16 @@ const InputBox: React.FC<IProps> = (props: IProps) => {
       Send
     </Space>
   );
-  return <Input addonBefore={before} addonAfter={after} placeholder="输入 URL 地址" />;
+  return (
+    <Input
+      addonBefore={before}
+      addonAfter={after}
+      placeholder="输入 URL 地址"
+      onChange={(event) => {
+        props.onChange(event.target.value);
+      }}
+    />
+  );
 };
 
 export default InputBox;

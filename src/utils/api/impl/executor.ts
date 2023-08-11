@@ -2,16 +2,16 @@ import axios, { AxiosResponse } from 'axios';
 import { IEnvironment, IRequestConfig, IRequestExecutor } from '../types';
 
 export default class RequestExecutor implements IRequestExecutor {
-  config: IRequestConfig;
+  requestConfig: IRequestConfig;
 
   constructor(config: IRequestConfig) {
-    this.config = config;
+    this.requestConfig = config;
   }
 
   async exec(environment?: IEnvironment): Promise<AxiosResponse<any, any>> {
     if (environment) {
-      this.config.replaceHolder(environment);
+      this.requestConfig.replaceHolder(environment);
     }
-    return await axios.request(this.config.config);
+    return await axios.request(this.requestConfig.config.axiosConfig);
   }
 }

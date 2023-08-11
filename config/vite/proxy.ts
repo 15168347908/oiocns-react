@@ -24,6 +24,11 @@ export function createProxy() {
       changeOrigin: true, // 是否允许跨域
       ws: true,
     },
+    '/jx': {
+      target: 'http://gzzcytest-gz-assetstore.demo.test.hzjuxiu.com:81',
+      changeOrigin: true, // 是否允许跨域
+      rewrite: (path) => path.replace(/^\/jx/, ''),
+    },
   };
   return ProxyList;
 }
