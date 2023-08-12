@@ -1,5 +1,5 @@
 import React from 'react';
-import Editor from './monacor';
+import MonacoEditor from './monacor';
 import { RespContext } from '../..';
 
 interface IProps {
@@ -11,7 +11,7 @@ const ResponsePart: React.FC<IProps> = (props: IProps) => {
   let value = data ? JSON.stringify(data) : '';
   console.log(value);
   return (
-    <Editor style={{ margin: 10 }} value={"asdasd"} />
+    <MonacoEditor style={{ margin: 10 }} value={"asdasd"} />
   );
 };
 

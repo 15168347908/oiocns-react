@@ -1,56 +1,65 @@
-import React, { CSSProperties, createRef, useCallback, useEffect, useState } from 'react';
-import MonacoEditor from 'react-monaco-editor/lib/editor';
+import Editor from '@monaco-editor/react';
+import { editor } from 'monaco-editor';
 import cls from './../../index.module.less';
-import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
+import React, { CSSProperties, useEffect, useRef, useState, useCallback } from 'react';
 
-type Options = monacoEditor.editor.IStandaloneEditorConstructionOptions;
+type Options = editor.IStandaloneEditorConstructionOptions;
 
 interface IProps {
   style?: CSSProperties;
-  theme?: string;
-  value?: string;
+  defaultLanguage?: string;
   defaultValue?: string;
   options?: Options;
   onChange?: (value: string) => void;
 }
 
-const defaultOptions: Options = {
-  language: 'json',
+const defaultProps: IProps = {
+  defaultLanguage: 'json',
+  options: {
+    automaticLayout: false,
+  },
 };
 
-const Editor: React.FC<IProps> = (props: IProps) => {
-  // 实时更新宽高
-  const [width, setWidth] = useState<string>('100%');
-  const [height, setHeight] = useState<string>('100%');
+const MonacoEditor: React.FC<IProps> = (props: IProps) => {
+  props = {
+    ...defaultProps,
+    ...props,
+  };
+
+  // 编辑器
+  let editor: editor.IStandaloneCodeEditor = null!;
 
   // 监听父组件 Div 的宽高变化
-  const ref = createRef<HTMLDivElement>();
-  const monacoEditorResize = useCallback(() => {
-    setWidth(`${ref.current?.clientWidth}`);
-    setHeight(`${ref.current?.clientHeight}`);
+  const ref = useRef<HTMLDivElement>(null);
+  const resize = useCallback(() => {
+    editor?.layout({
+      width: ref.current?.clientWidth ?? 600,
+      height: ref.current?.clientHeight ?? 400,
+    });
   }, [ref]);
 
   // 监听函数
   useEffect(() => {
-    window.addEventListener('resize', monacoEditorResize);
+    window.addEventListener('resize', resize);
     return () => {
-      window.removeEventListener('resize', monacoEditorResize);
+      window.removeEventListener('resize', resize);
     };
-  }, [monacoEditorResize]);
+  }, [resize]);
 
   // 渲染
   return (
     <div style={props.style} className={cls['monaco']} ref={ref}>
-      <MonacoEditor
-        width={width}
-        height={height}
-        theme={props.theme}
-        value={props.defaultValue}
+      <Editor
+        defaultLanguage={props.defaultLanguage}
         defaultValue={props.defaultValue}
-        onChange={props.onChange}
+        options={props.options}
+        onMount={(e) => {
+          editor = e;
+          resize();
+        }}
       />
     </div>
   );
 };
 
-export default Editor;
+export default MonacoEditor;

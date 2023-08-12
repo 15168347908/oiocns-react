@@ -1,7 +1,7 @@
 import { ProTable } from '@ant-design/pro-components';
 import { Tabs } from 'antd';
 import React, { ReactNode, useState } from 'react';
-import Editor from './monacor';
+import MonacoEditor from './monacor';
 
 interface IProps {
   setBody: (value: string) => void;
@@ -91,7 +91,7 @@ const Headers: React.FC<{}> = () => {
 };
 
 const Body: React.FC<IProps> = (props: IProps) => {
-  return <Editor style={{ margin: 4 }} onChange={props.setBody}></Editor>;
+  return <MonacoEditor style={{ margin: 4 }} onChange={props.setBody}></MonacoEditor>;
 };
 
 export default RequestPart;
