@@ -10,7 +10,11 @@ const ResponsePart: React.FC<IProps> = (props: IProps) => {
   let data = props.resp?.data;
   let value = data ? JSON.stringify(data) : '';
   return (
-    <MonacoEditor style={{ margin: 10 }} options={{ value: value, readOnly: true }} />
+    <MonacoEditor
+      height={1200}
+      style={{ margin: 10 }}
+      options={{ value: value, readOnly: true }}
+    />
   );
 };
 

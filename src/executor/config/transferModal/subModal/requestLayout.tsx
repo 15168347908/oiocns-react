@@ -1,25 +1,24 @@
 import RequestConfig from '@/utils/api/impl/config';
 import RequestExecutor from '@/utils/api/impl/executor';
-import { Row, Col, Layout } from 'antd';
+import { XRequestConfig } from '@/utils/api/types';
+import { Col, Layout, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import { AxiosError, AxiosResponse } from 'axios';
 import React, { useState } from 'react';
-import InputBox from './parts/inputBox';
-import RequestPart, { ReqTab } from './parts/request';
-import ResponsePart from './parts/response/responsePart';
 import { MenuItemType } from 'typings/globelType';
-import { XRequestConfig } from '@/utils/api/types';
+import InputBox from './parts/inputBox';
+import RequestPart from './parts/request';
+import ResponsePart from './parts/response/responsePart';
 
 interface IProps {
   curTab: MenuItemType;
 }
 
-const RequestLayout: React.FC<IProps> = (props: IProps) => {
-  let config: XRequestConfig = props.curTab.item!;
-  console.log('重新渲染啦', config);
+const RequestLayout: React.FC<IProps> = ({ curTab }) => {
+  let config: XRequestConfig = curTab.item;
   const [resp, setResp] = useState<AxiosResponse>();
   return (
-    <Layout key={props.curTab.key} style={{ height: '100%' }}>
+    <Layout key={curTab.key} style={{ height: '100%' }}>
       <Content style={{ height: '100%' }}>
         <Row>
           <InputBox
@@ -28,7 +27,6 @@ const RequestLayout: React.FC<IProps> = (props: IProps) => {
               let requestExecutor = new RequestExecutor(requestConfig);
               try {
                 let res = await requestExecutor.exec();
-                console.log('返回值：', res);
                 setResp(res);
               } catch (error) {
                 if (error instanceof AxiosError) {

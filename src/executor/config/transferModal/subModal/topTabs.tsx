@@ -1,9 +1,9 @@
 import { Modal, Tabs } from 'antd';
 import React, { useState } from 'react';
 import * as im from 'react-icons/im';
+import { MenuItemType } from 'typings/globelType';
 import RequestConfigModal from './forms/requestConfigModal';
 import RequestLayout from './requestLayout';
-import { MenuItemType } from 'typings/globelType';
 interface IProps {}
 
 const TopTabs: React.FC<IProps> = (props: IProps) => {
@@ -60,7 +60,7 @@ const TopTabs: React.FC<IProps> = (props: IProps) => {
         return {
           key: item.key,
           label: item.label,
-          children: <RequestLayout curTab={item}></RequestLayout>,
+          children: <RequestLayout key={item.key} curTab={item}></RequestLayout>,
         };
       })}
       addIcon={
