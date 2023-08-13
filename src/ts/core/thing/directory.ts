@@ -11,14 +11,18 @@ import {
 import { ITarget } from '../target/base/target';
 import { Form, IForm } from './form';
 import { Report, IReport } from './report';
-import { SysFileInfo, ISysFileInfo, IFileInfo, FileInfo } from './fileinfo'; 
+import { SysFileInfo, ISysFileInfo, IFileInfo, FileInfo } from './fileinfo';
 
 import { Species, ISpecies } from './species';
 import { Member } from './member';
 import { Property, IProperty } from './property';
+import { Request, IRequest } from './request';
 import { Application, IApplication } from './application';
 import { BucketOpreates, DirectoryModel } from '@/ts/base/model';
-import { encodeKey } from '@/ts/base/common';
+import { encodeKey, generateUuid } from '@/ts/base/common';
+import dayjs from 'dayjs';
+import { formatDate } from '@/utils';
+
 /** 可为空的进度回调 */
 export type OnProgress = (p: number) => void;
 
@@ -84,6 +88,10 @@ export interface IDirectory extends IFileInfo<schema.XDirectory> {
   loadAllApplication(reload?: boolean): Promise<IApplication[]>;
   /** 加载目录树 */
   loadSubDirectory(): void;
+  /** 新建请求配置 */
+  createRequest(data: model.RequestModel): Promise<IRequest | undefined>;
+  /** 加载请求配置 */
+  loadRequests(reload?: boolean): Promise<IRequest[]>;
 }
 
 /** 目录实现类 */
@@ -116,6 +124,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
   propertys: IProperty[] = [];
   applications: IApplication[] = [];
   reports: IReport[] = [];
+  requests: IRequest[] = [];
   private _contentLoaded: boolean = false;
   get id(): string {
     if (!this.parent) {
@@ -158,7 +167,8 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
           await this.loadPropertys(reload),
           await this.loadSpecieses(reload),
           await this.loadApplications(reload),
-          await this.loadReports(reload)
+          await this.loadReports(reload),
+          await this.loadRequests(reload)
         ]);
       }
     }
@@ -458,5 +468,30 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       this.reports.push(report);
       return report;
     }
+  }
+  async createRequest(data: model.RequestModel): Promise<IRequest | undefined> {
+    data.id = generateUuid();
+    data.directoryId = this.id;
+    let current = formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss.S');
+    data.createTime = current;
+    data.updateTime = current;
+    let res = await kernel.anystore.insert(this.belongId, 'Request-config', data);
+    if (res.success) {
+      console.log(res);
+      return new Request(res.data, this);
+    }
+  }
+  async loadRequests(reload: boolean = false): Promise<IRequest[]> {
+    if (reload) {
+      const res = await kernel.anystore.aggregate(this.belongId, 'Request-config', {
+        match: {
+          directoryId: this.id,
+        },
+      });
+      if (res.success && res.data.length > 0) {
+        this.requests = (res.data as []).map((i) => new Request(i, this));
+      }
+    }
+    return this.requests;
   }
 }

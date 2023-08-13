@@ -2,11 +2,16 @@ import { Modal, Tabs } from 'antd';
 import React, { useState } from 'react';
 import * as im from 'react-icons/im';
 import { MenuItemType } from 'typings/globelType';
-import RequestConfigModal from './forms/requestConfigModal';
-import RequestLayout from './requestLayout';
-interface IProps {}
+import RequestModal from './forms/requestModal';
+import RequestLayout from './layout';
+import ApiCtrl from '@/utils/api/controller';
+import { IDirectory } from '@/ts/core';
 
-const TopTabs: React.FC<IProps> = (props: IProps) => {
+interface IProps {
+  dir: IDirectory;
+}
+
+const TopTabs: React.FC<IProps> = ({ dir }) => {
   const [tabs, setTabs] = useState<MenuItemType[]>([]);
   const [curTab, setCurTab] = useState<MenuItemType>();
 
@@ -26,11 +31,12 @@ const TopTabs: React.FC<IProps> = (props: IProps) => {
   const add = () => {
     const modal = Modal.info({
       content: (
-        <RequestConfigModal
+        <RequestModal
+          dir={dir}
           save={(config) => {
             let newTab = {
               item: config,
-              key: config.code,
+              key: config.id,
               label: config.name,
               itemType: 'file',
               children: [],
@@ -41,6 +47,7 @@ const TopTabs: React.FC<IProps> = (props: IProps) => {
           finished={() => modal.destroy()}
         />
       ),
+      onOk: () => modal.destroy(),
       onCancel: () => modal.destroy(),
     });
   };
@@ -74,13 +81,6 @@ const TopTabs: React.FC<IProps> = (props: IProps) => {
           <im.ImPlus />
         </div>
       }
-      onChange={(key) => {
-        for (let tab of tabs) {
-          if (tab.key == key) {
-            setCurTab(tab);
-          }
-        }
-      }}
       onEdit={onEdit}
     />
   );

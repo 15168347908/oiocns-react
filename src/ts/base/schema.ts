@@ -1,3 +1,5 @@
+import { AxiosRequestConfig } from 'axios';
+
 export type Xbase = {
   // 雪花ID
   id: string;
@@ -152,7 +154,7 @@ export type XForm = {
   bindNodes: XWorkNode[] | undefined;
   // 单的目录
   directory: XDirectory | undefined;
-  schema:schemaType
+  schema: schemaType;
 } & XEntity;
 
 //身份证明
@@ -566,4 +568,9 @@ export type XReport = {
   bindNodes: XWorkNode[] | undefined;
   // 报表的目录
   directory: XDirectory | undefined;
+} & XEntity;
+
+/** 请求定义 */
+export type XRequest = {
+  axios: AxiosRequestConfig;
 } & XEntity;

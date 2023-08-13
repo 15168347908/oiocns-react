@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import MonacoEditor from '../monacor';
 import { AxiosResponse } from 'axios';
 
@@ -7,13 +7,12 @@ interface IProps {
 }
 
 const ResponsePart: React.FC<IProps> = (props: IProps) => {
-  let data = props.resp?.data;
-  let value = data ? JSON.stringify(data) : '';
+  const [resp] = useState<AxiosResponse | undefined>(props.resp);
   return (
     <MonacoEditor
       height={1200}
       style={{ margin: 10 }}
-      options={{ value: value, readOnly: true }}
+      options={{ value: resp?.data, readOnly: true }}
     />
   );
 };

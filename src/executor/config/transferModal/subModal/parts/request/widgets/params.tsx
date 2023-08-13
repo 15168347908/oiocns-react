@@ -1,13 +1,12 @@
+import { IRequest } from '@/ts/core/thing/request';
 import { ProTable } from '@ant-design/pro-components';
 import React from 'react';
 
-type Kv = { [key: string]: any };
-
 export interface IProps {
-  updateParams: (value?: Kv) => void;
+  request: IRequest;
 }
 
-const Params: React.FC<IProps> = (props: IProps) => {
+const Params: React.FC<IProps> = ({ request }) => {
   let params: any[] = [];
   return (
     <ProTable

@@ -1,14 +1,12 @@
+import { IRequest } from '@/ts/core/thing/request';
 import { ProTable } from '@ant-design/pro-components';
-import { AxiosHeaders, RawAxiosRequestHeaders } from 'axios';
 import React from 'react';
 
-type Header = RawAxiosRequestHeaders | AxiosHeaders;
-
 export interface IProps {
-  updateHeaders: (value?: Header) => void;
+  request: IRequest;
 }
 
-const Headers: React.FC<IProps> = (props: IProps) => {
+const Headers: React.FC<IProps> = ({ request }) => {
   let headers: any[] = [];
   return (
     <ProTable

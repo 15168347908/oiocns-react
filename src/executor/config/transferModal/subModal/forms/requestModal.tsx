@@ -1,32 +1,29 @@
 import React from 'react';
 import SchemaForm from '@/components/SchemaForm';
 import { ProFormColumnsType } from '@ant-design/pro-components';
-import { Method, XRequestConfig } from '@/utils/api/types';
+import { XRequestConfig } from '@/utils/api/types';
+import { Method } from '@/utils/api/consts';
+import { IDirectory } from '@/ts/core';
+import { RequestModel } from '@/ts/base/model';
 
 interface IProps {
+  dir: IDirectory;
   save: (requestConfig: XRequestConfig) => void;
   finished: () => void;
 }
 
-const RequestConfigModal = (props: IProps) => {
-  const columns: ProFormColumnsType<XRequestConfig>[] = [
-    {
-      title: '代码',
-      dataIndex: 'code',
-      formItemProps: {
-        rules: [{ required: true, message: '分类代码为必填项' }],
-      },
-    },
+const RequestModal: React.FC<IProps> = ({ dir, save, finished }) => {
+  const columns: ProFormColumnsType<RequestModel>[] = [
     {
       title: '名称',
       dataIndex: 'name',
       formItemProps: {
-        rules: [{ required: true, message: '分类名称为必填项' }],
+        rules: [{ required: true, message: '名称为必填项' }],
       },
     },
   ];
   return (
-    <SchemaForm<XRequestConfig>
+    <SchemaForm<RequestModel>
       open
       title="请求配置"
       width={640}
@@ -39,10 +36,12 @@ const RequestConfigModal = (props: IProps) => {
         values.axios = {
           method: Method.GET,
         };
-        props.save(values);
-        props.finished();
-      }}></SchemaForm>
+        await dir.createRequest(values);
+        save(values);
+        finished();
+      }}
+    />
   );
 };
 
-export default RequestConfigModal;
+export default RequestModal;

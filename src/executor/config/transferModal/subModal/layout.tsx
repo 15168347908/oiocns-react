@@ -1,6 +1,3 @@
-import RequestConfig from '@/utils/api/impl/config';
-import RequestExecutor from '@/utils/api/impl/executor';
-import { XRequestConfig } from '@/utils/api/types';
 import { Col, Layout, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import { AxiosError, AxiosResponse } from 'axios';
@@ -9,13 +6,14 @@ import { MenuItemType } from 'typings/globelType';
 import InputBox from './parts/inputBox';
 import RequestPart from './parts/request';
 import ResponsePart from './parts/response/responsePart';
+import { IRequest } from '@/ts/core/thing/request';
 
 interface IProps {
   curTab: MenuItemType;
 }
 
 const RequestLayout: React.FC<IProps> = ({ curTab }) => {
-  let config: XRequestConfig = curTab.item;
+  let request: IRequest = curTab.item;
   const [resp, setResp] = useState<AxiosResponse>();
   return (
     <Layout key={curTab.key} style={{ height: '100%' }}>
@@ -23,28 +21,22 @@ const RequestLayout: React.FC<IProps> = ({ curTab }) => {
         <Row>
           <InputBox
             send={async () => {
-              let requestConfig = new RequestConfig(config);
-              let requestExecutor = new RequestExecutor(requestConfig);
               try {
-                let res = await requestExecutor.exec();
-                setResp(res);
+                let res = await request.exec();
+                setResp(() => res);
               } catch (error) {
                 if (error instanceof AxiosError) {
-                  setResp(error.response);
+                  setResp(() => (error as AxiosError).response);
                 }
               }
             }}
-            config={config}
-            onChange={(value) => (config.axios.url = value)}
+            axios={request.metadata.axios}
+            onChange={(value) => (request.metadata.axios.url = value)}
           />
         </Row>
         <Row style={{ marginTop: 10, height: '100%' }}>
           <Col span={12}>
-            <RequestPart
-              updateParams={(value) => (config.axios.params = value)}
-              updateHeaders={(value) => (config.axios.headers = value)}
-              updateBody={(value) => (config.axios.data = value)}
-            />
+            <RequestPart request={request}></RequestPart>
           </Col>
           <Col span={12}>
             <ResponsePart resp={resp}></ResponsePart>

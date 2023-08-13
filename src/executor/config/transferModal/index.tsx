@@ -13,8 +13,8 @@ interface IProps {
   finished: () => void;
 }
 
-const TransferModal: React.FC<IProps> = (props: IProps) => {
-  // 文件夹菜单
+const TransferModal: React.FC<IProps> = ({ dir, finished }) => {
+  // 配置文件菜单
   const loadDirectoryMenu = (directory: IDirectory): MenuItemType => {
     let menu: MenuItemType = {
       key: directory.id,
@@ -28,13 +28,13 @@ const TransferModal: React.FC<IProps> = (props: IProps) => {
     };
     return menu;
   };
+  // 菜单控制
   const [_, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(
-    () => loadDirectoryMenu(props.dir),
-    new Controller(props.dir.key),
+    () => loadDirectoryMenu(dir),
+    new Controller(dir.key),
   );
 
   if (!rootMenu || !selectMenu) return <></>;
-
   return (
     <FullScreenModal
       open
@@ -44,14 +44,12 @@ const TransferModal: React.FC<IProps> = (props: IProps) => {
       bodyHeight={'80vh'}
       destroyOnClose
       title={'请求配置'}
-      onCancel={() => props.finished()}>
+      onCancel={() => finished()}>
       <MainLayout
         siderMenuData={rootMenu}
         selectMenu={selectMenu}
-        onSelect={(data) => {
-          setSelectMenu(data);
-        }}
-        children={<TopTabs />}
+        onSelect={(data) => setSelectMenu(data)}
+        children={<TopTabs dir={dir} />}
       />
     </FullScreenModal>
   );

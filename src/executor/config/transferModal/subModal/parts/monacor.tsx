@@ -1,6 +1,6 @@
 import Editor from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
-import React, { CSSProperties, useCallback, useEffect, useRef } from 'react';
+import React, { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
 
 type Options = editor.IStandaloneEditorConstructionOptions;
 
@@ -19,6 +19,9 @@ const defaultProps: IProps = {
 };
 
 const MonacoEditor: React.FC<IProps> = (props: IProps) => {
+  const div = useRef<HTMLDivElement>(null);
+  const editor = useRef<editor.IStandaloneCodeEditor>();
+
   props = {
     ...defaultProps,
     ...props,
@@ -26,17 +29,38 @@ const MonacoEditor: React.FC<IProps> = (props: IProps) => {
     options: { ...props.options, automaticLayout: false },
   };
 
-  // 编辑器
-  let editor: editor.IStandaloneCodeEditor = null!;
-
   // 监听父组件 Div 的宽高变化
-  const ref = useRef<HTMLDivElement>(null);
   const resize = useCallback(() => {
-    editor?.layout({
-      width: ref.current?.clientWidth ?? 600,
-      height: ref.current?.clientHeight ?? 400,
+    editor.current?.layout({
+      width: div.current?.clientWidth!,
+      height: div.current?.clientHeight!,
     });
-  }, [ref]);
+  }, [div]);
+
+  // 初始化数值
+  const initValue = () => {
+    let value = props.options?.value;
+    console.log('开始渲染数据', value);
+    if (value) {
+      switch (props.defaultLanguage) {
+        case 'json':
+          try {
+            editor.current?.setValue(JSON.stringify(JSON.parse(value), null, 2));
+            break;
+          } catch (error) {
+            console.log('initValue error:', error);
+          }
+        default:
+          editor.current?.setValue(value);
+      }
+    }
+  };
+
+  // 渲染后调用函数
+  const onMount = () => {
+    resize();
+    initValue();
+  };
 
   // 监听函数
   useEffect(() => {
@@ -46,27 +70,9 @@ const MonacoEditor: React.FC<IProps> = (props: IProps) => {
     };
   }, [resize]);
 
-  // 初始化数值
-  const initValue = () => {
-    let value = props.options?.value;
-    if (value) {
-      switch (props.defaultLanguage) {
-        case 'json':
-          try {
-            editor.setValue(JSON.stringify(JSON.parse(value), null, 2));
-            break;
-          } catch (error) {
-            console.log('initValue error:', error);
-          }
-        default:
-          editor.setValue(value);
-      }
-    }
-  };
-
   // 渲染
   return (
-    <div style={{ ...props.style, height: '100%', width: '100%' }} ref={ref}>
+    <div style={{ ...props.style, height: '100%', width: '100%' }} ref={div}>
       <Editor
         width={props.width}
         height={props.height}
@@ -74,9 +80,8 @@ const MonacoEditor: React.FC<IProps> = (props: IProps) => {
         defaultValue={props.defaultValue}
         options={props.options}
         onMount={(e) => {
-          editor = e;
-          resize();
-          initValue();
+          editor.current = e;
+          onMount();
         }}
         onChange={(value) => {
           props.onChange?.apply(props, [value]);

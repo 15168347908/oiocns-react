@@ -3,20 +3,19 @@ import React from 'react';
 import Body from './widgets/Body';
 import Headers from './widgets/headers';
 import Params from './widgets/params';
+import { IRequest } from '@/ts/core/thing/request';
 
 export type ReqTab = 'Param' | 'Header' | 'Body';
 
 interface IProps {
-  updateParams: (value: any) => void;
-  updateHeaders: (value: any) => void;
-  updateBody: (value: any) => void;
+  request: IRequest;
 }
 
-const RequestPart: React.FC<IProps> = ({ updateParams, updateHeaders, updateBody }) => {
+const RequestPart: React.FC<IProps> = ({ request }) => {
   const keys: { [key in string]: () => React.ReactNode } = {
-    Param: () => <Params updateParams={updateParams} />,
-    Header: () => <Headers updateHeaders={updateHeaders} />,
-    Body: () => <Body updateBody={updateBody} />,
+    Param: () => <Params request={request} />,
+    Header: () => <Headers request={request} />,
+    Body: () => <Body request={request} />,
   };
   return (
     <Tabs
