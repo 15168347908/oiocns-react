@@ -9,7 +9,7 @@ export default class RequestExecutor implements IRequestExecutor {
   }
 
   get axios() {
-    return this.requestConfig.config.axiosConfig;
+    return this.requestConfig.config.axios;
   }
 
   async exec(environment?: IEnvironment): Promise<AxiosResponse<any, any>> {

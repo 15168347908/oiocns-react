@@ -11,11 +11,11 @@ export default class RequestConfig implements IRequestConfig {
     if (!env) {
       return;
     }
-    this.config.axiosConfig = {
-      ...this.config.axiosConfig,
-      params: this.replace(this.config.axiosConfig.params, env),
-      headers: this.replace(this.config.axiosConfig.headers, env),
-      data: this.replace(this.config.axiosConfig.data, env),
+    this.config.axios = {
+      ...this.config.axios,
+      params: this.replace(this.config.axios.params, env),
+      headers: this.replace(this.config.axios.headers, env),
+      data: this.replace(this.config.axios.data, env),
     };
   }
 

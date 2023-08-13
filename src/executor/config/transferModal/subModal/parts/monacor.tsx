@@ -1,29 +1,29 @@
 import Editor from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
-import cls from './../../index.module.less';
-import React, { CSSProperties, useEffect, useRef, useState, useCallback } from 'react';
+import React, { CSSProperties, useCallback, useEffect, useRef } from 'react';
 
 type Options = editor.IStandaloneEditorConstructionOptions;
 
 interface IProps {
   style?: CSSProperties;
+  width?: number;
+  height?: number;
   defaultLanguage?: string;
   defaultValue?: string;
   options?: Options;
-  onChange?: (value: string) => void;
+  onChange?: (value?: string) => void;
 }
 
 const defaultProps: IProps = {
   defaultLanguage: 'json',
-  options: {
-    automaticLayout: false,
-  },
 };
 
 const MonacoEditor: React.FC<IProps> = (props: IProps) => {
   props = {
     ...defaultProps,
     ...props,
+    // automaticLayout 必须关闭，开启会导致无限计算高度，页面卡死
+    options: { ...props.options, automaticLayout: false },
   };
 
   // 编辑器
@@ -46,16 +46,40 @@ const MonacoEditor: React.FC<IProps> = (props: IProps) => {
     };
   }, [resize]);
 
+  // 初始化数值
+  const initValue = () => {
+    let value = props.options?.value;
+    if (value) {
+      switch (props.defaultLanguage) {
+        case 'json':
+          try {
+            editor.setValue(JSON.stringify(JSON.parse(value), null, 2));
+            break;
+          } catch (error) {
+            console.log('initValue error:', error);
+          }
+        default:
+          editor.setValue(value);
+      }
+    }
+  };
+
   // 渲染
   return (
-    <div style={props.style} className={cls['monaco']} ref={ref}>
+    <div style={{ ...props.style, height: '100%', width: '100%' }} ref={ref}>
       <Editor
+        width={props.width}
+        height={props.height}
         defaultLanguage={props.defaultLanguage}
         defaultValue={props.defaultValue}
         options={props.options}
         onMount={(e) => {
           editor = e;
           resize();
+          initValue();
+        }}
+        onChange={(value) => {
+          props.onChange?.apply(props, [value]);
         }}
       />
     </div>

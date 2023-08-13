@@ -10,7 +10,7 @@ interface IProps {
 }
 
 const InputBox: React.FC<IProps> = (props: IProps) => {
-  let axiosConfig = props.config.axiosConfig;
+  let axiosConfig = props.config.axios;
   let initMethod = axiosConfig?.method || Method.GET;
   const [method, setMethod] = useState<string>(initMethod);
   let before = (
@@ -24,7 +24,7 @@ const InputBox: React.FC<IProps> = (props: IProps) => {
         }),
         onClick: (info) => {
           setMethod(info.key);
-          props.config.axiosConfig.method = info.key;
+          props.config.axios.method = info.key;
         },
       }}>
       <div

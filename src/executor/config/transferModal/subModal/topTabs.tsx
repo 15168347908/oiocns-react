@@ -1,27 +1,26 @@
 import { Modal, Tabs } from 'antd';
-import React from 'react';
+import React, { useState } from 'react';
 import * as im from 'react-icons/im';
-import { TabContext } from './../index';
-import cls from './../index.module.less';
 import RequestConfigModal from './forms/requestConfigModal';
-
-interface IProps {
-  context: TabContext;
-}
+import RequestLayout from './requestLayout';
+import { MenuItemType } from 'typings/globelType';
+interface IProps {}
 
 const TopTabs: React.FC<IProps> = (props: IProps) => {
-  const context = props.context;
+  const [tabs, setTabs] = useState<MenuItemType[]>([]);
+  const [curTab, setCurTab] = useState<MenuItemType>();
+
   const remove = (key: any) => {
     // 设置当前菜单项
-    let index = context.tabs.findIndex((item) => item.key == key);
-    let tabs = context.tabs.filter((_, item) => item != index);
-    context.setTabs(tabs);
+    let index = tabs.findIndex((item) => item.key == key);
+    let temp = tabs.filter((_, item) => item != index);
+    setTabs(temp);
 
     // 设置当前 Tab
-    if (tabs.length > 0) {
-      context.setCurTab(tabs[0]);
+    if (temp.length > 0) {
+      setCurTab(tabs[0]);
     } else {
-      context.setCurTab(undefined);
+      setCurTab(undefined);
     }
   };
   const add = () => {
@@ -36,8 +35,8 @@ const TopTabs: React.FC<IProps> = (props: IProps) => {
               itemType: 'file',
               children: [],
             };
-            context.setTabs([...context.tabs, newTab]);
-            context.setCurTab(newTab);
+            setTabs([...tabs, newTab]);
+            setCurTab(newTab);
           }}
           finished={() => modal.destroy()}
         />
@@ -55,23 +54,30 @@ const TopTabs: React.FC<IProps> = (props: IProps) => {
   return (
     <Tabs
       type="editable-card"
-      activeKey={context.curTab?.key}
+      activeKey={curTab?.key}
       style={{ marginLeft: 10 }}
-      items={context.tabs.map((item) => {
+      items={tabs.map((item) => {
         return {
           key: item.key,
           label: item.label,
+          children: <RequestLayout curTab={item}></RequestLayout>,
         };
       })}
       addIcon={
-        <div style={{ height: 42 }} className={cls['flex-center']}>
+        <div
+          style={{
+            height: 42,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
           <im.ImPlus />
         </div>
       }
       onChange={(key) => {
-        for (let tab of context.tabs) {
+        for (let tab of tabs) {
           if (tab.key == key) {
-            context.curTab = tab;
+            setCurTab(tab);
           }
         }
       }}

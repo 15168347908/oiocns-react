@@ -14,7 +14,6 @@ const { Content, Sider } = Layout;
 type MainLayoutType = {
   style?: CSSProperties;
   menusHeight?: number | string;
-  top?: React.ReactNode;
   children?: React.ReactNode; // 子组件
   siderMenuData: MenuItemType;
   rightBar?: React.ReactNode;
@@ -115,7 +114,6 @@ const MainLayout: React.FC<MainLayoutType> = (props) => {
         </div>
       </Sider>
       <Layout className={cls.container}>
-        <Content>{props.top}</Content>
         <Row className={cls[`content-top`]} justify="space-between">
           <Col>
             <CustomBreadcrumb

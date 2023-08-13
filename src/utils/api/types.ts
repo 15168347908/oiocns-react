@@ -7,7 +7,7 @@ export interface XRequestConfig {
   id: string;
   name: string;
   code: string;
-  axiosConfig: AxiosRequestConfig;
+  axios: AxiosRequestConfig;
 }
 
 export enum Method {
