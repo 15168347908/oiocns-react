@@ -1,5 +1,5 @@
 import { Tabs } from 'antd';
-import React from 'react';
+import React, { useState } from 'react';
 import Body from './widgets/Body';
 import Headers from './widgets/headers';
 import Params from './widgets/params';
@@ -12,6 +12,7 @@ interface IProps {
 }
 
 const RequestPart: React.FC<IProps> = ({ request }) => {
+  const [activeKey, setActiveKey] = useState<string>('Param');
   const keys: { [key in string]: () => React.ReactNode } = {
     Param: () => <Params request={request} />,
     Header: () => <Headers request={request} />,
@@ -23,9 +24,10 @@ const RequestPart: React.FC<IProps> = ({ request }) => {
         return {
           key: key,
           label: key,
-          children: keys[key](),
+          children: keys[activeKey](),
         };
       })}
+      onChange={(key) => setActiveKey(key)}
     />
   );
 };

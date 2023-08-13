@@ -42,8 +42,8 @@ const Executor = () => {
             break;
         }
         if (
-          args[0].filedata.contentType?.startsWith('audio') ||
-          audioExt.includes(args[0].filedata.extension ?? '-')
+          args[0].filedata?.contentType?.startsWith('audio') ||
+          audioExt.includes(args[0].filedata?.extension ?? '-')
         ) {
           setDirectory(args[0].directory);
           setAudioId((prevAudioId) => prevAudioId + 1);

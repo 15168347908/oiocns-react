@@ -825,14 +825,3 @@ export enum RuleTriggers {
   'Submit' = 'Submit', //提交前
   'ThingsChanged' = 'ThingsChanged', //子表变化后
 }
-
-/** 请求模型 */
-export type RequestModel = {
-  id: string;
-  code: string;
-  name: string;
-  directoryId: string;
-  createTime: string;
-  updateTime: string;
-  axios: AxiosRequestConfig;
-};

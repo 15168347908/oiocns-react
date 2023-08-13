@@ -3,11 +3,15 @@ import { IEnvironment } from '@/utils/api/types';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { IFileInfo, FileInfo } from './fileinfo';
 import { IDirectory } from './directory';
+import { kernel } from '@/ts/base';
+import { storeCollName } from '../public';
+
+type Field = 'params' | 'headers' | 'data' | 'method' | 'url';
 
 /** 请求配置，需要持久化 */
 export interface IRequest extends IFileInfo<XRequest> {
   /** 更新元数据 */
-  update(value: any, field: 'params' | 'headers' | 'data'): void;
+  update(value: any, field: Field): void;
   /** 请求执行 */
   exec(env?: IEnvironment): Promise<AxiosResponse>;
 }
@@ -17,23 +21,58 @@ export class Request extends FileInfo<XRequest> implements IRequest {
     super(request, dir);
   }
 
-  delete(): Promise<boolean> {
-    throw new Error('Method not implemented.');
+  async delete(): Promise<boolean> {
+    const res = await kernel.anystore.remove(
+      this.metadata.belongId,
+      storeCollName.Requests,
+      {
+        id: this.metadata.id,
+      },
+    );
+    if (res.success) {
+      this.directory.requests = this.directory.requests.filter((i) => i.key != this.key);
+    }
+    return res.success;
   }
 
-  rename(name: string): Promise<boolean> {
-    throw new Error('Method not implemented.');
+  async rename(name: string): Promise<boolean> {
+    let res = await kernel.anystore.update(
+      this.metadata.belongId,
+      storeCollName.Requests,
+      {
+        match: {
+          id: this.metadata.id,
+        },
+        update: {
+          name: name,
+        },
+      },
+    );
+    return res.success;
   }
 
-  copy(destination: IDirectory): Promise<boolean> {
-    throw new Error('Method not implemented.');
+  async copy(destination: IDirectory): Promise<boolean> {
+    let res = await destination.createRequest(this.metadata);
+    return !!res;
   }
 
-  move(destination: IDirectory): Promise<boolean> {
-    throw new Error('Method not implemented.');
+  async move(destination: IDirectory): Promise<boolean> {
+    let res = await kernel.anystore.update(
+      this.metadata.belongId,
+      storeCollName.Requests,
+      {
+        match: {
+          id: this.metadata.id,
+        },
+        update: {
+          directoryId: destination.id,
+        },
+      },
+    );
+    return res.success;
   }
 
-  update(value: any, field: 'params' | 'headers' | 'data') {
+  update(value: any, field: Field) {
     this.setMetadata({
       ...this.metadata,
       axios: {

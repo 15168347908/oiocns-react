@@ -40,7 +40,6 @@ const MonacoEditor: React.FC<IProps> = (props: IProps) => {
   // 初始化数值
   const initValue = () => {
     let value = props.options?.value;
-    console.log('开始渲染数据', value);
     if (value) {
       switch (props.defaultLanguage) {
         case 'json':

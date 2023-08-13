@@ -7,6 +7,7 @@ import InputBox from './parts/inputBox';
 import RequestPart from './parts/request';
 import ResponsePart from './parts/response/responsePart';
 import { IRequest } from '@/ts/core/thing/request';
+import { Method } from '@/utils/api/consts';
 
 interface IProps {
   curTab: MenuItemType;
@@ -20,6 +21,10 @@ const RequestLayout: React.FC<IProps> = ({ curTab }) => {
       <Content style={{ height: '100%' }}>
         <Row>
           <InputBox
+            method={request.metadata.axios.method ?? Method.GET}
+            setMethod={(method) => request.update(method, 'method')}
+            url={request.metadata.axios.url}
+            setUrl={(url) => request.update(url, 'url')}
             send={async () => {
               try {
                 let res = await request.exec();
@@ -30,8 +35,6 @@ const RequestLayout: React.FC<IProps> = ({ curTab }) => {
                 }
               }
             }}
-            axios={request.metadata.axios}
-            onChange={(value) => (request.metadata.axios.url = value)}
           />
         </Row>
         <Row style={{ marginTop: 10, height: '100%' }}>

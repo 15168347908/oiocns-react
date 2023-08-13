@@ -6,6 +6,7 @@ import {
   directoryOperates,
   fileOperates,
   memberOperates,
+  storeCollName,
   teamOperates,
 } from '../public';
 import { ITarget } from '../target/base/target';
@@ -88,8 +89,10 @@ export interface IDirectory extends IFileInfo<schema.XDirectory> {
   loadAllApplication(reload?: boolean): Promise<IApplication[]>;
   /** 加载目录树 */
   loadSubDirectory(): void;
+  /** 目录下的请求 */
+  requests: IRequest[];
   /** 新建请求配置 */
-  createRequest(data: model.RequestModel): Promise<IRequest | undefined>;
+  createRequest(data: schema.XRequest): Promise<IRequest | undefined>;
   /** 加载请求配置 */
   loadRequests(reload?: boolean): Promise<IRequest[]>;
 }
@@ -143,7 +146,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     if (this.typeName === '成员目录') {
       cnt.push(...this.target.members.map((i) => new Member(i, this)));
     } else {
-      cnt.push(...this.forms, ...this.applications, ...this.files);
+      cnt.push(...this.forms, ...this.applications, ...this.files, ...this.requests);
       if (mode != 1) {
         cnt.push(...this.propertys);
         cnt.push(...this.specieses);
@@ -168,7 +171,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
           await this.loadSpecieses(reload),
           await this.loadApplications(reload),
           await this.loadReports(reload),
-          await this.loadRequests(reload)
+          await this.loadRequests(reload),
         ]);
       }
     }
@@ -425,6 +428,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
           if (data) {
             this.loadChildren(data, res.data.result);
           }
+          await this.loadRequests(true);
         }
       }
     }
@@ -469,24 +473,30 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       return report;
     }
   }
-  async createRequest(data: model.RequestModel): Promise<IRequest | undefined> {
-    data.id = generateUuid();
+  async createRequest(data: schema.XRequest): Promise<IRequest | undefined> {
+    const key = generateUuid();
+    data.id = key;
+    data.code = key;
+    data.belongId = this.belongId;
     data.directoryId = this.id;
     let current = formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss.S');
     data.createTime = current;
     data.updateTime = current;
-    let res = await kernel.anystore.insert(this.belongId, 'Request-config', data);
+    data.typeName = '请求';
+    let res = await kernel.anystore.insert(this.belongId, storeCollName.Requests, data);
     if (res.success) {
-      console.log(res);
-      return new Request(res.data, this);
+      let request = new Request(data, this);
+      this.requests.push(request);
+      return request;
     }
   }
   async loadRequests(reload: boolean = false): Promise<IRequest[]> {
-    if (reload) {
-      const res = await kernel.anystore.aggregate(this.belongId, 'Request-config', {
+    if (this.requests.length < 1 || reload) {
+      const res = await kernel.anystore.aggregate(this.belongId, storeCollName.Requests, {
         match: {
           directoryId: this.id,
         },
+        limit: 65536,
       });
       if (res.success && res.data.length > 0) {
         this.requests = (res.data as []).map((i) => new Request(i, this));

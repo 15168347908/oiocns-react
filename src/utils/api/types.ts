@@ -1,14 +1,7 @@
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { FileItemModel } from '@/ts/base/model';
 import * as Const from './consts';
 
 export type Parameters = Record<string, any>;
-
-export interface XRequestConfig {
-  id: string;
-  name: string;
-  axios: AxiosRequestConfig;
-}
 
 /** 环境变量 */
 export interface IEnvironment {

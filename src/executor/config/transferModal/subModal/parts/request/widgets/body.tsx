@@ -9,7 +9,7 @@ export interface IProps {
 const Body: React.FC<IProps> = ({ request }) => {
   return (
     <MonacoEditor
-      height={850}
+      height={1000}
       style={{ margin: 4 }}
       onChange={(value) => {
         request.update(value, 'data');

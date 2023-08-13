@@ -572,5 +572,6 @@ export type XReport = {
 
 /** 请求定义 */
 export type XRequest = {
+  directoryId: string;
   axios: AxiosRequestConfig;
 } & XEntity;
