@@ -1,7 +1,7 @@
 /** 请求方法 */
 export enum Method {
-  POST = 'POST',
   GET = 'GET',
+  POST = 'POST',
 }
 
 /** 执行时 */

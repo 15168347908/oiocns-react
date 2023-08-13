@@ -71,7 +71,7 @@ const TransferModal: React.FC<IProps> = ({ dir, finished }) => {
 };
 
 // 目录菜单
-const loadMenu = (directory: IDirectory): MenuItemType => {
+export const loadMenu = (directory: IDirectory): MenuItemType => {
   return {
     key: directory.id,
     item: directory,
@@ -86,7 +86,7 @@ const loadMenu = (directory: IDirectory): MenuItemType => {
 };
 
 /** 请求菜单 */
-const loadRequest = (request: IRequest): MenuItemType => {
+export const loadRequest = (request: IRequest): MenuItemType => {
   return {
     key: request.id,
     item: request,

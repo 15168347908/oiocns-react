@@ -1,6 +1,7 @@
+import { Controller } from '@/ts/controller';
 import Editor from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
-import React, { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
+import React, { CSSProperties, useCallback, useEffect, useRef } from 'react';
 
 type Options = editor.IStandaloneEditorConstructionOptions;
 
@@ -12,6 +13,8 @@ interface IProps {
   defaultValue?: string;
   options?: Options;
   onChange?: (value?: string) => void;
+  ctrl?: Controller;
+  curVal?: () => any;
 }
 
 const defaultProps: IProps = {
@@ -38,13 +41,17 @@ const MonacoEditor: React.FC<IProps> = (props: IProps) => {
   }, [div]);
 
   // 初始化数值
-  const initValue = () => {
-    let value = props.options?.value;
+  const setValue = (value: any) => {
+    console.log('value', value);
     if (value) {
       switch (props.defaultLanguage) {
         case 'json':
           try {
-            editor.current?.setValue(JSON.stringify(JSON.parse(value), null, 2));
+            if (typeof value === 'string') {
+              editor.current?.setValue(JSON.stringify(JSON.parse(value), null, 2));
+            } else if (typeof value === 'object') {
+              editor.current?.setValue(JSON.stringify(value, null, 2));
+            }
             break;
           } catch (error) {
             console.log('initValue error:', error);
@@ -55,19 +62,16 @@ const MonacoEditor: React.FC<IProps> = (props: IProps) => {
     }
   };
 
-  // 渲染后调用函数
-  const onMount = () => {
-    resize();
-    initValue();
-  };
-
   // 监听函数
   useEffect(() => {
+    props.ctrl?.subscribe(() => {
+      setValue(props.curVal?.apply(props));
+    });
     window.addEventListener('resize', resize);
     return () => {
       window.removeEventListener('resize', resize);
     };
-  }, [resize]);
+  });
 
   // 渲染
   return (
@@ -80,7 +84,7 @@ const MonacoEditor: React.FC<IProps> = (props: IProps) => {
         options={props.options}
         onMount={(e) => {
           editor.current = e;
-          onMount();
+          resize();
         }}
         onChange={(value) => {
           props.onChange?.apply(props, [value]);

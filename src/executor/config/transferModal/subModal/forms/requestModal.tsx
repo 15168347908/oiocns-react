@@ -4,10 +4,11 @@ import { ProFormColumnsType } from '@ant-design/pro-components';
 import { Method } from '@/utils/api/consts';
 import { IDirectory } from '@/ts/core';
 import { XRequest } from '@/ts/base/schema';
+import { IRequest } from '@/ts/core/thing/request';
 
 interface IProps {
   dir: IDirectory;
-  finished: () => void;
+  finished: (request: IRequest) => void;
   cancel: () => void;
 }
 
@@ -47,8 +48,8 @@ const RequestModal: React.FC<IProps> = ({ dir, finished, cancel }) => {
       }}
       onFinish={async (values) => {
         values.axios = { method: Method.GET };
-        await dir.createRequest(values);
-        finished();
+        let request = await dir.createRequest(values);
+        finished(request!);
       }}
     />
   );

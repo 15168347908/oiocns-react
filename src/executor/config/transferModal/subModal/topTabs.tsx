@@ -1,10 +1,11 @@
-import { Modal, Tabs } from 'antd';
+import orgCtrl, { Controller } from '@/ts/controller';
+import { IDirectory } from '@/ts/core';
+import { Tabs } from 'antd';
 import React, { useState } from 'react';
 import * as im from 'react-icons/im';
 import { MenuItemType } from 'typings/globelType';
+import { loadRequest } from '..';
 import RequestModal from './forms/requestModal';
-import { IDirectory } from '@/ts/core';
-import orgCtrl, { Controller } from '@/ts/controller';
 import RequestLayout from './layout';
 
 interface IProps {
@@ -75,7 +76,10 @@ const TopTabs: React.FC<IProps> = ({ ctrl, dir, curTab, setCurTab, tabs, setTabs
         <RequestModal
           dir={dir}
           cancel={() => setOpen(false)}
-          finished={() => {
+          finished={(request) => {
+            let tab = loadRequest(request);
+            setTabs([...tabs, tab]);
+            setCurTab(tab);
             setOpen(false);
             ctrl.changCallback();
             orgCtrl.changCallback();
