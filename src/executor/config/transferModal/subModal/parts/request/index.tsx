@@ -1,20 +1,20 @@
+import { IRequest } from '@/ts/core/thing/request';
 import { Tabs } from 'antd';
-import React, { useState } from 'react';
+import React from 'react';
 import Body from './widgets/Body';
 import Headers from './widgets/headers';
 import Params from './widgets/params';
-import { IRequest } from '@/ts/core/thing/request';
 
 export type ReqTab = 'Param' | 'Header' | 'Body';
 
 interface IProps {
   request: IRequest;
+  setUrl: (url: string) => void;
 }
 
-const RequestPart: React.FC<IProps> = ({ request }) => {
-  const [activeKey, setActiveKey] = useState<string>('Param');
+const RequestPart: React.FC<IProps> = ({ request, setUrl }) => {
   const keys: { [key in string]: () => React.ReactNode } = {
-    Param: () => <Params request={request} />,
+    Param: () => <Params request={request} setUrl={setUrl} />,
     Header: () => <Headers request={request} />,
     Body: () => <Body request={request} />,
   };
@@ -24,10 +24,9 @@ const RequestPart: React.FC<IProps> = ({ request }) => {
         return {
           key: key,
           label: key,
-          children: keys[activeKey](),
+          children: keys[key](),
         };
       })}
-      onChange={(key) => setActiveKey(key)}
     />
   );
 };

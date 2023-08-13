@@ -39,7 +39,7 @@ const RequestLayout: React.FC<IProps> = ({ curTab }) => {
         </Row>
         <Row style={{ marginTop: 10, height: '100%' }}>
           <Col span={12}>
-            <RequestPart request={request}></RequestPart>
+            <RequestPart request={request} setUrl={(url) => request.update(url, 'url')} />
           </Col>
           <Col span={12}>
             <ResponsePart resp={resp}></ResponsePart>

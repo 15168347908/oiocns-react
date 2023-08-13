@@ -11,7 +11,9 @@ const Body: React.FC<IProps> = ({ request }) => {
     <MonacoEditor
       height={1000}
       style={{ margin: 4 }}
+      defaultValue={request.metadata.axios.data}
       onChange={(value) => {
+        console.log("request:", value);
         request.update(value, 'data');
       }}
     />

@@ -80,6 +80,17 @@ export class Request extends FileInfo<XRequest> implements IRequest {
         [field]: value,
       },
     });
+    kernel.anystore
+      .remove(this.metadata.belongId, storeCollName.Requests, {
+        id: this.metadata.id,
+      })
+      .then(() => {
+        kernel.anystore.insert(
+          this.metadata.belongId,
+          storeCollName.Requests,
+          this.metadata,
+        );
+      });
   }
 
   private replaceHolder(env: IEnvironment): AxiosRequestConfig {

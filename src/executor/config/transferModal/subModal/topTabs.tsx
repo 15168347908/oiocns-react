@@ -17,6 +17,7 @@ interface IProps {
 }
 
 const TopTabs: React.FC<IProps> = ({ ctrl, dir, curTab, setCurTab, tabs, setTabs }) => {
+  const [open, setOpen] = useState<boolean>(false);
   const remove = (key: any) => {
     // 设置当前菜单项
     let index = tabs?.findIndex((item) => item.key == key);
@@ -31,60 +32,57 @@ const TopTabs: React.FC<IProps> = ({ ctrl, dir, curTab, setCurTab, tabs, setTabs
     }
   };
 
-  const add = () => {
-    const modal = Modal.info({
-      content: (
-        <RequestModal
-          dir={dir}
-          finished={() => {
-            modal.destroy();
-            ctrl.changCallback();
-            orgCtrl.changCallback();
-          }}
-        />
-      ),
-      onOk: () => modal.destroy(),
-      onCancel: () => modal.destroy(),
-    });
-  };
   const onEdit = (key: any, action: string) => {
     if (action == 'remove') {
       remove(key);
     } else if (action == 'add') {
-      add();
+      setOpen(true);
     }
   };
   return (
-    <Tabs
-      type="editable-card"
-      activeKey={curTab?.key}
-      style={{ marginLeft: 10 }}
-      items={tabs.map((item) => {
-        return {
-          key: item.key,
-          label: item.label,
-          children: <RequestLayout curTab={item} />
-        };
-      })}
-      addIcon={
-        <div
-          style={{
-            height: 42,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <im.ImPlus />
-        </div>
-      }
-      onChange={(key) => {
-        let tab = tabs.find((item) => item.key == key);
-        if (tab) {
-          setCurTab(tab);
+    <>
+      <Tabs
+        type="editable-card"
+        activeKey={curTab?.key}
+        style={{ marginLeft: 10 }}
+        items={tabs.map((item) => {
+          return {
+            key: item.key,
+            label: item.label,
+            children: <RequestLayout curTab={item} />,
+          };
+        })}
+        addIcon={
+          <div
+            style={{
+              height: 42,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <im.ImPlus />
+          </div>
         }
-      }}
-      onEdit={onEdit}
-    />
+        onChange={(key) => {
+          let tab = tabs.find((item) => item.key == key);
+          if (tab) {
+            setCurTab(tab);
+          }
+        }}
+        onEdit={onEdit}
+      />
+      {open && (
+        <RequestModal
+          dir={dir}
+          cancel={() => setOpen(false)}
+          finished={() => {
+            setOpen(false);
+            ctrl.changCallback();
+            orgCtrl.changCallback();
+          }}
+        />
+      )}
+    </>
   );
 };
 

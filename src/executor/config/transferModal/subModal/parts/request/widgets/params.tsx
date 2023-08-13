@@ -4,10 +4,21 @@ import React from 'react';
 
 export interface IProps {
   request: IRequest;
+  setUrl: (url: string) => void;
 }
 
+interface Param {
+  key: string;
+  value: string;
+  description: string;
+}
+
+const regex = /^https?:[/]2[\w./]+[?]((([a-z]+)=?[^&]+)|&)*$/;
+
 const Params: React.FC<IProps> = ({ request }) => {
-  let params: any[] = [];
+  let res = regex.exec(request.metadata.axios.params);
+  console.log();
+  let params: Param[] = [];
   return (
     <ProTable
       dataSource={params}

@@ -11,6 +11,7 @@ import TargetForm from './targetForm';
 import LabelsForm from './labelsForm';
 import RenameForm from './renameForm';
 import LabelsReport from './labelsReport';
+import RequestModal from '../transferModal/subModal/forms/requestModal';
 interface IProps {
   cmd: string;
   entity: IEntity<schema.XEntity>;
@@ -96,6 +97,10 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
       return (
         <PropertyForm formType={cmd} current={entity as any} finished={reloadFinish} />
       );
+    case 'remarkRequest':
+      return (
+        <RequestModal dir={entity as any} finished={reloadFinish} />
+      )
     default: {
       const target = cmd.startsWith('new')
         ? (entity as IDirectory).target

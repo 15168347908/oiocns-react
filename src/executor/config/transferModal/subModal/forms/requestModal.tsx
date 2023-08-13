@@ -8,9 +8,10 @@ import { XRequest } from '@/ts/base/schema';
 interface IProps {
   dir: IDirectory;
   finished: () => void;
+  cancel: () => void;
 }
 
-const RequestModal: React.FC<IProps> = ({ dir, finished }) => {
+const RequestModal: React.FC<IProps> = ({ dir, finished, cancel }) => {
   const columns: ProFormColumnsType<XRequest>[] = [
     {
       title: '名称',
@@ -39,6 +40,11 @@ const RequestModal: React.FC<IProps> = ({ dir, finished }) => {
         gutter: [24, 0],
       }}
       layoutType="ModalForm"
+      onOpenChange={(open: boolean) => {
+        if (!open) {
+          cancel();
+        }
+      }}
       onFinish={async (values) => {
         values.axios = { method: Method.GET };
         await dir.createRequest(values);
