@@ -1,6 +1,6 @@
 import { IRequest } from '@/ts/core/thing/request';
 import { ProTable } from '@ant-design/pro-components';
-import { RawAxiosRequestHeaders, AxiosHeaders } from 'axios';
+import { RawAxiosRequestHeaders, AxiosHeaders, AxiosHeaderValue } from 'axios';
 import React, { useEffect, useState } from 'react';
 
 export interface IProps {
@@ -11,19 +11,17 @@ export type Header = RawAxiosRequestHeaders | AxiosHeaders;
 
 interface HeaderData {
   key: string;
-  value: string;
+  value?: AxiosHeaderValue;
 }
 
 const toHeaders = (headers?: Header): HeaderData[] => {
-  let rows: HeaderData[] = [];
-  if (headers) {
-    rows = Object.keys(headers).map((key) => {
-      return {
-        key: key,
-        value: headers[key],
-      };
-    });
-  }
+  const final: Header = { ...headers };
+  let rows: HeaderData[] = Object.keys(final).map((key) => {
+    return {
+      key: key,
+      value: final[key],
+    };
+  });
   return rows;
 };
 
@@ -31,8 +29,7 @@ const Header: React.FC<IProps> = ({ request }) => {
   const [rows, setRows] = useState<HeaderData[]>(toHeaders(request.axios.headers));
   useEffect(() => {
     const id = request.subscribe(() => {
-      let value = toHeaders(request.axios.headers);
-      setRows(value);
+      setRows(toHeaders(request.axios.headers));
     });
     return () => {
       request.unsubscribe(id);
@@ -48,7 +45,7 @@ const Header: React.FC<IProps> = ({ request }) => {
       columns={[
         {
           title: 'Key',
-          valueType: 'key',
+          dataIndex: 'key',
         },
         {
           title: 'Value',

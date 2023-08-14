@@ -7,17 +7,26 @@ export interface IProps {
 }
 interface Param {
   key: string;
-  value: string;
-  description: string;
+  value?: string;
+  description?: string;
 }
-
-const regex = /^(?:https?:[/]2)[\w./]+[?]((([a-z]+)=?[^&]+)|&)*$/;
 
 const toParams = (value?: string): Param[] => {
   if (value) {
-    console.log(value);
-    let res = regex.exec(value);
-    console.log(res);
+    let mark = value.indexOf('?');
+    if (mark != -1) {
+      let params = value.substring(mark + 1);
+      let groups = params.split('&');
+      let data: Param[] = [];
+      for (let group of groups) {
+        let split = group.split('=', 2);
+        data.push({
+          key: split[0],
+          value: split.length > 1 ? split[1] : '',
+        });
+      }
+      return data;
+    }
   }
   return [];
 };
@@ -43,11 +52,15 @@ const Params: React.FC<IProps> = ({ request }) => {
       columns={[
         {
           title: 'Key',
-          valueType: 'key',
+          dataIndex: 'key',
         },
         {
           title: 'Value',
           dataIndex: 'value',
+        },
+        {
+          title: 'Description',
+          dataIndex: 'description',
         },
       ]}
     />

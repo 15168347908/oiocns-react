@@ -32,7 +32,7 @@ const InputBox: React.FC<IProps> = ({ request, send }) => {
                 label: item,
               };
             }),
-            onClick: (info) => setMethod(info.key),
+            onClick: (info) => request.update(info.key, 'method'),
           }}>
           <div
             style={{

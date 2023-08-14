@@ -483,6 +483,11 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     data.createTime = current;
     data.updateTime = current;
     data.typeName = '请求';
+    data.axios.headers = {
+      'Content-Type': 'application/json;charset=UTF-8',
+      appid: 'zx678sw12qm1',
+      nonce: '12345678910',
+    };
     let res = await kernel.anystore.insert(this.belongId, storeCollName.Requests, data);
     if (res.success) {
       let request = new Request(data, this);
