@@ -1,27 +1,25 @@
-import { Controller } from '@/ts/controller';
-import Editor from '@monaco-editor/react';
+import { IEntity } from '@/ts/core';
+import Editor, { EditorProps } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
 import React, { CSSProperties, useCallback, useEffect, useRef } from 'react';
 
-type Options = editor.IStandaloneEditorConstructionOptions;
-
-interface IProps {
+interface IProps<T> extends EditorProps {
+  entity?: IEntity<T>;
+  getVal?: () => any;
   style?: CSSProperties;
-  width?: number;
-  height?: number;
-  defaultLanguage?: string;
-  defaultValue?: string;
-  options?: Options;
   onChange?: (value?: string) => void;
-  ctrl?: Controller;
-  curVal?: () => any;
 }
 
-const defaultProps: IProps = {
+const defaultProps: IProps<any> = {
   defaultLanguage: 'json',
+  options: {
+    minimap: {
+      enabled: false,
+    },
+  },
 };
 
-const MonacoEditor: React.FC<IProps> = (props: IProps) => {
+const MonacoEditor: React.FC<IProps<any>> = (props: IProps<any>) => {
   const div = useRef<HTMLDivElement>(null);
   const editor = useRef<editor.IStandaloneCodeEditor>();
 
@@ -29,7 +27,7 @@ const MonacoEditor: React.FC<IProps> = (props: IProps) => {
     ...defaultProps,
     ...props,
     // automaticLayout 必须关闭，开启会导致无限计算高度，页面卡死
-    options: { ...props.options, automaticLayout: false },
+    options: { ...defaultProps.options, ...props.options, automaticLayout: false },
   };
 
   // 监听父组件 Div 的宽高变化
@@ -42,7 +40,6 @@ const MonacoEditor: React.FC<IProps> = (props: IProps) => {
 
   // 初始化数值
   const setValue = (value: any) => {
-    console.log('value', value);
     if (value) {
       switch (props.defaultLanguage) {
         case 'json':
@@ -64,24 +61,20 @@ const MonacoEditor: React.FC<IProps> = (props: IProps) => {
 
   // 监听函数
   useEffect(() => {
-    props.ctrl?.subscribe(() => {
-      setValue(props.curVal?.apply(props));
+    const id = props.entity?.subscribe(() => {
+      setValue(props.getVal?.apply(props));
     });
     window.addEventListener('resize', resize);
     return () => {
+      props.entity?.unsubscribe(id!);
       window.removeEventListener('resize', resize);
     };
-  });
+  }, [props.getVal?.apply(props)]);
 
   // 渲染
   return (
     <div style={{ ...props.style, height: '100%', width: '100%' }} ref={div}>
       <Editor
-        width={props.width}
-        height={props.height}
-        defaultLanguage={props.defaultLanguage}
-        defaultValue={props.defaultValue}
-        options={props.options}
         onMount={(e) => {
           editor.current = e;
           resize();
@@ -89,6 +82,7 @@ const MonacoEditor: React.FC<IProps> = (props: IProps) => {
         onChange={(value) => {
           props.onChange?.apply(props, [value]);
         }}
+        {...props}
       />
     </div>
   );

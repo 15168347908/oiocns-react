@@ -10,6 +10,7 @@ type Field = 'params' | 'headers' | 'data' | 'method' | 'url';
 
 /** 请求配置，需要持久化 */
 export interface IRequest extends IFileInfo<XRequest> {
+  axios: AxiosRequestConfig;
   /** 更新元数据 */
   update(value: any, field: Field): void;
   /** 请求执行 */
@@ -19,6 +20,10 @@ export interface IRequest extends IFileInfo<XRequest> {
 export class Request extends FileInfo<XRequest> implements IRequest {
   constructor(request: XRequest, dir: IDirectory) {
     super(request, dir);
+  }
+
+  get axios() {
+    return this.metadata.axios;
   }
 
   async delete(): Promise<boolean> {
@@ -73,6 +78,7 @@ export class Request extends FileInfo<XRequest> implements IRequest {
   }
 
   update(value: any, field: Field) {
+    console.log(this);
     this.setMetadata({
       ...this.metadata,
       axios: {
@@ -80,6 +86,7 @@ export class Request extends FileInfo<XRequest> implements IRequest {
         [field]: value,
       },
     });
+
     kernel.anystore
       .remove(this.metadata.belongId, storeCollName.Requests, {
         id: this.metadata.id,

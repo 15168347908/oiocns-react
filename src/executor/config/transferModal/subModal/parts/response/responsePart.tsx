@@ -1,22 +1,22 @@
 import { AxiosResponse } from 'axios';
 import React from 'react';
 import MonacoEditor from '../monacor';
-import { Controller } from '@/ts/controller';
+import { IRequest } from '@/ts/core/thing/request';
 
 interface IProps {
-  resp?: AxiosResponse;
-  ctrl: Controller;
+  request: IRequest;
+  response?: AxiosResponse;
 }
 
-const ResponsePart: React.FC<IProps> = ({ resp, ctrl }) => {
+const ResponsePart: React.FC<IProps> = ({ request, response }) => {
   return (
     <MonacoEditor
+      entity={request}
       height={1200}
-      defaultValue={resp?.data}
+      defaultValue={response?.data}
       style={{ margin: 10 }}
-      options={{ value: resp?.data, readOnly: true }}
-      ctrl={ctrl}
-      curVal={() => resp?.data}
+      options={{ readOnly: true }}
+      getVal={() => response?.data}
     />
   );
 };

@@ -1,24 +1,38 @@
 import { IRequest } from '@/ts/core/thing/request';
 import { ProTable } from '@ant-design/pro-components';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 export interface IProps {
   request: IRequest;
-  setUrl: (url: string) => void;
 }
-
 interface Param {
   key: string;
   value: string;
   description: string;
 }
 
-const regex = /^https?:[/]2[\w./]+[?]((([a-z]+)=?[^&]+)|&)*$/;
+const regex = /^(?:https?:[/]2)[\w./]+[?]((([a-z]+)=?[^&]+)|&)*$/;
+
+const toParams = (value?: string): Param[] => {
+  if (value) {
+    console.log(value);
+    let res = regex.exec(value);
+    console.log(res);
+  }
+  return [];
+};
 
 const Params: React.FC<IProps> = ({ request }) => {
-  let res = regex.exec(request.metadata.axios.params);
-  console.log();
-  let params: Param[] = [];
+  const [params, setParams] = useState<Param[]>(toParams(request.axios.params));
+  useEffect(() => {
+    const id = request.subscribe(() => {
+      let params = toParams(request.axios.url);
+      setParams(params);
+    });
+    return () => {
+      request.unsubscribe(id!);
+    };
+  }, [request.axios.params]);
   return (
     <ProTable
       dataSource={params}
@@ -34,10 +48,6 @@ const Params: React.FC<IProps> = ({ request }) => {
         {
           title: 'Value',
           dataIndex: 'value',
-        },
-        {
-          title: 'Description',
-          dataIndex: 'description',
         },
       ]}
     />

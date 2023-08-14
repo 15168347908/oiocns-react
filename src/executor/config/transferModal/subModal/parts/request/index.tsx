@@ -9,12 +9,11 @@ export type ReqTab = 'Param' | 'Header' | 'Body';
 
 interface IProps {
   request: IRequest;
-  setUrl: (url: string) => void;
 }
 
-const RequestPart: React.FC<IProps> = ({ request, setUrl }) => {
+const RequestPart: React.FC<IProps> = ({ request }) => {
   const keys: { [key in string]: () => React.ReactNode } = {
-    Param: () => <Params request={request} setUrl={setUrl} />,
+    Param: () => <Params request={request} />,
     Header: () => <Headers request={request} />,
     Body: () => <Body request={request} />,
   };

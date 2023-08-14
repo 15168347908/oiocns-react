@@ -1,16 +1,46 @@
 import { IRequest } from '@/ts/core/thing/request';
 import { ProTable } from '@ant-design/pro-components';
-import React from 'react';
+import { RawAxiosRequestHeaders, AxiosHeaders } from 'axios';
+import React, { useEffect, useState } from 'react';
 
 export interface IProps {
   request: IRequest;
 }
 
-const Headers: React.FC<IProps> = ({ request }) => {
-  let headers: any[] = [];
+export type Header = RawAxiosRequestHeaders | AxiosHeaders;
+
+interface HeaderData {
+  key: string;
+  value: string;
+}
+
+const toHeaders = (headers?: Header): HeaderData[] => {
+  let rows: HeaderData[] = [];
+  if (headers) {
+    rows = Object.keys(headers).map((key) => {
+      return {
+        key: key,
+        value: headers[key],
+      };
+    });
+  }
+  return rows;
+};
+
+const Header: React.FC<IProps> = ({ request }) => {
+  const [rows, setRows] = useState<HeaderData[]>(toHeaders(request.axios.headers));
+  useEffect(() => {
+    const id = request.subscribe(() => {
+      let value = toHeaders(request.axios.headers);
+      setRows(value);
+    });
+    return () => {
+      request.unsubscribe(id);
+    };
+  }, [request.axios.headers]);
   return (
     <ProTable
-      dataSource={headers}
+      dataSource={rows}
       cardProps={{ bodyStyle: { padding: 0 } }}
       scroll={{ y: 300 }}
       options={false}
@@ -24,13 +54,9 @@ const Headers: React.FC<IProps> = ({ request }) => {
           title: 'Value',
           dataIndex: 'value',
         },
-        {
-          title: 'Description',
-          dataIndex: 'description',
-        },
       ]}
     />
   );
 };
 
-export default Headers;
+export default Header;
