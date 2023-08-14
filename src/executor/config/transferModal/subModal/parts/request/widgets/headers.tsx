@@ -51,6 +51,10 @@ const Header: React.FC<IProps> = ({ request }) => {
           title: 'Value',
           dataIndex: 'value',
         },
+        {
+          title: 'Description',
+          dataIndex: 'description',
+        },
       ]}
     />
   );
