@@ -1,14 +1,17 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
 import { ILink } from '@/ts/core/thing/link';
-import { Button, Space } from 'antd';
+import { Space } from 'antd';
 import React from 'react';
-import LinkEditor from './editor';
-import { openSelector } from './widgets/requestSelector';
+import LinkEditor from './widgets/editor';
+import { OpenSelector } from './widgets/selectRequest';
+import { Command } from '@/ts/base';
 
 interface IProps {
   current: ILink;
   finished: () => void;
 }
+
+export const command = new Command();
 
 const LinkLayout: React.FC<IProps> = ({ current: link, finished }) => {
   return (
@@ -29,7 +32,7 @@ const LinkLayout: React.FC<IProps> = ({ current: link, finished }) => {
 const ToolBar: React.FC<{ current: ILink }> = ({ current }) => {
   return (
     <Space style={{ position: 'absolute', left: 10, top: 10 }}>
-      <Button onClick={() => openSelector(current)}>插入 Request</Button>
+      <OpenSelector current={current}></OpenSelector>
     </Space>
   );
 };

@@ -1,16 +1,25 @@
-import { command } from '@/ts/base';
+import { XRequest } from '@/ts/base/schema';
 import { ILink } from '@/ts/core/thing/link';
 import { Graph } from '@antv/x6';
 import React, { createRef, useEffect } from 'react';
+import { command } from '../..';
+import { CreateNode } from './factory';
 
 export interface IProps {
   link: ILink;
   children?: React.ReactNode;
 }
 
-const EventHandler = (type: string, cmd: string, ...args: any) => {
-  switch (type) {
-    case 'insertRequest':
+const handler = (graph: Graph, cmd: string, ...args: any) => {
+  switch (cmd) {
+    case 'insert':
+      let requests: XRequest[] = args[0];
+      let [x, y, offset] = [0, 0, 20];
+      for (let request of requests) {
+        graph.addNode(CreateNode(request, x, y));
+        x += offset;
+        y += offset;
+      }
       break;
   }
 };
@@ -29,11 +38,12 @@ const LinkEditor: React.FC<IProps> = ({ link, children }) => {
       graph.fromJSON(link.metadata.data);
     }
     graph.centerContent();
-
-    // 订阅事件
-    command.subscribe(EventHandler);
+    const id = command.subscribe((_: string, cmd: string, args: any) => {
+      handler(graph, cmd, args);
+    });
     return () => {
       graph.dispose();
+      command.unsubscribe(id);
     };
   }, [ref]);
   return (
