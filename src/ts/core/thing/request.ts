@@ -1,18 +1,16 @@
+import { kernel } from '@/ts/base';
 import { XRequest } from '@/ts/base/schema';
 import { IEnvironment } from '@/utils/api/types';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { IFileInfo, FileInfo } from './fileinfo';
-import { IDirectory } from './directory';
-import { kernel } from '@/ts/base';
 import { storeCollName } from '../public';
-
-type Field = 'params' | 'headers' | 'data' | 'method' | 'url';
+import { IDirectory } from './directory';
+import { FileInfo, IFileInfo } from './fileinfo';
 
 /** 请求配置，需要持久化 */
 export interface IRequest extends IFileInfo<XRequest> {
   axios: AxiosRequestConfig;
-  /** 更新元数据 */
-  update(value: any, field: Field): void;
+  /** 刷新数据 */
+  refresh(data: XRequest): void;
   /** 请求执行 */
   exec(env?: IEnvironment): Promise<AxiosResponse>;
 }
@@ -77,16 +75,8 @@ export class Request extends FileInfo<XRequest> implements IRequest {
     return res.success;
   }
 
-  update(value: any, field: Field) {
-    console.log(this);
-    this.setMetadata({
-      ...this.metadata,
-      axios: {
-        ...this.metadata.axios,
-        [field]: value,
-      },
-    });
-
+  refresh(data: XRequest) {
+    this.setMetadata(data);
     kernel.anystore
       .remove(this.metadata.belongId, storeCollName.Requests, {
         id: this.metadata.id,

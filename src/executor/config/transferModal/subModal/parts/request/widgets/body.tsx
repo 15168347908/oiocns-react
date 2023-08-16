@@ -13,7 +13,8 @@ const Body: React.FC<IProps> = ({ request }) => {
       style={{ margin: 4 }}
       defaultValue={request.metadata.axios.data}
       onChange={(value) => {
-        request.update(value, 'data');
+        request.metadata.axios.data = value;
+        request.refresh(request.metadata);
       }}
     />
   );

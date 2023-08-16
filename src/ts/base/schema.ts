@@ -1,3 +1,4 @@
+import { Model } from '@antv/x6';
 import { AxiosRequestConfig } from 'axios';
 
 export type Xbase = {
@@ -574,4 +575,10 @@ export type XReport = {
 export type XRequest = {
   directoryId: string;
   axios: AxiosRequestConfig;
+} & XEntity;
+
+/** 请求定义 */
+export type XLink = {
+  directoryId: string;
+  data: Model.FromJSONData;
 } & XEntity;

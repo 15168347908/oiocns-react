@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import * as im from 'react-icons/im';
 import { MenuItemType } from 'typings/globelType';
 import { loadRequest } from '..';
-import RequestModal from './forms/requestModal';
+import RequestModal from '../../entityForm/requestForm';
 import RequestLayout from './layout';
 
 interface IProps {

@@ -32,7 +32,10 @@ const InputBox: React.FC<IProps> = ({ request, send }) => {
                 label: item,
               };
             }),
-            onClick: (info) => request.update(info.key, 'method'),
+            onClick: (info) => {
+              request.metadata.axios.method = info.key;
+              request.refresh(request.metadata);
+            },
           }}>
           <div
             style={{
@@ -60,7 +63,8 @@ const InputBox: React.FC<IProps> = ({ request, send }) => {
       value={url}
       placeholder="输入 URL 地址"
       onChange={(event) => {
-        request.update(event.target.value, 'url');
+        request.metadata.axios.url = event.target.value;
+        request.refresh(request.metadata);
       }}
     />
   );

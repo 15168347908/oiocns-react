@@ -21,8 +21,9 @@ import { Request, IRequest } from './request';
 import { Application, IApplication } from './application';
 import { BucketOpreates, DirectoryModel } from '@/ts/base/model';
 import { encodeKey, generateUuid } from '@/ts/base/common';
-import dayjs from 'dayjs';
 import { formatDate } from '@/utils';
+import { ILink, Link } from './link';
+import { XEntity } from '@/ts/base/schema';
 
 /** 可为空的进度回调 */
 export type OnProgress = (p: number) => void;
@@ -95,6 +96,12 @@ export interface IDirectory extends IFileInfo<schema.XDirectory> {
   createRequest(data: schema.XRequest): Promise<IRequest | undefined>;
   /** 加载请求配置 */
   loadRequests(reload?: boolean): Promise<IRequest[]>;
+  /** 目录下的链接 */
+  links: ILink[];
+  /** 新建链接配置 */
+  createLink(data: schema.XLink): Promise<ILink | undefined>;
+  /** 加载链接配置 */
+  loadLinks(reload?: boolean): Promise<ILink[]>;
 }
 
 /** 目录实现类 */
@@ -128,6 +135,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
   applications: IApplication[] = [];
   reports: IReport[] = [];
   requests: IRequest[] = [];
+  links: ILink[] = [];
   private _contentLoaded: boolean = false;
   get id(): string {
     if (!this.parent) {
@@ -146,7 +154,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     if (this.typeName === '成员目录') {
       cnt.push(...this.target.members.map((i) => new Member(i, this)));
     } else {
-      cnt.push(...this.forms, ...this.applications, ...this.files, ...this.requests);
+      cnt.push(...this.forms, ...this.applications, ...this.files, ...this.requests, ...this.links);
       if (mode != 1) {
         cnt.push(...this.propertys);
         cnt.push(...this.specieses);
@@ -429,6 +437,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
             this.loadChildren(data, res.data.result);
           }
           await this.loadRequests(true);
+          await this.loadLinks(true);
         }
       }
     }
@@ -473,15 +482,18 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       return report;
     }
   }
-  async createRequest(data: schema.XRequest): Promise<IRequest | undefined> {
+  defaultEntity(data: XEntity) {
     const key = generateUuid();
     data.id = key;
     data.code = key;
     data.belongId = this.belongId;
-    data.directoryId = this.id;
     let current = formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss.S');
     data.createTime = current;
     data.updateTime = current;
+  }
+  async createRequest(data: schema.XRequest): Promise<IRequest | undefined> {
+    this.defaultEntity(data);
+    data.directoryId = this.id;
     data.typeName = '请求';
     data.axios.headers = {
       'Content-Type': 'application/json;charset=UTF-8',
@@ -508,5 +520,38 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       }
     }
     return this.requests;
+  }
+  async createLink(data: schema.XLink): Promise<ILink | undefined> {
+    this.defaultEntity(data);
+    data.directoryId = this.id;
+    data.typeName = '链接';
+    let res = await kernel.anystore.insert(
+      this.belongId,
+      storeCollName.RequestLinks,
+      data,
+    );
+    if (res.success) {
+      let link = new Link(data, this);
+      this.links.push(link);
+      return link;
+    }
+  }
+  async loadLinks(reload?: boolean | undefined): Promise<ILink[]> {
+    if (this.links.length < 1 || reload) {
+      const res = await kernel.anystore.aggregate(
+        this.belongId,
+        storeCollName.RequestLinks,
+        {
+          match: {
+            directoryId: this.id,
+          },
+          limit: 65536,
+        },
+      );
+      if (res.success && res.data.length > 0) {
+        this.links = (res.data as []).map((i) => new Link(i, this));
+      }
+    }
+    return this.links;
   }
 }

@@ -157,11 +157,17 @@ export const directoryOperates = {
     label: '新建报表',
     iconType: 'newDir',
   },
-  DataSourceConfig: {
+  NewRequest: {
     sort: 10,
-    cmd: 'newTransferConfig',
-    label: '新建迁移配置',
-    iconType: '迁移配置',
+    cmd: 'newRequest',
+    label: '新建请求配置',
+    iconType: '请求配置',
+  },
+  NewRequestChain: {
+    sort: 11,
+    cmd: 'newLink',
+    label: '新建链接配置',
+    iconType: '链接配置',
   },
 };
 
@@ -181,7 +187,8 @@ export const directoryNew = {
     directoryOperates.NewThingConfig,
     directoryOperates.NewWorkConfig,
     directoryOperates.NewReport,
-    directoryOperates.DataSourceConfig,
+    directoryOperates.NewRequest,
+    directoryOperates.NewRequestChain,
   ],
 };
 

@@ -7,6 +7,7 @@ import SettingAuth from './settingModal/settingAuth';
 import SettingStation from './settingModal/settingStation';
 import SettingIdentity from './settingModal/settingIdentity';
 import TransferModal from './transferModal';
+import LinkLayout from './transferModal/toolEditor';
 
 const entityMap: any = {
   目录: 'Dir',
@@ -21,7 +22,8 @@ const entityMap: any = {
   事项配置: 'WorkConfig',
   实体配置: 'ThingConfig',
   报表: 'Report',
-  请求: 'Request'
+  请求: 'Request',
+  链接: 'Link'
 };
 
 interface IProps {
@@ -65,8 +67,8 @@ const ConfigExecutor: React.FC<IProps> = ({ cmd, args, finished }) => {
         return <EntityForm cmd={cmd} entity={args[0]} finished={finished} />;
       }
       break;
-    case "newTransferConfig":
-      return <TransferModal dir={args[0]} finished={finished}></TransferModal>
+    case "newRequest":
+      return <TransferModal dir={args[0]} finished={finished}></TransferModal>;
     default:
       if (cmd === 'pull' || cmd.startsWith('join')) {
         return <OperateModal cmd={cmd} entity={args[0]} finished={finished} />;
