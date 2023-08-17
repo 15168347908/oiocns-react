@@ -1,10 +1,9 @@
 import { Graph, Platform, Edge, Path } from '@antv/x6';
-import { register } from '@antv/x6-react-shape';
-import { Selection } from '@antv/x6-plugin-selection';
 import { ProcessingNode } from './node';
 import { ILink } from '@/ts/core/thing/link';
 import { inGroup, outGroup } from './group';
 import { edgeRegistering } from './edge';
+import { register } from '@antv/x6-react-shape';
 
 /**
  * 创建画布
@@ -15,6 +14,7 @@ import { edgeRegistering } from './edge';
 export const createGraph = (ref: React.RefObject<HTMLDivElement>, link: ILink): Graph => {
   const graph: Graph = new Graph({
     container: ref.current!,
+    grid: true,
     autoResize: true,
     panning: true,
     mousewheel: true,
@@ -119,6 +119,7 @@ const registering = () => {
     width: 180,
     height: 48,
     component: ProcessingNode,
+    effect: ['data'],
     ports: {
       groups: {
         in: inGroup,
@@ -133,13 +134,13 @@ const registering = () => {
  * @param graph 画布
  */
 const using = (graph: Graph) => {
-  graph.use(
-    new Selection({
-      enabled: true,
-      multiple: true,
-      rubberband: true,
-      movable: true,
-      showNodeSelectionBox: true,
-    }),
-  );
+  // graph.use(
+  //   new Selection({
+  //     enabled: true,
+  //     multiple: true,
+  //     rubberband: true,
+  //     movable: true,
+  //     showNodeSelectionBox: true,
+  //   }),
+  // );
 };

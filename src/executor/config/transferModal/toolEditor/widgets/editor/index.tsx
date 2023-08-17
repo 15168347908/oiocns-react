@@ -23,7 +23,13 @@ const LinkEditor: React.FC<IProps> = ({ link, children, cmd }) => {
     const id = cmd.subscribe((_: string, cmd: string, args: any) => {
       handler(graph, cmd, args);
     });
+    const update = () => {
+      link.metadata.data = graph.toJSON({ diff: true });
+      link.refresh(link.metadata);
+    };
+    graph.on('node:added', update);
     return () => {
+      graph.off();
       cmd.unsubscribe(id);
       graph.dispose();
     };

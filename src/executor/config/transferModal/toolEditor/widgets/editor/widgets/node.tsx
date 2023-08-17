@@ -1,9 +1,9 @@
 import { IRequest } from '@/ts/core/thing/request';
 import { Graph, Node } from '@antv/x6';
 import { Dropdown } from 'antd';
-import React from 'react';
+import React, { useState } from 'react';
 import { IconBaseProps } from 'react-icons';
-import { AiOutlineCheck, AiOutlineLoading } from 'react-icons/ai';
+import { AiFillPlusCircle, AiOutlineCheck, AiOutlineLoading } from 'react-icons/ai';
 import cls from './../index.module.less';
 
 export enum ExecStatus {
@@ -39,10 +39,10 @@ export const addNode = (props: NodeOptions & NodeData) => {
     case NodeType.Request:
       graph.addNode({
         shape: 'data-processing-dag-node',
-        position: position,
+        ...position,
         data: {
           nodeType: nodeType,
-          request: request,
+          request: request.metadata,
           status: ExecStatus.Stop,
         },
       });
@@ -58,6 +58,7 @@ interface Info {
 
 export const ProcessingNode: React.FC<Info> = ({ node }) => {
   const { request, nodeType, status } = node.getData() as NodeData;
+  const [fold, setFold] = useState<boolean>(false);
   const Next: React.FC<any> = () => {
     switch (nodeType) {
       case NodeType.Request:
@@ -69,11 +70,15 @@ export const ProcessingNode: React.FC<Info> = ({ node }) => {
         });
         return (
           <Dropdown
+            open={fold}
+            placement="bottom"
+            trigger={['click']}
             menu={{
               items: items,
               onClick: () => {},
-            }}
-          />
+            }}>
+            <AiFillPlusCircle {...config} onClick={() => setFold(!fold)} />
+          </Dropdown>
         );
       default:
         return <></>;
@@ -83,6 +88,7 @@ export const ProcessingNode: React.FC<Info> = ({ node }) => {
     <div className={`${cls['container']} ${cls['flex-row']}`}>
       <div>{request.name}</div>
       {statusMap[status]}
+      {<Next></Next>}
     </div>
   );
 };
