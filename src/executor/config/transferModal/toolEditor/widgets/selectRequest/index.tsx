@@ -1,21 +1,21 @@
 import ShareShowComp from '@/components/Common/ShareShowComp';
 import CustomTree from '@/components/CustomTree';
-import { XRequest } from '@/ts/base/schema';
+import { Command } from '@/ts/base';
 import { IBelong, IDirectory } from '@/ts/core';
 import { ILink } from '@/ts/core/thing/link';
-import { Button, Input, TreeProps } from 'antd';
-import { Modal } from 'antd';
+import { IRequest } from '@/ts/core/thing/request';
+import { Button, Input, Modal, TreeProps } from 'antd';
 import React, { Key, useState } from 'react';
 import { AiOutlineSearch } from 'react-icons/ai';
 import cls from './index.module.css';
-import { command } from '../..';
 
 interface IProps {
   current: ILink;
+  cmd: Command;
 }
 
-export const OpenSelector: React.FC<IProps> = ({ current }) => {
-  const [selected, setSelected] = useState<XRequest[]>([]);
+export const OpenSelector: React.FC<IProps> = ({ current, cmd }) => {
+  const [selected, setSelected] = useState<IRequest[]>([]);
   return (
     <Button
       onClick={() => {
@@ -27,10 +27,11 @@ export const OpenSelector: React.FC<IProps> = ({ current }) => {
               current={current}
               selected={selected}
               setSelected={setSelected}
+              cmd={cmd}
             />
           ),
           onOk: () => {
-            command.emitter('graph', 'insert', selected);
+            cmd.emitter('graph', 'insert', selected);
             setSelected([]);
           },
         });
@@ -41,8 +42,8 @@ export const OpenSelector: React.FC<IProps> = ({ current }) => {
 };
 
 interface IExtends extends IProps {
-  selected: XRequest[];
-  setSelected: (requests: XRequest[]) => void;
+  selected: IRequest[];
+  setSelected: (requests: IRequest[]) => void;
 }
 
 const RequestSelector: React.FC<IExtends> = ({ current, selected, setSelected }) => {
@@ -60,7 +61,7 @@ const RequestSelector: React.FC<IExtends> = ({ current, selected, setSelected })
           key: item.id,
           title: item.name,
           value: item.id,
-          item: item.metadata,
+          item: item,
           children: [],
         };
       }),
@@ -72,7 +73,7 @@ const RequestSelector: React.FC<IExtends> = ({ current, selected, setSelected })
     if (Array.isArray(checkedKeys)) {
       setCenterCheckedKeys(checkedKeys);
     }
-    const request: XRequest = (info.node as any).item;
+    const request: IRequest = (info.node as any).item;
     if (info.checked) {
       selected.push(request);
       setSelected(selected);

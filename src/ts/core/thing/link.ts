@@ -11,8 +11,8 @@ export interface ILink extends IFileInfo<XLink> {
 }
 
 export class Link extends FileInfo<XLink> implements ILink {
-  constructor(request: XLink, dir: IDirectory) {
-    super(request, dir);
+  constructor(link: XLink, dir: IDirectory) {
+    super(link, dir);
   }
 
   async delete(): Promise<boolean> {

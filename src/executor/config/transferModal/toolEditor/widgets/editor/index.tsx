@@ -1,49 +1,31 @@
-import { XRequest } from '@/ts/base/schema';
+import { Command } from '@/ts/base';
 import { ILink } from '@/ts/core/thing/link';
+import { IRequest } from '@/ts/core/thing/request';
 import { Graph } from '@antv/x6';
 import React, { createRef, useEffect } from 'react';
-import { command } from '../..';
-import { CreateNode } from './factory';
+import { createGraph } from './widgets/graph';
+import { ExecStatus, NodeType, addNode } from './widgets/node';
 
 export interface IProps {
   link: ILink;
   children?: React.ReactNode;
+  cmd: Command;
 }
 
-const handler = (graph: Graph, cmd: string, ...args: any) => {
-  switch (cmd) {
-    case 'insert':
-      let requests: XRequest[] = args[0];
-      let [x, y, offset] = [0, 0, 20];
-      for (let request of requests) {
-        graph.addNode(CreateNode(request, x, y));
-        x += offset;
-        y += offset;
-      }
-      break;
-  }
-};
-
-const LinkEditor: React.FC<IProps> = ({ link, children }) => {
+/**
+ * 返回一个请求编辑器
+ * @returns
+ */
+const LinkEditor: React.FC<IProps> = ({ link, children, cmd }) => {
   const ref = createRef<HTMLDivElement>();
   useEffect(() => {
-    const graph = new Graph({
-      height: ref.current?.clientHeight,
-      container: ref.current!,
-      background: {
-        color: '#F2F7FA',
-      },
-    });
-    if (link.metadata.data) {
-      graph.fromJSON(link.metadata.data);
-    }
-    graph.centerContent();
-    const id = command.subscribe((_: string, cmd: string, args: any) => {
+    const graph = createGraph(ref, link);
+    const id = cmd.subscribe((_: string, cmd: string, args: any) => {
       handler(graph, cmd, args);
     });
     return () => {
+      cmd.unsubscribe(id);
       graph.dispose();
-      command.unsubscribe(id);
     };
   }, [ref]);
   return (
@@ -52,6 +34,35 @@ const LinkEditor: React.FC<IProps> = ({ link, children }) => {
       {children}
     </div>
   );
+};
+
+/**
+ * 数据处理句柄
+ * @param graph 画布
+ * @param cmd 命令
+ * @param args 参数
+ */
+const handler = (graph: Graph, cmd: string, ...args: any) => {
+  switch (cmd) {
+    case 'insert':
+      let requests: IRequest[] = args[0];
+      let [x, y, offset] = [0, 0, 20];
+      for (let request of requests) {
+        addNode({
+          graph: graph,
+          position: {
+            x: x,
+            y: y,
+          },
+          nodeType: NodeType.Request,
+          request: request,
+          status: ExecStatus.Stop,
+        });
+        x += offset;
+        y += offset;
+      }
+      break;
+  }
 };
 
 export default LinkEditor;
