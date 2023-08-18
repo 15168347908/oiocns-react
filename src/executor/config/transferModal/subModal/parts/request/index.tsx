@@ -1,9 +1,9 @@
-import { IRequest } from '@/ts/core/thing/request';
 import { Tabs } from 'antd';
 import React from 'react';
 import Body from './widgets/Body';
 import Headers from './widgets/headers';
 import Params from './widgets/params';
+import { IRequest } from '@/ts/core/thing/config';
 
 export type ReqTab = 'Param' | 'Header' | 'Body';
 

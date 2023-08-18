@@ -1,4 +1,4 @@
-import { IRequest } from '@/ts/core/thing/request';
+import { IRequest } from '@/ts/core/thing/config';
 import { Method } from '@/utils/api/consts';
 import { DownOutlined } from '@ant-design/icons';
 import { Dropdown, Input, Space } from 'antd';

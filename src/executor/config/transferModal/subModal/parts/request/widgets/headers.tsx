@@ -1,4 +1,4 @@
-import { IRequest } from '@/ts/core/thing/request';
+import { IRequest } from '@/ts/core/thing/config';
 import { ProTable } from '@ant-design/pro-components';
 import { RawAxiosRequestHeaders, AxiosHeaders, AxiosHeaderValue } from 'axios';
 import React, { useEffect, useState } from 'react';
