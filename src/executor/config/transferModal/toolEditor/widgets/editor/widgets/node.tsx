@@ -1,5 +1,4 @@
 import { XFileInfo } from '@/ts/base/schema';
-import { IFileInfo } from '@/ts/core';
 import { Graph, Node, StringExt } from '@antv/x6';
 import { Dropdown } from 'antd';
 import { MenuItemType } from 'antd/lib/menu/hooks/useItems';
@@ -108,8 +107,9 @@ export const addNode = <X extends XFileInfo, S>(
     },
     ports: getPortsByType(entity),
   };
+  const ans = graph.addNode(node)
   console.log(node);
-  return graph.addNode(node);
+  return ans;
 };
 
 /**

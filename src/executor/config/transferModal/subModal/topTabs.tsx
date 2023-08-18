@@ -4,7 +4,7 @@ import { Tabs } from 'antd';
 import React, { useState } from 'react';
 import * as im from 'react-icons/im';
 import { MenuItemType } from 'typings/globelType';
-import { loadRequest } from '..';
+import { loadEntity } from '..';
 import RequestModal from '../../entityForm/requestForm';
 import RequestLayout from './layout';
 
@@ -77,7 +77,7 @@ const TopTabs: React.FC<IProps> = ({ ctrl, dir, curTab, setCurTab, tabs, setTabs
           dir={dir}
           cancel={() => setOpen(false)}
           finished={(request) => {
-            let tab = loadRequest(request);
+            let tab = loadEntity(request);
             setTabs([...tabs, tab]);
             setCurTab(tab);
             setOpen(false);

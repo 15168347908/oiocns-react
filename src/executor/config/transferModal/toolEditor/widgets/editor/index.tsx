@@ -59,7 +59,7 @@ const handler = (graph: Graph, cmd: string, ...args: any) => {
             x: x,
             y: y,
           },
-          entity: request,
+          entity: request.metadata,
           status: ExecStatus.Stop,
         });
         x += offset;

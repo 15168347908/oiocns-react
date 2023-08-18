@@ -98,7 +98,7 @@ export interface IDirectory extends IFileInfo<schema.XDirectory> {
   /** 加载目录树 */
   loadSubDirectory(): void;
   /** 目录下的所有配置项 */
-  configs: IEntity<schema.XFileInfo>[];
+  configs: IFileInfo<schema.XFileInfo>[];
   /** 新建请求配置 */
   createConfig(
     collName: ConfigColl,

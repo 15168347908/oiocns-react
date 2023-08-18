@@ -2,12 +2,12 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import MainLayout from '@/components/MainLayout';
 import FullScreenModal from '@/executor/tools/fullScreen';
 import useMenuUpdate from '@/hooks/useMenuUpdate';
-import { IDirectory } from '@/ts/core';
-import { IRequest } from '@/ts/core/thing/request';
+import { XFileInfo } from '@/ts/base/schema';
+import { Controller } from '@/ts/controller';
+import { IDirectory, IFileInfo } from '@/ts/core';
 import React, { useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
 import TopTabs from './subModal/topTabs';
-import { Controller } from '@/ts/controller';
 
 interface IProps {
   dir: IDirectory;
@@ -80,19 +80,19 @@ export const loadMenu = (directory: IDirectory): MenuItemType => {
     icon: <EntityIcon entityId={directory.id} typeName={directory.typeName} size={18} />,
     children: [
       ...directory.children.map(loadMenu),
-      ...directory.configs.filter(item => item.typeName == '请求').map(loadRequest),
+      ...directory.configs.filter((item) => item.typeName == '请求').map(loadEntity),
     ],
   };
 };
 
 /** 请求菜单 */
-export const loadRequest = (request: IRequest): MenuItemType => {
+export const loadEntity = (entity: IFileInfo<XFileInfo>): MenuItemType => {
   return {
-    key: request.id,
-    item: request,
-    label: request.name,
-    itemType: request.typeName,
-    icon: <EntityIcon entityId={request.id} typeName={request.typeName} size={18} />,
+    key: entity.id,
+    item: entity,
+    label: entity.name,
+    itemType: entity.typeName,
+    icon: <EntityIcon entityId={entity.id} typeName={entity.typeName} size={18} />,
     children: [],
   };
 };
