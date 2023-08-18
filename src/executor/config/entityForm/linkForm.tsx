@@ -1,7 +1,8 @@
 import SchemaForm from '@/components/SchemaForm';
 import { XLink } from '@/ts/base/schema';
 import { IDirectory } from '@/ts/core';
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core/thing/config';
+import { ConfigColl } from '@/ts/core/thing/directory';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React from 'react';
 
@@ -45,8 +46,8 @@ const LinkModal: React.FC<IProps> = ({ current, finished }) => {
         }
       }}
       onFinish={async (values) => {
-        let request = await current.createLink(values);
-        finished(request!);
+        let request = await current.createConfig(ConfigColl.RequestLinks, values);
+        finished(request as ILink);
       }}
     />
   );

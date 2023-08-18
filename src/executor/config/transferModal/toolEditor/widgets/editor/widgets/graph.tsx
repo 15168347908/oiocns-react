@@ -1,9 +1,9 @@
-import { Graph, Platform, Edge, Path } from '@antv/x6';
-import { ProcessingNode } from './node';
-import { ILink } from '@/ts/core/thing/link';
-import { inGroup, outGroup } from './group';
-import { edgeRegistering } from './edge';
+import { ILink } from '@/ts/core/thing/config';
+import { Graph, Path, Platform } from '@antv/x6';
 import { register } from '@antv/x6-react-shape';
+import { edgeRegistering } from './edge';
+import { inGroup, outGroup } from './group';
+import { ProcessingNode } from './node';
 
 /**
  * 创建画布
@@ -127,6 +127,54 @@ const registering = () => {
       },
     },
   });
+  Graph.registerNode(
+    'custom-node-width-port',
+    {
+      inherit: 'rect',
+      width: 100,
+      height: 40,
+      attrs: {
+        body: {
+          stroke: '#8f8f8f',
+          strokeWidth: 1,
+          fill: '#fff',
+          rx: 6,
+          ry: 6,
+        },
+      },
+      ports: {
+        groups: {
+          top: {
+            position: 'top',
+            attrs: {
+              circle: {
+                magnet: true,
+                stroke: '#8f8f8f',
+                r: 5,
+              },
+            },
+            label: {
+              position: 'top',
+            },
+          },
+          bottom: {
+            position: 'bottom',
+            attrs: {
+              circle: {
+                magnet: true,
+                stroke: '#8f8f8f',
+                r: 5,
+              },
+            },
+            label: {
+              position: 'top',
+            },
+          },
+        },
+      },
+    },
+    true,
+  )
 };
 
 /**

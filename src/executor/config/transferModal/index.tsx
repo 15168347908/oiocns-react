@@ -80,7 +80,7 @@ export const loadMenu = (directory: IDirectory): MenuItemType => {
     icon: <EntityIcon entityId={directory.id} typeName={directory.typeName} size={18} />,
     children: [
       ...directory.children.map(loadMenu),
-      ...directory.requests.map(loadRequest),
+      ...directory.configs.filter(item => item.typeName == '请求').map(loadRequest),
     ],
   };
 };

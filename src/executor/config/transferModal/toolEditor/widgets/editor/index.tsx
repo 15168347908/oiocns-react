@@ -1,10 +1,9 @@
 import { Command } from '@/ts/base';
-import { ILink } from '@/ts/core/thing/link';
-import { IRequest } from '@/ts/core/thing/request';
 import { Graph } from '@antv/x6';
 import React, { createRef, useEffect } from 'react';
 import { createGraph } from './widgets/graph';
-import { ExecStatus, NodeType, addNode } from './widgets/node';
+import { ExecStatus, addNode } from './widgets/node';
+import { ILink, IRequest } from '@/ts/core/thing/config';
 
 export interface IProps {
   link: ILink;
@@ -50,7 +49,7 @@ const LinkEditor: React.FC<IProps> = ({ link, children, cmd }) => {
  */
 const handler = (graph: Graph, cmd: string, ...args: any) => {
   switch (cmd) {
-    case 'insert':
+    case 'insertRequest':
       let requests: IRequest[] = args[0];
       let [x, y, offset] = [0, 0, 20];
       for (let request of requests) {
@@ -60,8 +59,7 @@ const handler = (graph: Graph, cmd: string, ...args: any) => {
             x: x,
             y: y,
           },
-          nodeType: NodeType.Request,
-          request: request,
+          entity: request,
           status: ExecStatus.Stop,
         });
         x += offset;

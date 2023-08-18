@@ -1,10 +1,10 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
-import { ILink } from '@/ts/core/thing/link';
+import { Command } from '@/ts/base';
 import { Space } from 'antd';
 import React, { useRef } from 'react';
 import LinkEditor from './widgets/editor';
 import { OpenSelector } from './widgets/selectRequest';
-import { Command } from '@/ts/base';
+import { ILink } from '@/ts/core/thing/config';
 
 interface IProps {
   current: ILink;
@@ -21,7 +21,7 @@ const LinkLayout: React.FC<IProps> = ({ current: link, finished }) => {
       width={'80vw'}
       bodyHeight={'80vh'}
       destroyOnClose
-      title={'请求配置'}
+      title={'链接配置'}
       onCancel={() => finished()}>
       <LinkEditor
         link={link}
