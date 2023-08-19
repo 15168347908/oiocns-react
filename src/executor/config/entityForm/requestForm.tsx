@@ -13,7 +13,7 @@ interface IProps {
   cancel: () => void;
 }
 
-const RequestModal: React.FC<IProps> = ({ dir, finished, cancel }) => {
+const RequestForm: React.FC<IProps> = ({ dir, finished, cancel }) => {
   const columns: ProFormColumnsType<XRequest>[] = [
     {
       title: '名称',
@@ -66,4 +66,4 @@ const RequestModal: React.FC<IProps> = ({ dir, finished, cancel }) => {
   );
 };
 
-export default RequestModal;
+export default RequestForm;

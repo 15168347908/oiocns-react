@@ -2,44 +2,43 @@ import { Col, Layout, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import { AxiosError, AxiosResponse } from 'axios';
 import React, { useState } from 'react';
-import { MenuItemType } from '../../../../../../typings/globelType';
 import InputBox from '../parts/inputBox';
 import RequestPart from '../parts/request';
 import ResponsePart from '../parts/response/responsePart';
 import { IRequest } from '../../../../../ts/core/thing/config';
 
 interface IProps {
-  curTab: MenuItemType;
+  current: IRequest;
+  finished?: () => void;
 }
 
-const RequestLayout: React.FC<IProps> = ({ curTab }) => {
-  let request: IRequest = curTab.item;
+const RequestLayout: React.FC<IProps> = ({ current }) => {
   const [resp, setResp] = useState<AxiosResponse>();
   return (
-    <Layout key={curTab.key} style={{ height: '100%' }}>
+    <Layout key={current.key} style={{ height: '100%' }}>
       <Content style={{ height: '100%' }}>
         <Row>
           <InputBox
-            request={request}
+            current={current}
             send={async () => {
               try {
-                let res = await request.exec();
+                let res = await current.exec();
                 setResp(() => res);
               } catch (error) {
                 if (error instanceof AxiosError) {
                   setResp(() => (error as AxiosError).response);
                 }
               }
-              request.changCallback();
+              current.changCallback();
             }}
           />
         </Row>
         <Row style={{ marginTop: 10, height: '100%' }}>
           <Col span={12}>
-            <RequestPart request={request} />
+            <RequestPart current={current} />
           </Col>
           <Col span={12}>
-            <ResponsePart request={request} response={resp} />
+            <ResponsePart request={current} response={resp} />
           </Col>
         </Row>
       </Content>

@@ -4,20 +4,20 @@ import { Dropdown, Input, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 interface IProps {
-  request: IRequest;
+  current: IRequest;
   send: () => void;
 }
 
-const InputBox: React.FC<IProps> = ({ request, send }) => {
-  const [url, setUrl] = useState<string | undefined>(request.axios.url);
-  const [method, setMethod] = useState<string>(request.axios.method ?? 'GET');
+const InputBox: React.FC<IProps> = ({ current, send }) => {
+  const [url, setUrl] = useState<string | undefined>(current.axios.url);
+  const [method, setMethod] = useState<string>(current.axios.method ?? 'GET');
   useEffect(() => {
-    const id = request.subscribe(() => {
-      setUrl(request.axios.url);
-      setMethod(request.axios.method ?? 'GET');
+    const id = current.subscribe(() => {
+      setUrl(current.axios.url);
+      setMethod(current.axios.method ?? 'GET');
     });
     return () => {
-      request.unsubscribe(id);
+      current.unsubscribe(id);
     };
   });
   return (
@@ -25,15 +25,15 @@ const InputBox: React.FC<IProps> = ({ request, send }) => {
       addonBefore={
         <Dropdown
           menu={{
-            items: Object.keys(['GET', 'POST']).map((item) => {
+            items: ['GET', 'POST'].map((item) => {
               return {
                 key: item,
                 label: item,
               };
             }),
             onClick: (info) => {
-              request.metadata.axios.method = info.key;
-              request.refresh(request.metadata);
+              current.metadata.axios.method = info.key;
+              current.refresh(current.metadata);
             },
           }}>
           <div
@@ -62,8 +62,8 @@ const InputBox: React.FC<IProps> = ({ request, send }) => {
       value={url}
       placeholder="输入 URL 地址"
       onChange={(event) => {
-        request.metadata.axios.url = event.target.value;
-        request.refresh(request.metadata);
+        current.metadata.axios.url = event.target.value;
+        current.refresh(current.metadata);
       }}
     />
   );

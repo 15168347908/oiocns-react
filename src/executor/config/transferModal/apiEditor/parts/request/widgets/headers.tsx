@@ -4,7 +4,7 @@ import { RawAxiosRequestHeaders, AxiosHeaders, AxiosHeaderValue } from 'axios';
 import React, { useEffect, useState } from 'react';
 
 export interface IProps {
-  request: IRequest;
+  current: IRequest;
 }
 
 export type Header = RawAxiosRequestHeaders | AxiosHeaders;
@@ -25,16 +25,16 @@ const toHeaders = (headers?: Header): HeaderData[] => {
   return rows;
 };
 
-const Header: React.FC<IProps> = ({ request }) => {
-  const [rows, setRows] = useState<HeaderData[]>(toHeaders(request.axios.headers));
+const Header: React.FC<IProps> = ({ current }) => {
+  const [rows, setRows] = useState<HeaderData[]>(toHeaders(current.axios.headers));
   useEffect(() => {
-    const id = request.subscribe(() => {
-      setRows(toHeaders(request.axios.headers));
+    const id = current.subscribe(() => {
+      setRows(toHeaders(current.axios.headers));
     });
     return () => {
-      request.unsubscribe(id);
+      current.unsubscribe(id);
     };
-  }, [request.axios.headers]);
+  }, [current.axios.headers]);
   return (
     <ProTable
       dataSource={rows}

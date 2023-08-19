@@ -3,7 +3,7 @@ import { ProTable } from '@ant-design/pro-components';
 import React, { useEffect, useState } from 'react';
 
 export interface IProps {
-  request: IRequest;
+  current: IRequest;
 }
 interface Param {
   key: string;
@@ -31,17 +31,17 @@ const toParams = (value?: string): Param[] => {
   return [];
 };
 
-const Params: React.FC<IProps> = ({ request }) => {
-  const [params, setParams] = useState<Param[]>(toParams(request.axios.params));
+const Params: React.FC<IProps> = ({ current }) => {
+  const [params, setParams] = useState<Param[]>(toParams(current.axios.params));
   useEffect(() => {
-    const id = request.subscribe(() => {
-      let params = toParams(request.axios.url);
+    const id = current.subscribe(() => {
+      let params = toParams(current.axios.url);
       setParams(params);
     });
     return () => {
-      request.unsubscribe(id!);
+      current.unsubscribe(id!);
     };
-  }, [request.axios.params]);
+  }, [current.axios.params]);
   return (
     <ProTable
       dataSource={params}

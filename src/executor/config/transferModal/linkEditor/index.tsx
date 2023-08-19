@@ -11,7 +11,7 @@ interface IProps {
   finished: () => void;
 }
 
-const LinkLayout: React.FC<IProps> = ({ current: link, finished }) => {
+const LinkModal: React.FC<IProps> = ({ current: link, finished }) => {
   const cmd = useRef(new Command());
   return (
     <FullScreenModal
@@ -40,4 +40,4 @@ const ToolBar: React.FC<{ current: ILink; cmd: Command }> = ({ current, cmd }) =
   );
 };
 
-export default LinkLayout;
+export default LinkModal;

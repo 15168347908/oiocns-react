@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import * as im from 'react-icons/im';
 import { MenuItemType } from '../../../../../../typings/globelType';
 import { loadEntity } from '../index';
-import RequestModal from '../../../entityForm/requestForm';
+import RequestForm from '../../../entityForm/requestForm';
 import RequestLayout from './main';
 
 interface IProps {
@@ -72,11 +72,11 @@ const Top: React.FC<IProps> = ({ cmd, dir }) => {
         type="editable-card"
         activeKey={curTab?.key}
         style={{ marginLeft: 10 }}
-        items={tabs.map((item) => {
+        items={tabs.map((tab) => {
           return {
-            key: item.key,
-            label: item.label,
-            children: <RequestLayout curTab={item} />,
+            key: tab.key,
+            label: tab.label,
+            children: <RequestLayout current={tab.item} />,
           };
         })}
         addIcon={
@@ -99,7 +99,7 @@ const Top: React.FC<IProps> = ({ cmd, dir }) => {
         onEdit={onEdit}
       />
       {open && (
-        <RequestModal
+        <RequestForm
           dir={curDir}
           cancel={() => setOpen(false)}
           finished={(request) => {

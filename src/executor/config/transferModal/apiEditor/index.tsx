@@ -12,16 +12,16 @@ import Top from './layout/top';
 import orgCtrl from '../../../../ts/controller';
 
 interface IProps {
-  dir: IDirectory;
+  current: IDirectory;
   finished: () => void;
 }
 
-const TransferModal: React.FC<IProps> = ({ dir, finished }) => {
+const TransferModal: React.FC<IProps> = ({ current: dir, finished }) => {
   const command = useRef(new Command());
   const ctrl = useRef(new Controller(''));
 
   const onSelect = (menu: MenuItemType) => {
-    setSelectMenu(menu as MenuItemType);
+    setSelected(menu as MenuItemType);
     command.current.emitter('', 'onSelect', menu as MenuItemType);
   };
 
@@ -38,12 +38,12 @@ const TransferModal: React.FC<IProps> = ({ dir, finished }) => {
     };
   }, [command, ctrl]);
 
-  const [_, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(
+  const [_, root, selected, setSelected] = useMenuUpdate(
     () => loadMenu(dir),
     ctrl.current,
   );
 
-  if (!rootMenu || !selectMenu) return <></>;
+  if (!root || !selected) return <></>;
   return (
     <FullScreenModal
       open
@@ -54,7 +54,7 @@ const TransferModal: React.FC<IProps> = ({ dir, finished }) => {
       destroyOnClose
       title={'请求配置'}
       onCancel={() => finished()}>
-      <MainLayout siderMenuData={rootMenu} selectMenu={selectMenu} onSelect={onSelect}>
+      <MainLayout siderMenuData={root} selectMenu={selected} onSelect={onSelect}>
         <Top dir={dir} cmd={command.current} />
       </MainLayout>
     </FullScreenModal>

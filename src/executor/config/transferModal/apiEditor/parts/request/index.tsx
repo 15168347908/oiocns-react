@@ -8,14 +8,14 @@ import { IRequest } from '@/ts/core/thing/config';
 export type ReqTab = 'Param' | 'Header' | 'Body';
 
 interface IProps {
-  request: IRequest;
+  current: IRequest;
 }
 
-const RequestPart: React.FC<IProps> = ({ request }) => {
+const RequestPart: React.FC<IProps> = ({ current }) => {
   const keys: { [key in string]: () => React.ReactNode } = {
-    Param: () => <Params request={request} />,
-    Header: () => <Headers request={request} />,
-    Body: () => <Body request={request} />,
+    Param: () => <Params current={current} />,
+    Header: () => <Headers current={current} />,
+    Body: () => <Body current={current} />,
   };
   return (
     <Tabs

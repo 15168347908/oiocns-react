@@ -31,7 +31,7 @@ interface IProps {
   finished: () => void;
 }
 const ConfigExecutor: React.FC<IProps> = ({ cmd, args, finished }) => {
-  console.log(cmd,'cmd')
+  console.log(cmd,'cmd',args)
   switch (cmd) {
     case 'open':
       if (Object.keys(entityMap).includes(args[0].typeName)) {
@@ -67,7 +67,7 @@ const ConfigExecutor: React.FC<IProps> = ({ cmd, args, finished }) => {
       }
       break;
     case "newRequest":
-      return <TransferModal dir={args[0]} finished={finished}></TransferModal>;
+      return <TransferModal current={args[0]} finished={finished}></TransferModal>;
     default:
       if (cmd === 'pull' || cmd.startsWith('join')) {
         return <OperateModal cmd={cmd} entity={args[0]} finished={finished} />;
