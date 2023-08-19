@@ -6,7 +6,7 @@ import OperateModal from './operateModal';
 import SettingAuth from './settingModal/settingAuth';
 import SettingStation from './settingModal/settingStation';
 import SettingIdentity from './settingModal/settingIdentity';
-import TransferModal from './transferModal';
+import TransferModal from './transferModal/apiEditor';
 
 const entityMap: any = {
   目录: 'Dir',

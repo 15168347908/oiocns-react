@@ -1,18 +1,49 @@
-import FullScreenModal from '@/executor/tools/fullScreen';
-import { Command } from '@/ts/base';
-import { Space } from 'antd';
-import React, { useRef } from 'react';
-import LinkEditor from './widgets/editor';
-import { OpenSelector } from './widgets/selectRequest';
-import { ILink } from '@/ts/core/thing/config';
+import EntityIcon from '../../../../components/Common/GlobalComps/entityIcon';
+import MainLayout from '../../../../components/MainLayout';
+import FullScreenModal from '../../../tools/fullScreen';
+import useMenuUpdate from '../../../../hooks/useMenuUpdate';
+import { Command } from '../../../../ts/base';
+import { XFileInfo } from '../../../../ts/base/schema';
+import { Controller } from '../../../../ts/controller';
+import { IDirectory, IFileInfo } from '../../../../ts/core';
+import React, { useEffect, useRef } from 'react';
+import { MenuItemType } from '../../../../../typings/globelType';
+import Top from './layout/top';
+import orgCtrl from '../../../../ts/controller';
 
 interface IProps {
-  current: ILink;
+  dir: IDirectory;
   finished: () => void;
 }
 
-const LinkLayout: React.FC<IProps> = ({ current: link, finished }) => {
-  const cmd = useRef(new Command());
+const TransferModal: React.FC<IProps> = ({ dir, finished }) => {
+  const command = useRef(new Command());
+  const ctrl = useRef(new Controller(''));
+
+  const onSelect = (menu: MenuItemType) => {
+    setSelectMenu(menu as MenuItemType);
+    command.current.emitter('', 'onSelect', menu as MenuItemType);
+  };
+
+  useEffect(() => {
+    const id = command.current.subscribe((_: string, cmd: string, args: any) => {
+      if (cmd == 'onAdd') {
+        orgCtrl.changCallback();
+        ctrl.current.changCallback();
+        onSelect(args as MenuItemType);
+      }
+    });
+    return () => {
+      command.current.unsubscribe(id);
+    };
+  }, [command, ctrl]);
+
+  const [_, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(
+    () => loadMenu(dir),
+    ctrl.current,
+  );
+
+  if (!rootMenu || !selectMenu) return <></>;
   return (
     <FullScreenModal
       open
@@ -21,23 +52,40 @@ const LinkLayout: React.FC<IProps> = ({ current: link, finished }) => {
       width={'80vw'}
       bodyHeight={'80vh'}
       destroyOnClose
-      title={'链接配置'}
+      title={'请求配置'}
       onCancel={() => finished()}>
-      <LinkEditor
-        link={link}
-        children={<ToolBar current={link} cmd={cmd.current} />}
-        cmd={cmd.current}
-      />
+      <MainLayout siderMenuData={rootMenu} selectMenu={selectMenu} onSelect={onSelect}>
+        <Top dir={dir} cmd={command.current} />
+      </MainLayout>
     </FullScreenModal>
   );
 };
 
-const ToolBar: React.FC<{ current: ILink; cmd: Command }> = ({ current, cmd }) => {
-  return (
-    <Space style={{ position: 'absolute', left: 10, top: 10 }}>
-      <OpenSelector current={current} cmd={cmd}></OpenSelector>
-    </Space>
-  );
+// 目录菜单
+export const loadMenu = (directory: IDirectory): MenuItemType => {
+  return {
+    key: directory.id,
+    item: directory,
+    label: directory.name,
+    itemType: directory.typeName,
+    icon: <EntityIcon entityId={directory.id} typeName={directory.typeName} size={18} />,
+    children: [
+      ...directory.children.map(loadMenu),
+      ...directory.configs.filter((item) => item.typeName == '请求').map(loadEntity),
+    ],
+  };
 };
 
-export default LinkLayout;
+/** 请求菜单 */
+export const loadEntity = (entity: IFileInfo<XFileInfo>): MenuItemType => {
+  return {
+    key: entity.id,
+    item: entity,
+    label: entity.name,
+    itemType: entity.typeName,
+    icon: <EntityIcon entityId={entity.id} typeName={entity.typeName} size={18} />,
+    children: [],
+  };
+};
+
+export default TransferModal;

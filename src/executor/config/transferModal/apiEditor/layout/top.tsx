@@ -1,19 +1,19 @@
-import { Command } from '@/ts/base';
-import { IDirectory } from '@/ts/core';
+import { Command } from '../../../../../ts/base';
+import { IDirectory } from '../../../../../ts/core';
 import { Tabs } from 'antd';
 import React, { useEffect, useState } from 'react';
 import * as im from 'react-icons/im';
-import { MenuItemType } from 'typings/globelType';
-import { loadEntity } from '..';
-import RequestModal from '../../entityForm/requestForm';
-import RequestLayout from './layout';
+import { MenuItemType } from '../../../../../../typings/globelType';
+import { loadEntity } from '../index';
+import RequestModal from '../../../entityForm/requestForm';
+import RequestLayout from './main';
 
 interface IProps {
   cmd: Command;
   dir: IDirectory;
 }
 
-const TopTabs: React.FC<IProps> = ({ cmd, dir }) => {
+const Top: React.FC<IProps> = ({ cmd, dir }) => {
   // 状态
   const [tabs, setTabs] = useState<MenuItemType[]>([]);
   const [curTab, setCurTab] = useState<MenuItemType | undefined>();
@@ -112,4 +112,4 @@ const TopTabs: React.FC<IProps> = ({ cmd, dir }) => {
   );
 };
 
-export default TopTabs;
+export default Top;
