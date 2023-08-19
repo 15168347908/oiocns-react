@@ -52,9 +52,7 @@ const useMenuUpdate = (
       setKey(key);
       refreshMenu();
     });
-    console.log("渲染完成啦", id);
     return () => {
-      console.log("组件卸载啦", id);
       ctrl.unsubscribe(id);
     };
   }, []);

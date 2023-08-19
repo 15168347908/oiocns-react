@@ -7,7 +7,6 @@ import SettingAuth from './settingModal/settingAuth';
 import SettingStation from './settingModal/settingStation';
 import SettingIdentity from './settingModal/settingIdentity';
 import TransferModal from './transferModal';
-import LinkLayout from './transferModal/toolEditor';
 
 const entityMap: any = {
   目录: 'Dir',

@@ -156,7 +156,7 @@ export type XForm = {
   bindNodes: XWorkNode[] | undefined;
   // 单的目录
   directory: XDirectory | undefined;
-  schema: schemaType;
+  schema:schemaType
 } & XEntity;
 
 //身份证明

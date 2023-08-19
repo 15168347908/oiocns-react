@@ -1,6 +1,7 @@
 import React,{useState,useEffect} from 'react';
 import MdEditor from 'for-editor';
 import FullScreenModal from '@/executor/tools/fullScreen';
+import { FileItemShare } from '@/ts/base/model';
 import axios from 'axios';
 import { getJsonText } from '@/utils';
 import orgCtrl from '@/ts/controller';

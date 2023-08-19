@@ -10,20 +10,19 @@ import {
   teamOperates,
 } from '../public';
 import { ITarget } from '../target/base/target';
-import { FileInfo, IFileInfo, ISysFileInfo, SysFileInfo } from './fileinfo';
 import { Form, IForm } from './form';
-import { IReport, Report } from './report';
+import { Report, IReport } from './report';
+import { SysFileInfo, ISysFileInfo, IFileInfo, FileInfo } from './fileinfo';
 
-import { encodeKey, generateUuid } from '@/ts/base/common';
-import { BucketOpreates, DirectoryModel } from '@/ts/base/model';
-import { XExecutable, XFileInfo, XLink, XRequest } from '@/ts/base/schema';
-import { formatDate } from '@/utils';
-import { Application, IApplication } from './application';
-import { Executable, Link, Request, Unknown } from './config';
+import { Species, ISpecies } from './species';
 import { Member } from './member';
-import { IProperty, Property } from './property';
-import { ISpecies, Species } from './species';
-
+import { Property, IProperty } from './property';
+import { Application, IApplication } from './application';
+import { BucketOpreates, DirectoryModel } from '@/ts/base/model';
+import {encodeKey, generateUuid} from '@/ts/base/common';
+import {XExecutable, XFileInfo, XLink, XRequest} from "@/ts/base/schema";
+import {formatDate} from "@/utils";
+import {Executable, Link} from "@/ts/core/thing/config";
 /** 可为空的进度回调 */
 export type OnProgress = (p: number) => void;
 

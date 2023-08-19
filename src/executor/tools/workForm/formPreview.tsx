@@ -5,7 +5,7 @@ import React from 'react';
 import FormRender, { useForm } from 'form-render';
 import { WorkFormRulesType } from '@/ts/core/work/rules/workFormRules';
 import moment from 'moment';
-import MyDivider from '@/components/Common/FormDesign/FormEdit/widgets/divider';
+import MyDivider from '@/components/Common/FormDesign/FormEdit/widgets/Divider';
 import MySpace from '@/components/Common/FormDesign/FormEdit/widgets/Space';
 
 interface IProps {
@@ -71,7 +71,9 @@ const FormRenders: React.FC<IProps> = (props) => {
   };
   return props.forms.map((formResult) => {
     const rule = formResult.rule && JSON.parse(formResult.rule);
-    console.log('@@', rule.schema);
+    if (!rule) {
+      return <></>;
+    }
     return (
       // eslint-disable-next-line react/jsx-key
       <FormRender
