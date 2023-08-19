@@ -1,7 +1,6 @@
 import React from 'react';
 import SchemaForm from '@/components/SchemaForm';
 import { ProFormColumnsType } from '@ant-design/pro-components';
-import { Method } from '@/utils/api/consts';
 import { IDirectory } from '@/ts/core';
 import { XRequest } from '@/ts/base/schema';
 import { IRequest } from '@/ts/core/thing/config';
@@ -50,7 +49,7 @@ const RequestModal: React.FC<IProps> = ({ dir, finished, cancel }) => {
       }}
       onFinish={async (values) => {
         values.axios = {
-          method: Method.GET,
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json;charset=UTF-8',
             appid: 'zx678sw12qm1',

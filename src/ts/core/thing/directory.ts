@@ -1,6 +1,5 @@
 import { common, kernel, model, schema } from '../../base';
 import {
-  IEntity,
   PageAll,
   TargetType,
   directoryNew,
@@ -22,7 +21,7 @@ import { BucketOpreates, DirectoryModel } from '@/ts/base/model';
 import {encodeKey, generateUuid} from '@/ts/base/common';
 import {XExecutable, XFileInfo, XLink, XRequest} from "@/ts/base/schema";
 import {formatDate} from "@/utils";
-import {Executable, Link} from "@/ts/core/thing/config";
+import {Request, Executable, Link, Unknown} from "@/ts/core/thing/config";
 /** 可为空的进度回调 */
 export type OnProgress = (p: number) => void;
 

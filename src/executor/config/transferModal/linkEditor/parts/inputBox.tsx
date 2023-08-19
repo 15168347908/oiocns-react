@@ -1,5 +1,4 @@
 import { IRequest } from '@/ts/core/thing/config';
-import { Method } from '@/utils/api/consts';
 import { DownOutlined } from '@ant-design/icons';
 import { Dropdown, Input, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -11,11 +10,11 @@ interface IProps {
 
 const InputBox: React.FC<IProps> = ({ request, send }) => {
   const [url, setUrl] = useState<string | undefined>(request.axios.url);
-  const [method, setMethod] = useState<string>(request.axios.method ?? Method.GET);
+  const [method, setMethod] = useState<string>(request.axios.method ?? 'GET');
   useEffect(() => {
     const id = request.subscribe(() => {
       setUrl(request.axios.url);
-      setMethod(request.axios.method ?? Method.GET);
+      setMethod(request.axios.method ?? 'GET');
     });
     return () => {
       request.unsubscribe(id);
@@ -26,7 +25,7 @@ const InputBox: React.FC<IProps> = ({ request, send }) => {
       addonBefore={
         <Dropdown
           menu={{
-            items: Object.keys(Method).map((item) => {
+            items: Object.keys(['GET', 'POST']).map((item) => {
               return {
                 key: item,
                 label: item,

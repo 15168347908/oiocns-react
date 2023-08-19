@@ -2,37 +2,46 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import MainLayout from '@/components/MainLayout';
 import FullScreenModal from '@/executor/tools/fullScreen';
 import useMenuUpdate from '@/hooks/useMenuUpdate';
+import { Command } from '@/ts/base';
 import { XFileInfo } from '@/ts/base/schema';
 import { Controller } from '@/ts/controller';
 import { IDirectory, IFileInfo } from '@/ts/core';
-import React, { useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { MenuItemType } from 'typings/globelType';
-import TopTabs from './subModal/topTabs';
+import TopTabs from '@/executor/config/transferModal/linkEditor/topTabs';
+import orgCtrl from '@/ts/controller';
 
 interface IProps {
   dir: IDirectory;
   finished: () => void;
 }
 
-const ctrl = new Controller('');
-
 const TransferModal: React.FC<IProps> = ({ dir, finished }) => {
-  // 菜单控制
+  const command = useRef(new Command());
+  const ctrl = useRef(new Controller(''));
+
+  const onSelect = (menu: MenuItemType) => {
+    setSelectMenu(menu as MenuItemType);
+    command.current.emitter('', 'onSelect', menu as MenuItemType);
+  };
+
+  useEffect(() => {
+    const id = command.current.subscribe((_: string, cmd: string, args: any) => {
+      if (cmd == 'onAdd') {
+        orgCtrl.changCallback();
+        ctrl.current.changCallback();
+        onSelect(args as MenuItemType);
+      }
+    });
+    return () => {
+      command.current.unsubscribe(id);
+    };
+  }, [command, ctrl]);
+
   const [_, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(
     () => loadMenu(dir),
-    ctrl,
+    ctrl.current,
   );
-
-  // tabs 栏控制
-  const [curDir, setCurDir] = useState<IDirectory>(dir);
-  const [tabs, setTabs] = useState<MenuItemType[]>([]);
-  const [curTab, setCurTab] = useState<MenuItemType | undefined>();
-  const updateTabs = (tab: MenuItemType) => {
-    let index = tabs.findIndex((item) => item.key == tab.key);
-    if (index == -1) {
-      setTabs([...tabs, tab]);
-    }
-  };
 
   if (!rootMenu || !selectMenu) return <></>;
   return (
@@ -45,26 +54,8 @@ const TransferModal: React.FC<IProps> = ({ dir, finished }) => {
       destroyOnClose
       title={'请求配置'}
       onCancel={() => finished()}>
-      <MainLayout
-        siderMenuData={rootMenu}
-        selectMenu={selectMenu}
-        onSelect={(data) => {
-          setSelectMenu(data);
-          if (data.itemType == '请求') {
-            setCurTab(data);
-            updateTabs(data);
-          } else {
-            setCurDir(data.item);
-          }
-        }}>
-        <TopTabs
-          dir={curDir}
-          ctrl={ctrl}
-          curTab={curTab}
-          setCurTab={setCurTab}
-          tabs={tabs}
-          setTabs={setTabs}
-        />
+      <MainLayout siderMenuData={rootMenu} selectMenu={selectMenu} onSelect={onSelect}>
+        <TopTabs dir={dir} cmd={command.current} />
       </MainLayout>
     </FullScreenModal>
   );

@@ -1,9 +1,11 @@
 import { ILink } from '@/ts/core/thing/config';
 import { Graph, Path, Platform } from '@antv/x6';
+import { Selection } from '@antv/x6-plugin-selection';
 import { register } from '@antv/x6-react-shape';
 import { edgeRegistering } from './edge';
 import { inGroup, outGroup } from './group';
 import { ProcessingNode } from './node';
+import React from 'react';
 
 /**
  * 创建画布
@@ -62,10 +64,7 @@ export const createGraph = (ref: React.RefObject<HTMLDivElement>, link: ILink): 
         if (sourceMagnet?.getAttribute('port-group') === 'in') {
           return false;
         }
-        if (targetMagnet?.getAttribute('port-group') !== 'in') {
-          return false;
-        }
-        return true;
+        return targetMagnet?.getAttribute('port-group') === 'in';
       },
     },
     background: {
@@ -174,7 +173,7 @@ const registering = () => {
       },
     },
     true,
-  )
+  );
 };
 
 /**
@@ -182,13 +181,13 @@ const registering = () => {
  * @param graph 画布
  */
 const using = (graph: Graph) => {
-  // graph.use(
-  //   new Selection({
-  //     enabled: true,
-  //     multiple: true,
-  //     rubberband: true,
-  //     movable: true,
-  //     showNodeSelectionBox: true,
-  //   }),
-  // );
+  graph.use(
+    new Selection({
+      enabled: true,
+      multiple: true,
+      rubberband: true,
+      movable: true,
+      showNodeSelectionBox: true,
+    }),
+  );
 };

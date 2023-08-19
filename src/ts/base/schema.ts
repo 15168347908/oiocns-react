@@ -1,6 +1,6 @@
-import { Model } from '@antv/x6';
-import { AxiosRequestConfig } from 'axios';
-import { ConfigColl } from '../core/thing/directory';
+import {Model} from '@antv/x6';
+import {AxiosRequestConfig} from 'axios';
+import {ConfigColl} from '../core/thing/directory';
 
 export type Xbase = {
   // 雪花ID
@@ -156,7 +156,7 @@ export type XForm = {
   bindNodes: XWorkNode[] | undefined;
   // 单的目录
   directory: XDirectory | undefined;
-  schema:schemaType
+  schema: schemaType
 } & XEntity;
 
 //身份证明
@@ -572,24 +572,27 @@ export type XReport = {
   directory: XDirectory | undefined;
 } & XEntity;
 
-type typeName = '请求' | '链接' | '脚本' | '未知';
-
-/** 文件项 */
+// 文件项
 export type XFileInfo = {
   directoryId: string;
-  collName: ConfigColl;
-  typeName: typeName;
+  collName: string;
+  typeName: '请求' | '链接' | '脚本' | '未知';
 } & XEntity;
 
-/** 请求定义 */
+// 请求定义
 export type XRequest = {
   axios: AxiosRequestConfig;
 } & XFileInfo;
 
-/** 请求定义 */
+// 链接定义
 export type XLink = {
   data: Model.FromJSONData;
 } & XFileInfo;
 
-/** 脚本配置 */
+// 环境定义
+export type XEnvironment = {
+  [key: string]: string;
+} & XFileInfo;
+
+// 脚本配置
 export type XExecutable = XFileInfo;

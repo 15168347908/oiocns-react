@@ -38,6 +38,8 @@ interface Info {
  * 根据起点初始下游节点的位置信息
  * @param node 起始节点
  * @param graph
+ * @param dx
+ * @param dy
  * @returns
  */
 const getDownstreamNodePosition = (node: Node, graph: Graph, dx = 250, dy = 100) => {
@@ -107,7 +109,7 @@ export const addNode = <X extends XFileInfo, S>(
     },
     ports: getPortsByType(entity),
   };
-  const ans = graph.addNode(node)
+  const ans = graph.addNode(node);
   console.log(node);
   return ans;
 };

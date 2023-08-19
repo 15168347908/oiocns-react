@@ -1,4 +1,3 @@
-import { IRequest } from '@/ts/core/thing/request';
 import { Col, Layout, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import { AxiosError, AxiosResponse } from 'axios';
@@ -7,6 +6,7 @@ import { MenuItemType } from 'typings/globelType';
 import InputBox from './parts/inputBox';
 import RequestPart from './parts/request/index';
 import ResponsePart from './parts/response/responsePart';
+import { IRequest } from '@/ts/core/thing/config';
 
 interface IProps {
   curTab: MenuItemType;

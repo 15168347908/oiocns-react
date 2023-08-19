@@ -8,7 +8,7 @@ import WorkModal from './workModal';
 import orgCtrl from '@/ts/controller';
 import LabelsModal from './labelsModal';
 import ReportModal from './reportModal';
-import LinkLayout from '../transferModal/toolEditor';
+import LinkLayout from '../transferModal/apiEditor';
 interface IProps {
   cmd: string;
   entity: IEntity<schema.XEntity>;
