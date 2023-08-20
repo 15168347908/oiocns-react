@@ -54,7 +54,6 @@ const RequestForm: React.FC<IProps> = ({ dir, finished, cancel }) => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json;charset=UTF-8',
-            'User-Agent': 'Orginone',
           },
         };
         values.headers = Object.entries(values.axios.headers!).map(

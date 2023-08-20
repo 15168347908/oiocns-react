@@ -1,21 +1,20 @@
-import { AxiosResponse } from 'axios';
+import { Command } from '@/ts/base';
 import React from 'react';
-import MonacoEditor from '../monacor';
+import MonacoEditor, { toJsonString } from '../monacor';
 import { IRequest } from '@/ts/core/thing/config';
 
 interface IProps {
-  request: IRequest;
-  response?: AxiosResponse;
+  current: IRequest;
+  cmd: Command;
 }
 
-const ResponsePart: React.FC<IProps> = ({ request, response }) => {
+const ResponsePart: React.FC<IProps> = ({ current, cmd }) => {
   return (
     <MonacoEditor
-      entity={request}
-      defaultValue={response?.data}
+      defaultValue={toJsonString(current.resp)}
+      cmd={cmd}
       style={{ margin: 10 }}
       options={{ readOnly: true }}
-      getVal={() => response?.data}
     />
   );
 };

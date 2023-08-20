@@ -1,11 +1,12 @@
+import { Command } from '@/ts/base';
 import { Col, Layout, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
-import { AxiosError, AxiosResponse } from 'axios';
-import React, { useState } from 'react';
+import { AxiosError } from 'axios';
+import React, { useRef } from 'react';
+import { IRequest } from '../../../../../ts/core/thing/config';
 import InputBox from '../parts/inputBox';
 import RequestPart from '../parts/request';
 import ResponsePart from '../parts/response/responsePart';
-import { IRequest } from '../../../../../ts/core/thing/config';
 
 interface IProps {
   current: IRequest;
@@ -13,7 +14,7 @@ interface IProps {
 }
 
 const RequestLayout: React.FC<IProps> = ({ current }) => {
-  const [resp, setResp] = useState<AxiosResponse>();
+  const cmd = useRef(new Command());
   return (
     <Layout key={current.key} style={{ height: '100%' }}>
       <Content style={{ height: '100%' }}>
@@ -23,13 +24,14 @@ const RequestLayout: React.FC<IProps> = ({ current }) => {
             send={async () => {
               try {
                 let res = await current.exec();
-                setResp(() => res);
+                current.resp = res;
+                cmd.current.emitter('', 'onValueChange', res);
               } catch (error) {
                 if (error instanceof AxiosError) {
-                  setResp(() => (error as AxiosError).response);
+                  current.resp = (error as AxiosError).response;
+                  cmd.current.emitter('', 'onValueChange', current.resp);
                 }
               }
-              current.changCallback();
             }}
           />
         </Row>
@@ -38,7 +40,7 @@ const RequestLayout: React.FC<IProps> = ({ current }) => {
             <RequestPart current={current} />
           </Col>
           <Col span={12}>
-            <ResponsePart request={current} response={resp} />
+            <ResponsePart current={current} cmd={cmd.current} />
           </Col>
         </Row>
       </Content>

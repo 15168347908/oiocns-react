@@ -9,7 +9,6 @@ interface IProps {
 }
 
 const RequestModal: React.FC<IProps> = ({ current, finished }) => {
-  console.log("打开啦");
   return (
     <FullScreenModal
       open

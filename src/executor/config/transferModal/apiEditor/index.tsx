@@ -31,6 +31,8 @@ const TransferModal: React.FC<IProps> = ({ current: dir, finished }) => {
         orgCtrl.changCallback();
         ctrl.current.changCallback();
         onSelect(args as MenuItemType);
+      } else if (cmd == 'onTabSelected') {
+        onSelect(args as MenuItemType);
       }
     });
     return () => {

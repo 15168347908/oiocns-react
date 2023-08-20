@@ -1,16 +1,15 @@
-import { IEntity } from '@/ts/core';
+import { Command } from '@/ts/base';
 import Editor, { EditorProps } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
 import React, { CSSProperties, useCallback, useEffect, useRef } from 'react';
 
-interface IProps<T> extends EditorProps {
-  entity?: IEntity<T>;
-  getVal?: () => any;
+interface IProps extends EditorProps {
+  cmd?: Command;
   style?: CSSProperties;
   onChange?: (value?: string) => void;
 }
 
-const defaultProps: IProps<any> = {
+const defaultProps: IProps = {
   defaultLanguage: 'json',
   options: {
     minimap: {
@@ -19,7 +18,21 @@ const defaultProps: IProps<any> = {
   },
 };
 
-const MonacoEditor: React.FC<IProps<any>> = (props: IProps<any>) => {
+export const toJsonString = (value: any): string => {
+  const typeName = typeof value;
+  console.log(value);
+  if (typeName === 'string') {
+    return JSON.stringify(JSON.parse(value), null, 2);
+  } else if (typeName === 'object') {
+    return JSON.stringify(value, null, 2);
+  } else if (typeName === 'undefined') {
+    return '';
+  } else {
+    return `${value}`;
+  }
+};
+
+const MonacoEditor: React.FC<IProps> = (props: IProps) => {
   const div = useRef<HTMLDivElement>(null);
   const editor = useRef<editor.IStandaloneCodeEditor>();
 
@@ -44,11 +57,7 @@ const MonacoEditor: React.FC<IProps<any>> = (props: IProps<any>) => {
       switch (props.defaultLanguage) {
         case 'json':
           try {
-            if (typeof value === 'string') {
-              editor.current?.setValue(JSON.stringify(JSON.parse(value), null, 2));
-            } else if (typeof value === 'object') {
-              editor.current?.setValue(JSON.stringify(value, null, 2));
-            }
+            editor.current?.setValue(toJsonString(value));
             break;
           } catch (error) {
             console.log('initValue error:', error);
@@ -61,15 +70,17 @@ const MonacoEditor: React.FC<IProps<any>> = (props: IProps<any>) => {
 
   // 监听函数
   useEffect(() => {
-    const id = props.entity?.subscribe(() => {
-      setValue(props.getVal?.apply(props));
+    const id = props.cmd?.subscribe((_, cmd, args) => {
+      if (cmd == 'onValueChange') {
+        setValue(args);
+      }
     });
     window.addEventListener('resize', resize);
     return () => {
-      props.entity?.unsubscribe(id!);
       window.removeEventListener('resize', resize);
+      props.cmd?.unsubscribe(id!);
     };
-  }, [props.getVal?.apply(props)]);
+  });
 
   // 渲染
   return (

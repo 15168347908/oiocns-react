@@ -1,11 +1,11 @@
-import { Command } from '../../../../../ts/base';
-import { IDirectory } from '../../../../../ts/core';
 import { Tabs } from 'antd';
 import React, { useEffect, useState } from 'react';
 import * as im from 'react-icons/im';
 import { MenuItemType } from '../../../../../../typings/globelType';
-import { loadEntity } from '../index';
+import { Command } from '../../../../../ts/base';
+import { IDirectory } from '../../../../../ts/core';
 import RequestForm from '../../../entityForm/requestForm';
+import { loadEntity } from '../index';
 import RequestLayout from './main';
 
 interface IProps {
@@ -92,11 +92,11 @@ const Top: React.FC<IProps> = ({ cmd, dir }) => {
         onChange={(key) => {
           let tab = tabs.find((item) => item.key == key);
           if (tab) {
-            setCurTab(tab);
+            cmd.emitter('', 'onTabSelected', tab);
           }
         }}
-        onEdit={onEdit}>
-      </Tabs>
+        onEdit={onEdit}
+      />
       {curTab && <RequestLayout current={curTab.item} />}
       {open && (
         <RequestForm

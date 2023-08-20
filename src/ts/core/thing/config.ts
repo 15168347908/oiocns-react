@@ -85,6 +85,8 @@ export class Environment extends BaseFileInfo<XEnvironment> implements IEnvironm
 export interface IRequest extends IBaseFileInfo<XRequest> {
   /** 配置文件 */
   axios: AxiosRequestConfig;
+  /** 临时存储 */
+  resp?: AxiosResponse;
 
   /** 请求执行 */
   exec(env?: IEnvironment): Promise<AxiosResponse>;

@@ -1,6 +1,6 @@
 import { IRequest } from '@/ts/core/thing/config';
-import React, { useEffect, useRef, useState } from 'react';
-import EditableTable, { AutoTextArea } from './editable';
+import React, { useEffect, useState } from 'react';
+import EditableTable from './editable';
 
 export interface IProps {
   current: IRequest;
@@ -20,7 +20,6 @@ const toUrlParams = (url: string = '', params: readonly Param[]): string => {
 
 const Params: React.FC<IProps> = ({ current }) => {
   const [params, setParams] = useState<readonly Param[]>(current.metadata.params);
-  const edited = useRef<boolean>(true);
 
   useEffect(() => {
     const id = current.subscribe(() => {
