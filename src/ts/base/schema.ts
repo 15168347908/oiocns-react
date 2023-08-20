@@ -1,6 +1,6 @@
-import {Model} from '@antv/x6';
-import {AxiosRequestConfig} from 'axios';
-import {ConfigColl} from '../core/thing/directory';
+import { Model } from '@antv/x6';
+import { AxiosRequestConfig } from 'axios';
+import { ConfigColl } from '../core/thing/directory';
 
 export type Xbase = {
   // 雪花ID
@@ -582,6 +582,8 @@ export type XFileInfo = {
 // 请求定义
 export type XRequest = {
   axios: AxiosRequestConfig;
+  params: readonly any[];
+  curTab: string;
 } & XFileInfo;
 
 // 链接定义

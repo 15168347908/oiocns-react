@@ -30,11 +30,9 @@ export class BaseFileInfo<T extends XFileInfo>
   }
 
   async delete(): Promise<boolean> {
-    console.log(this.metadata);
     const res = await kernel.anystore.remove(this.belongId, this.collName, {
       id: this.metadata.id,
     });
-    console.log(res);
     if (res.success) {
       this.directory.configs = this.directory.configs.filter((i) => i.key != this.key);
     }

@@ -12,7 +12,6 @@ const ResponsePart: React.FC<IProps> = ({ request, response }) => {
   return (
     <MonacoEditor
       entity={request}
-      height={1200}
       defaultValue={response?.data}
       style={{ margin: 10 }}
       options={{ readOnly: true }}

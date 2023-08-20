@@ -76,7 +76,6 @@ const Top: React.FC<IProps> = ({ cmd, dir }) => {
           return {
             key: tab.key,
             label: tab.label,
-            children: <RequestLayout current={tab.item} />,
           };
         })}
         addIcon={
@@ -96,8 +95,9 @@ const Top: React.FC<IProps> = ({ cmd, dir }) => {
             setCurTab(tab);
           }
         }}
-        onEdit={onEdit}
-      />
+        onEdit={onEdit}>
+      </Tabs>
+      {curTab && <RequestLayout current={curTab.item} />}
       {open && (
         <RequestForm
           dir={curDir}

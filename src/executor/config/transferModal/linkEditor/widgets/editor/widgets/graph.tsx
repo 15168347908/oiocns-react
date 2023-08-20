@@ -118,7 +118,6 @@ const registering = () => {
     width: 180,
     height: 48,
     component: ProcessingNode,
-    effect: ['data'],
     ports: {
       groups: {
         in: inGroup,

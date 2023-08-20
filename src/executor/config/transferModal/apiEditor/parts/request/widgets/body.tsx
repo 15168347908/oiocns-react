@@ -9,7 +9,6 @@ export interface IProps {
 const Body: React.FC<IProps> = ({ current }) => {
   return (
     <MonacoEditor
-      height={1000}
       style={{ margin: 4 }}
       defaultValue={current.metadata.axios.data}
       onChange={(value) => {
