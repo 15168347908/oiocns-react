@@ -156,7 +156,7 @@ export type XForm = {
   bindNodes: XWorkNode[] | undefined;
   // 单的目录
   directory: XDirectory | undefined;
-  schema: schemaType
+  schema: schemaType;
 } & XEntity;
 
 //身份证明
@@ -583,6 +583,7 @@ export type XFileInfo = {
 export type XRequest = {
   axios: AxiosRequestConfig;
   params: readonly any[];
+  headers: readonly any[];
   curTab: string;
 } & XFileInfo;
 

@@ -1,7 +1,7 @@
 import { IRequest } from '@/ts/core/thing/config';
-import { ProTable } from '@ant-design/pro-components';
-import { RawAxiosRequestHeaders, AxiosHeaders, AxiosHeaderValue } from 'axios';
+import { AxiosHeaderValue, AxiosHeaders, RawAxiosRequestHeaders } from 'axios';
 import React, { useEffect, useState } from 'react';
+import EditableTable from './editable';
 
 export interface IProps {
   current: IRequest;
@@ -10,38 +10,41 @@ export interface IProps {
 export type Header = RawAxiosRequestHeaders | AxiosHeaders;
 
 interface HeaderData {
-  key: string;
+  id: string;
+  key?: string;
   value?: AxiosHeaderValue;
 }
 
-const toHeaders = (headers?: Header): HeaderData[] => {
-  const final: Header = { ...headers };
-  let rows: HeaderData[] = Object.keys(final).map((key) => {
-    return {
-      key: key,
-      value: final[key],
-    };
-  });
-  return rows;
+const toAxiosHeader = (headers: readonly HeaderData[]): Header => {
+  const final: Header = {};
+  for (const header of headers) {
+    if (header.key) {
+      final[header.key] = header.value;
+    }
+  }
+  return final;
 };
 
 const Header: React.FC<IProps> = ({ current }) => {
-  const [rows, setRows] = useState<HeaderData[]>(toHeaders(current.axios.headers));
+  const [headers, setHeaders] = useState<readonly HeaderData[]>(current.metadata.headers);
   useEffect(() => {
     const id = current.subscribe(() => {
-      setRows(toHeaders(current.axios.headers));
+      setHeaders(current.metadata.headers);
     });
     return () => {
       current.unsubscribe(id);
     };
   }, [current.axios.headers]);
+
+  const onChange = (headers: readonly HeaderData[]) => {
+    current.metadata.headers = headers;
+    current.axios.headers = toAxiosHeader(headers);
+    current.refresh(current.metadata);
+  };
   return (
-    <ProTable
-      dataSource={rows}
-      cardProps={{ bodyStyle: { padding: 0 } }}
-      scroll={{ y: 300 }}
-      options={false}
-      search={false}
+    <EditableTable<HeaderData>
+      value={headers}
+      onChange={onChange}
       columns={[
         {
           title: 'Key',
@@ -54,6 +57,18 @@ const Header: React.FC<IProps> = ({ current }) => {
         {
           title: 'Description',
           dataIndex: 'description',
+        },
+        {
+          title: 'Option',
+          dataIndex: 'operate',
+          editable: false,
+          render: (_, record) => [
+            <a
+              key="delete"
+              onClick={() => onChange(headers.filter((item) => item.id != record.id))}>
+              删除
+            </a>,
+          ],
         },
       ]}
     />

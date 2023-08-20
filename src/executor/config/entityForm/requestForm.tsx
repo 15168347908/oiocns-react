@@ -6,6 +6,7 @@ import { XRequest } from '@/ts/base/schema';
 import { IRequest } from '@/ts/core/thing/config';
 import {} from '@/ts/core/';
 import { ConfigColl } from '@/ts/core/thing/directory';
+import { generateUuid } from '@/ts/base/common';
 
 interface IProps {
   dir: IDirectory;
@@ -53,9 +54,18 @@ const RequestForm: React.FC<IProps> = ({ dir, finished, cancel }) => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json;charset=UTF-8',
-            'User-Agent': 'Orginone'
+            'User-Agent': 'Orginone',
           },
         };
+        values.headers = Object.entries(values.axios.headers!).map(
+          (value: [string, any]) => {
+            return {
+              id: generateUuid(),
+              key: value[0],
+              value: value[1],
+            };
+          },
+        );
         let request = await dir.createConfig(ConfigColl.Requests, values);
         finished(request as IRequest);
       }}

@@ -1,9 +1,6 @@
-import { generateUuid } from '@/ts/base/common';
 import { IRequest } from '@/ts/core/thing/config';
-import { EditableProTable, ProFormInstance } from '@ant-design/pro-components';
-import TextArea from 'antd/lib/input/TextArea';
 import React, { useEffect, useRef, useState } from 'react';
-import cls from './../index.module.css';
+import EditableTable, { AutoTextArea } from './editable';
 
 export interface IProps {
   current: IRequest;
@@ -22,10 +19,9 @@ const toUrlParams = (url: string = '', params: readonly Param[]): string => {
 };
 
 const Params: React.FC<IProps> = ({ current }) => {
-  const formRef = useRef<ProFormInstance>();
-  const [editableKeys, setEditableRowKeys] = useState<React.Key[]>(() => []);
   const [params, setParams] = useState<readonly Param[]>(current.metadata.params);
   const edited = useRef<boolean>(true);
+
   useEffect(() => {
     const id = current.subscribe(() => {
       setParams(current.metadata.params);
@@ -43,40 +39,21 @@ const Params: React.FC<IProps> = ({ current }) => {
   };
 
   return (
-    <EditableProTable<Param>
-      rowKey="id"
-      formRef={formRef}
+    <EditableTable<Param>
       value={params}
-      maxLength={1000}
       onChange={onChange}
-      controlled={true}
-      onRow={(row) => {
-        return {
-          onMouseEnter: () => {
-            setEditableRowKeys([row.id]);
-          },
-          onMouseLeave: () => {
-            if (edited.current) {
-              setEditableRowKeys([]);
-            }
-          },
-        };
-      }}
       columns={[
         {
           title: 'Key',
           dataIndex: 'key',
-          renderFormItem: () => <AutoTextArea edited={edited} />,
         },
         {
           title: 'Value',
           dataIndex: 'value',
-          renderFormItem: () => <AutoTextArea edited={edited} />,
         },
         {
           title: 'Description',
           dataIndex: 'description',
-          renderFormItem: () => <AutoTextArea edited={edited} />,
         },
         {
           title: 'Option',
@@ -85,51 +62,12 @@ const Params: React.FC<IProps> = ({ current }) => {
           render: (_, record) => [
             <a
               key="delete"
-              onClick={() => {
-                onChange(params.filter((item) => item.id != record.id));
-              }}>
+              onClick={() => onChange(params.filter((item) => item.id != record.id))}>
               删除
             </a>,
           ],
         },
       ]}
-      recordCreatorProps={{
-        creatorButtonText: '新增',
-        position: 'bottom',
-        newRecordType: 'dataSource',
-        record: (_index, _params) => ({
-          id: generateUuid(),
-        }),
-      }}
-      editable={{
-        type: 'multiple',
-        editableKeys,
-      }}
-    />
-  );
-};
-
-const AutoTextArea: React.FC<{
-  value?: string;
-  onChange?: (value?: string) => void;
-  edited: React.MutableRefObject<boolean>;
-}> = ({ value, onChange, edited }) => {
-  return (
-    <TextArea
-      autoComplete={'off'}
-      className={cls['textarea']}
-      autoSize={true}
-      defaultValue={value}
-      onCompositionStart={() => (edited.current = false)}
-      onCompositionEnd={(event) => {
-        edited.current = true;
-        onChange?.((event.target as HTMLTextAreaElement).value);
-      }}
-      onChange={(event) => {
-        if (edited.current) {
-          onChange?.(event.target.value);
-        }
-      }}
     />
   );
 };
