@@ -27,6 +27,7 @@ const LinkEditor: React.FC<IProps> = ({ link, children, cmd }) => {
       link.refresh(link.metadata);
     };
     graph.on('node:added', update);
+    graph.on('node:moved', update);
     return () => {
       graph.off();
       cmd.unsubscribe(id);
