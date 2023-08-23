@@ -5,8 +5,8 @@ import { MenuItemType } from '../../../../../../typings/globelType';
 import { Command } from '../../../../../ts/base';
 import { IDirectory } from '../../../../../ts/core';
 import RequestForm from '../../../entityForm/requestForm';
-import { loadEntity } from '../index';
 import RequestLayout from './main';
+import { loadEntity } from '../..';
 
 interface IProps {
   cmd: Command;

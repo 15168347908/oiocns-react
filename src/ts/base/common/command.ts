@@ -47,3 +47,4 @@ export class Command {
 }
 
 export const command = new Command();
+export const linkCmd = new Command();

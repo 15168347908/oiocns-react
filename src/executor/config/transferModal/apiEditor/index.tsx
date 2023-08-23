@@ -1,22 +1,20 @@
-import EntityIcon from '../../../../components/Common/GlobalComps/entityIcon';
-import MainLayout from '../../../../components/MainLayout';
-import FullScreenModal from '../../../tools/fullScreen';
-import useMenuUpdate from '../../../../hooks/useMenuUpdate';
-import { Command } from '../../../../ts/base';
-import { XFileInfo } from '../../../../ts/base/schema';
-import { Controller } from '../../../../ts/controller';
-import { IDirectory, IFileInfo } from '../../../../ts/core';
 import React, { useEffect, useRef } from 'react';
 import { MenuItemType } from '../../../../../typings/globelType';
+import MainLayout from '../../../../components/MainLayout';
+import useMenuUpdate from '../../../../hooks/useMenuUpdate';
+import { Command } from '../../../../ts/base';
+import orgCtrl, { Controller } from '../../../../ts/controller';
+import { IDirectory } from '../../../../ts/core';
+import FullScreenModal from '../../../tools/fullScreen';
+import { loadMenu } from './../index';
 import Top from './layout/top';
-import orgCtrl from '../../../../ts/controller';
 
 interface IProps {
   current: IDirectory;
   finished: () => void;
 }
 
-const TransferModal: React.FC<IProps> = ({ current: dir, finished }) => {
+const RequestModal: React.FC<IProps> = ({ current: dir, finished }) => {
   const command = useRef(new Command());
   const ctrl = useRef(new Controller(''));
 
@@ -41,7 +39,7 @@ const TransferModal: React.FC<IProps> = ({ current: dir, finished }) => {
   }, [command, ctrl]);
 
   const [_, root, selected, setSelected] = useMenuUpdate(
-    () => loadMenu(dir),
+    () => loadMenu(dir, '请求'),
     ctrl.current,
   );
 
@@ -63,31 +61,4 @@ const TransferModal: React.FC<IProps> = ({ current: dir, finished }) => {
   );
 };
 
-// 目录菜单
-export const loadMenu = (directory: IDirectory): MenuItemType => {
-  return {
-    key: directory.id,
-    item: directory,
-    label: directory.name,
-    itemType: directory.typeName,
-    icon: <EntityIcon entityId={directory.id} typeName={directory.typeName} size={18} />,
-    children: [
-      ...directory.children.map(loadMenu),
-      ...directory.configs.filter((item) => item.typeName == '请求').map(loadEntity),
-    ],
-  };
-};
-
-/** 请求菜单 */
-export const loadEntity = (entity: IFileInfo<XFileInfo>): MenuItemType => {
-  return {
-    key: entity.id,
-    item: entity,
-    label: entity.name,
-    itemType: entity.typeName,
-    icon: <EntityIcon entityId={entity.id} typeName={entity.typeName} size={18} />,
-    children: [],
-  };
-};
-
-export default TransferModal;
+export default RequestModal;

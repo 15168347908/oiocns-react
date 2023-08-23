@@ -18,10 +18,10 @@ import { Member } from './member';
 import { Property, IProperty } from './property';
 import { Application, IApplication } from './application';
 import { BucketOpreates, DirectoryModel } from '@/ts/base/model';
-import {encodeKey, generateUuid} from '@/ts/base/common';
-import {XExecutable, XFileInfo, XLink, XRequest} from "@/ts/base/schema";
-import {formatDate} from "@/utils";
-import {Request, Executable, Link, Unknown} from "@/ts/core/thing/config";
+import { encodeKey, generateUuid } from '@/ts/base/common';
+import { XExecutable, XFileInfo, XLink, XMapping, XRequest } from '@/ts/base/schema';
+import { formatDate } from '@/utils';
+import { Request, Executable, Link, Unknown, Mapping } from '@/ts/core/thing/config';
 /** 可为空的进度回调 */
 export type OnProgress = (p: number) => void;
 
@@ -30,6 +30,7 @@ export enum ConfigColl {
   Requests = 'requests',
   RequestLinks = 'request-links',
   Scripts = 'scripts',
+  Mappings = 'mappings',
   Unknown = 'unknown',
 }
 
@@ -99,14 +100,11 @@ export interface IDirectory extends IFileInfo<schema.XDirectory> {
   configs: IFileInfo<schema.XFileInfo>[];
   /** 新建请求配置 */
   createConfig(
-    collName: ConfigColl,
+    collName: string,
     data: schema.XFileInfo,
   ): Promise<IFileInfo<schema.XFileInfo> | undefined>;
   /** 加载请求配置 */
-  loadConfigs(
-    collName: ConfigColl,
-    reload?: boolean,
-  ): Promise<IFileInfo<schema.XFileInfo>[]>;
+  loadConfigs(collName: string, reload?: boolean): Promise<IFileInfo<schema.XFileInfo>[]>;
 }
 
 /** 目录实现类 */
@@ -489,7 +487,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       return report;
     }
   }
-  defaultEntity(collName: ConfigColl, data: XFileInfo) {
+  defaultEntity(collName: string, data: XFileInfo) {
     const key = generateUuid();
     data.id = key;
     data.code = key;
@@ -555,6 +553,8 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
         return new Link(data as XLink, this);
       case '脚本':
         return new Executable(data as XExecutable, this);
+      case '映射':
+        return new Mapping(data as XMapping, this);
       default:
         return new Unknown(ConfigColl.Unknown, data, this);
     }

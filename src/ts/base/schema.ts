@@ -576,7 +576,7 @@ export type XReport = {
 export type XFileInfo = {
   directoryId: string;
   collName: string;
-  typeName: '请求' | '链接' | '脚本' | '未知';
+  typeName: string;
 } & XEntity;
 
 // 请求定义
@@ -595,6 +595,17 @@ export type XLink = {
 // 环境定义
 export type XEnvironment = {
   [key: string]: string;
+} & XFileInfo;
+
+// 映射定义
+export type XMapping = {
+  sourceForm: XForm;
+  targetForm: XForm;
+  mappings: {
+    sourceAttrId: string;
+    targetAttrId: string;
+    options: { [key: string]: string };
+  }[];
 } & XFileInfo;
 
 // 脚本配置

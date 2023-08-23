@@ -24,9 +24,27 @@
 }
 
 .plus-menu {
-  display: flex;
   width: 48px;
-  height: 48px;
+  height: 24px;
   position: absolute;
   left: 180px;
+  z-index: 50;
+
+  .dropdown {
+    position: absolute;
+    left: 48px;
+    width: 40px;
+    border-radius: 5px;
+    box-shadow: 5px 5px 4px rgba(148, 152, 223, 0.1);
+    background-color: #fff;
+  }
+
+  .dropdown .item {
+    text-align: center;
+    width: 100%;
+  }
+
+  .dropdown .item:hover {
+    background-color: rgba(148, 152, 223, 0.5);
+  }
 }

@@ -1,8 +1,15 @@
-import {kernel} from '@/ts/base';
-import {XExecutable, XFileInfo, XLink, XRequest, XEnvironment} from '@/ts/base/schema';
-import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
-import {ConfigColl, IDirectory} from './directory';
-import {FileInfo, IFileInfo} from './fileinfo';
+import { kernel } from '@/ts/base';
+import {
+  XExecutable,
+  XFileInfo,
+  XLink,
+  XRequest,
+  XEnvironment,
+  XMapping,
+} from '@/ts/base/schema';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { ConfigColl, IDirectory } from './directory';
+import { FileInfo, IFileInfo } from './fileinfo';
 
 export interface IBaseFileInfo<T extends XFileInfo> extends IFileInfo<T> {
   refresh(data: T): void;
@@ -10,7 +17,8 @@ export interface IBaseFileInfo<T extends XFileInfo> extends IFileInfo<T> {
 
 export class BaseFileInfo<T extends XFileInfo>
   extends FileInfo<T>
-  implements IBaseFileInfo<T> {
+  implements IBaseFileInfo<T>
+{
   collName: ConfigColl;
 
   constructor(collName: ConfigColl, metadata: T, dir: IDirectory) {
@@ -72,14 +80,12 @@ export class BaseFileInfo<T extends XFileInfo>
 /** 未知的文件类型  */
 export type IUnknown = IBaseFileInfo<XFileInfo>;
 
-export class Unknown extends BaseFileInfo<XFileInfo> implements IUnknown {
-}
+export class Unknown extends BaseFileInfo<XFileInfo> implements IUnknown {}
 
 /** 环境配置 */
 export type IEnvironment = IBaseFileInfo<XEnvironment>;
 
-export class Environment extends BaseFileInfo<XEnvironment> implements IEnvironment {
-}
+export class Environment extends BaseFileInfo<XEnvironment> implements IEnvironment {}
 
 /** 请求配置，需要持久化 */
 export interface IRequest extends IBaseFileInfo<XRequest> {
@@ -127,8 +133,7 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
 }
 
 /** 请求链接 */
-export interface ILink extends IBaseFileInfo<XLink> {
-}
+export interface ILink extends IBaseFileInfo<XLink> {}
 
 export class Link extends BaseFileInfo<XLink> implements ILink {
   constructor(link: XLink, dir: IDirectory) {
@@ -137,11 +142,19 @@ export class Link extends BaseFileInfo<XLink> implements ILink {
 }
 
 /** 脚本嵌入 */
-export interface IExecutable extends IBaseFileInfo<XExecutable> {
-}
+export interface IExecutable extends IBaseFileInfo<XExecutable> {}
 
 export class Executable extends BaseFileInfo<XExecutable> implements IExecutable {
   constructor(executable: XExecutable, dir: IDirectory) {
     super(ConfigColl.Scripts, executable, dir);
+  }
+}
+
+/** 实体映射 */
+export interface IMapping extends IBaseFileInfo<XMapping> {}
+
+export class Mapping extends BaseFileInfo<XMapping> implements IMapping {
+  constructor(mapping: XMapping, dir: IDirectory) {
+    super(ConfigColl.Mappings, mapping, dir);
   }
 }

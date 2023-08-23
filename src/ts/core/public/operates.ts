@@ -163,11 +163,17 @@ export const directoryOperates = {
     label: '新建请求配置',
     iconType: '请求配置',
   },
-  NewRequestChain: {
+  NewLink: {
     sort: 11,
     cmd: 'newLink',
     label: '新建链接配置',
     iconType: '链接配置',
+  },
+  NewMapping: {
+    sort: 12,
+    cmd: 'newMapping',
+    label: '新建映射配置',
+    iconType: '映射配置',
   },
 };
 
@@ -188,7 +194,8 @@ export const directoryNew = {
     directoryOperates.NewWorkConfig,
     directoryOperates.NewReport,
     directoryOperates.NewRequest,
-    directoryOperates.NewRequestChain,
+    directoryOperates.NewLink,
+    directoryOperates.NewMapping,
   ],
 };
 

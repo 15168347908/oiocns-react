@@ -1,11 +1,14 @@
+import { Command } from '@/ts/base';
+import { generateUuid } from '@/ts/base/common';
 import { XFileInfo } from '@/ts/base/schema';
 import { Graph, Node, StringExt } from '@antv/x6';
-import { Dropdown } from 'antd';
-import { MenuItemType } from 'antd/lib/menu/hooks/useItems';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { IconBaseProps } from 'react-icons';
 import { AiFillPlusCircle, AiOutlineCheck, AiOutlineLoading } from 'react-icons/ai';
+import { MenuItemType } from 'typings/globelType';
+import { linkCmd } from '@/ts/base/common/command';
 import cls from './../index.module.less';
+import { ConfigColl } from '@/ts/core/thing/directory';
 
 export enum ExecStatus {
   Stop = 'stop',
@@ -19,7 +22,7 @@ const statusMap: { [key: string]: React.ReactNode } = {
   [ExecStatus.Running]: <AiOutlineLoading {...config} />,
 };
 
-interface DataNode<XFileInfo, S> {
+export interface DataNode<XFileInfo, S> {
   entity: XFileInfo;
   status: S;
 }
@@ -100,18 +103,18 @@ export const addNode = <X extends XFileInfo, S>(
 ): Node<Node.Properties> => {
   const { graph, position, entity } = props;
   const node: Node.Metadata = {
+    id: generateUuid(),
     shape: 'data-processing-dag-node',
     ...position,
     data: {
       nodeType: entity.typeName,
       status: ExecStatus.Stop,
       entity: entity,
+      cmd: Command,
     },
     ports: getPortsByType(entity),
   };
-  const ans = graph.addNode(node);
-  console.log(node);
-  return ans;
+  return graph.addNode(node);
 };
 
 /**
@@ -120,7 +123,7 @@ export const addNode = <X extends XFileInfo, S>(
  * @param target
  * @param graph
  */
-const createEdge = (source: string, target: string, graph: Graph) => {
+export const createEdge = (source: string, target: string, graph: Graph) => {
   const edge = {
     id: StringExt.uuid(),
     shape: 'data-processing-curve',
@@ -144,7 +147,7 @@ const createEdge = (source: string, target: string, graph: Graph) => {
 };
 
 // 创建下游的节点和边
-const createDownstream = (graph: Graph, node: Node, entity: XFileInfo) => {
+export const createDownstream = (graph: Graph, node: Node, entity: XFileInfo) => {
   // 获取下游节点的初始位置信息
   const position = getDownstreamNodePosition(node, graph);
   // 创建下游节点
@@ -160,14 +163,24 @@ const createDownstream = (graph: Graph, node: Node, entity: XFileInfo) => {
   createEdge(source, target, graph);
 };
 
-const menus = {
+const menus: { [key: string]: MenuItemType } = {
   request: {
-    key: 'request',
+    key: ConfigColl.Requests,
     label: '请求',
+    itemType: '请求',
+    children: [],
   },
   script: {
-    key: 'script',
+    key: ConfigColl.Scripts,
     label: '脚本',
+    itemType: '脚本',
+    children: [],
+  },
+  mapping: {
+    key: ConfigColl.Mappings,
+    label: '映射',
+    itemType: '映射',
+    children: [],
   },
 };
 
@@ -175,69 +188,75 @@ const menus = {
 const getNextMenu = (entity: XFileInfo): MenuItemType[] => {
   switch (entity.typeName) {
     case '请求':
-      return [menus.request, menus.script];
+      return [menus.request, menus.script, menus.mapping];
     case '脚本':
       return [menus.script];
+    case '映射':
+      return [menus.mapping];
     default:
       return [];
   }
 };
 
-export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
+export const ProcessingNode: React.FC<Info> = ({ node }) => {
   const { entity, status } = node.getData() as DataNode<XFileInfo, ExecStatus>;
-  const [fold, setFold] = useState<boolean>(false);
+  const [visible, setVisible] = useState<boolean>(false);
+  const [visibleOperate, setVisibleOperate] = useState<boolean>(false);
   const menus = getNextMenu(entity);
-  console.log(node.getData());
-
-  // 弹出拖动菜单
-  const getPlusDagMenu = () => {
-    return (
-      <ul>
-        {menus.map((item) => {
-          return (
-            <li
-              className="each-sub-menu"
-              key={item?.key}
-              onClick={() => {
-                createDownstream(graph, node, entity);
-                setFold(false);
-              }}>
-              {item?.label}
-            </li>
-          );
-        })}
-      </ul>
-    );
-  };
-
-  const Next: React.FC<any> = () => {
-    switch (entity.typeName) {
-      case '请求':
-        return (
-          <Dropdown
-            open={fold}
-            placement="bottom"
-            trigger={['click', 'contextMenu']}
-            dropdownRender={getPlusDagMenu}
-            onOpenChange={setFold}
-            menu={{
-              items: menus,
-              onClick: ({ key }) => {
-                console.log(key);
-              },
-            }}>
-            <AiFillPlusCircle size={24} color={'#9498df'} />
-          </Dropdown>
-        );
-      default:
-        return <></>;
-    }
-  };
+  useEffect(() => {
+    const id = linkCmd.subscribe((type, cmd, args) => {
+      console.log(args);
+      if (type != 'node') return;
+      if (args.node.id == node.id) {
+        switch (cmd) {
+          case 'selected':
+            setVisible(true);
+            break;
+          case 'unselected':
+            setVisible(false);
+            setVisibleOperate(false);
+            break;
+        }
+      }
+    });
+    return () => {
+      linkCmd.unsubscribe(id);
+    };
+  });
   return (
-    <div className={`${cls['container']} ${cls['flex-row']}`}>
+    <div className={`${cls['flex-row']} ${cls['container']} `}>
       <div>{entity.name}</div>
       {statusMap[status]}
-      <div className={`${cls['flex-row']} ${cls['plus-menu']}`}>{<Next></Next>}</div>
+      <div
+        style={{ visibility: visible ? 'visible' : 'hidden' }}
+        className={`${cls['flex-row']} ${cls['plus-menu']}`}>
+        <AiFillPlusCircle
+          size={24}
+          color={'#9498df'}
+          onClick={() => setVisibleOperate(!visibleOperate)}
+        />
+        <ul
+          className={`${cls['dropdown']}`}
+          style={{ visibility: visibleOperate ? 'visible' : 'hidden' }}>
+          {menus.map((item) => {
+            return (
+              <li
+                className={`${cls['item']}`}
+                onClick={() => {
+                  switch (item.itemType) {
+                    case '请求':
+                    case '脚本':
+                    case '映射':
+                      linkCmd.emitter('main', 'openSelector', [node, item]);
+                      break;
+                  }
+                }}>
+                {item.label}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </div>
   );
 };

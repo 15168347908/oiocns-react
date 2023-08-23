@@ -1,18 +1,16 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
-import { Command } from '@/ts/base';
-import { Space } from 'antd';
-import React, { useRef } from 'react';
-import LinkEditor from './widgets/editor';
-import { OpenSelector } from './widgets/selectRequest';
 import { ILink } from '@/ts/core/thing/config';
+import { Space } from 'antd';
+import React from 'react';
+import LinkEditor from './widgets/editor';
+import { NodeTools } from '../selector';
 
 interface IProps {
   current: ILink;
   finished: () => void;
 }
 
-const LinkModal: React.FC<IProps> = ({ current: link, finished }) => {
-  const cmd = useRef(new Command());
+const LinkModal: React.FC<IProps> = ({ current, finished }) => {
   return (
     <FullScreenModal
       open
@@ -23,19 +21,15 @@ const LinkModal: React.FC<IProps> = ({ current: link, finished }) => {
       destroyOnClose
       title={'链接配置'}
       onCancel={() => finished()}>
-      <LinkEditor
-        link={link}
-        children={<ToolBar current={link} cmd={cmd.current} />}
-        cmd={cmd.current}
-      />
+      <LinkEditor current={current} children={<ToolBar current={current} />} />
     </FullScreenModal>
   );
 };
 
-const ToolBar: React.FC<{ current: ILink; cmd: Command }> = ({ current, cmd }) => {
+const ToolBar: React.FC<{ current: ILink }> = ({ current }) => {
   return (
     <Space style={{ position: 'absolute', left: 10, top: 10 }}>
-      <OpenSelector current={current} cmd={cmd}></OpenSelector>
+      <NodeTools current={current}></NodeTools>
     </Space>
   );
 };

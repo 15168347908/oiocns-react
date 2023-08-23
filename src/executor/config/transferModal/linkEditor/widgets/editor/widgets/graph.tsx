@@ -3,7 +3,6 @@ import { Graph, Path, Platform } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
 import { register } from '@antv/x6-react-shape';
 import { edgeRegistering } from './edge';
-import { inGroup, outGroup } from './group';
 import { ProcessingNode } from './node';
 import React from 'react';
 
@@ -120,59 +119,33 @@ const registering = () => {
     component: ProcessingNode,
     ports: {
       groups: {
-        in: inGroup,
-        out: outGroup,
+        in: {
+          position: 'left',
+          attrs: {
+            circle: {
+              r: 4,
+              magnet: true,
+              stroke: '#C2C8D5',
+              strokeWidth: 1,
+              fill: '#fff',
+            },
+          },
+        },
+        out: {
+          position: 'right',
+          attrs: {
+            circle: {
+              r: 4,
+              magnet: true,
+              stroke: '#C2C8D5',
+              strokeWidth: 1,
+              fill: '#fff',
+            },
+          },
+        },
       },
     },
   });
-  Graph.registerNode(
-    'custom-node-width-port',
-    {
-      inherit: 'rect',
-      width: 100,
-      height: 40,
-      attrs: {
-        body: {
-          stroke: '#8f8f8f',
-          strokeWidth: 1,
-          fill: '#fff',
-          rx: 6,
-          ry: 6,
-        },
-      },
-      ports: {
-        groups: {
-          top: {
-            position: 'top',
-            attrs: {
-              circle: {
-                magnet: true,
-                stroke: '#8f8f8f',
-                r: 5,
-              },
-            },
-            label: {
-              position: 'top',
-            },
-          },
-          bottom: {
-            position: 'bottom',
-            attrs: {
-              circle: {
-                magnet: true,
-                stroke: '#8f8f8f',
-                r: 5,
-              },
-            },
-            label: {
-              position: 'top',
-            },
-          },
-        },
-      },
-    },
-    true,
-  );
 };
 
 /**
