@@ -33,7 +33,7 @@ interface IProps {
   finished: () => void;
 }
 const ConfigExecutor: React.FC<IProps> = ({ cmd, args, finished }) => {
-  console.log(cmd,'cmd',args)
+  console.log(cmd,'cmd')
   switch (cmd) {
     case 'open':
       if (Object.keys(entityMap).includes(args[0].typeName)) {

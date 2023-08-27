@@ -1,6 +1,3 @@
-import { Model } from '@antv/x6';
-import { AxiosRequestConfig } from 'axios';
-
 export type Xbase = {
   // 雪花ID
   id: string;
@@ -155,7 +152,7 @@ export type XForm = {
   bindNodes: XWorkNode[] | undefined;
   // 单的目录
   directory: XDirectory | undefined;
-  schema: schemaType;
+  schema:schemaType
 } & XEntity;
 
 //身份证明
@@ -579,7 +576,7 @@ export type XFileInfo = {
 
 // 请求定义
 export type XRequest = {
-  axios: AxiosRequestConfig;
+  axios: any;
   params: readonly any[];
   headers: readonly any[];
   curTab: string;
@@ -587,7 +584,7 @@ export type XRequest = {
 
 // 链接定义
 export type XLink = {
-  data: Model.FromJSONData;
+  data: any;
 } & XFileInfo;
 
 // 环境定义
