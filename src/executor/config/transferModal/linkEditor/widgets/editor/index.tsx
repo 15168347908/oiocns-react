@@ -81,21 +81,6 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
       const node = args[0] as Node;
       const menu = args[1] as MenuItemType;
       switch (menu.itemType) {
-        case '映射':
-          const modal = Modal.confirm({
-            icon: <></>,
-            width: 800,
-            content: (
-              <Mapper
-                current={current.directory}
-                finished={() => {
-                  modal.destroy();
-                }}
-              />
-            ),
-            onOk: () => {},
-          });
-          break;
         default:
           let selected: IEntity<XEntity>[] = [];
           Modal.confirm({

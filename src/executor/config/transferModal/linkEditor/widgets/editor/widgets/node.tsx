@@ -49,8 +49,8 @@ const getDownstreamNodePosition = (node: Node, graph: Graph, dx = 250, dy = 100)
   // 找出画布中以该起始节点为起点的相关边的终点id集合
   const downstreamNodeIdList: string[] = [];
   graph.getEdges().forEach((edge) => {
-    const originEdge = edge.toJSON()?.data;
-    if (originEdge.source === node.id) {
+    const originEdge = edge.toJSON();
+    if (originEdge.source.cell === node.id) {
       downstreamNodeIdList.push(originEdge.target);
     }
   });
@@ -79,31 +79,26 @@ const getDownstreamNodePosition = (node: Node, graph: Graph, dx = 250, dy = 100)
 };
 
 // 根据节点的类型获取ports
-const getPortsByType = (entity: XEntity) => {
-  let ports = [];
-  switch (entity.typeName) {
-    default:
-      ports = [
-        {
-          id: `${entity.id}-in`,
-          group: 'in',
-        },
-        {
-          id: `${entity.id}-out`,
-          group: 'out',
-        },
-      ];
-      break;
-  }
-  return ports;
+const getPortsByType = (id: string) => {
+  return [
+    {
+      id: `${id}-in`,
+      group: 'in',
+    },
+    {
+      id: `${id}-out`,
+      group: 'out',
+    },
+  ];
 };
 
 export const addNode = <S extends {}>(
   props: NodeOptions & DataNode<S>,
 ): Node<Node.Properties> => {
   const { graph, position, entity } = props;
+  const id = generateUuid();
   const node: Node.Metadata = {
-    id: generateUuid(),
+    id: id,
     shape: 'data-processing-dag-node',
     ...position,
     data: {
@@ -112,7 +107,7 @@ export const addNode = <S extends {}>(
       entity: entity,
       cmd: Command,
     },
-    ports: getPortsByType(entity),
+    ports: getPortsByType(id),
   };
   return graph.addNode(node);
 };
@@ -125,7 +120,6 @@ export const addNode = <S extends {}>(
  */
 export const createEdge = (source: string, target: string, graph: Graph) => {
   const edge = {
-    id: StringExt.uuid(),
     shape: 'data-processing-curve',
     source: {
       cell: source,
@@ -136,9 +130,10 @@ export const createEdge = (source: string, target: string, graph: Graph) => {
       port: `${target}-in`,
     },
     zIndex: -1,
-    data: {
-      source,
-      target,
+    attrs: {
+      line: {
+        strokeDasharray: '5 5',
+      },
     },
   };
   if (graph) {
@@ -192,7 +187,7 @@ const getNextMenu = (entity: XEntity): MenuItemType[] => {
     case '脚本':
       return [menus.script];
     case '映射':
-      return [menus.mapping];
+      return [];
     default:
       return [];
   }
