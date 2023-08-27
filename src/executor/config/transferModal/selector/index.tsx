@@ -32,6 +32,7 @@ export const NodeTools = ({ current }: IProps) => {
       onOk: () => {
         switch (collName) {
           case ConfigColl.Requests:
+          case ConfigColl.Mappings:
             linkCmd.emitter('main', 'insertRequest', selected);
             break;
           case ConfigColl.Scripts:
@@ -45,6 +46,7 @@ export const NodeTools = ({ current }: IProps) => {
     <Space>
       <Button onClick={() => onClick(ConfigColl.Requests)}>插入 Request</Button>
       <Button onClick={() => onClick(ConfigColl.Scripts)}>插入 Script</Button>
+      <Button onClick={() => onClick(ConfigColl.Mappings)}>插入 Mapping</Button>
     </Space>
   );
 };

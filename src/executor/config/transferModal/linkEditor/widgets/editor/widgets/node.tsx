@@ -1,6 +1,6 @@
 import { Command } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
-import { XFileInfo } from '@/ts/base/schema';
+import { XEntity, XFileInfo } from '@/ts/base/schema';
 import { Graph, Node, StringExt } from '@antv/x6';
 import React, { useEffect, useState } from 'react';
 import { IconBaseProps } from 'react-icons';
@@ -22,8 +22,8 @@ const statusMap: { [key: string]: React.ReactNode } = {
   [ExecStatus.Running]: <AiOutlineLoading {...config} />,
 };
 
-export interface DataNode<XFileInfo, S> {
-  entity: XFileInfo;
+export interface DataNode<S> {
+  entity: XEntity;
   status: S;
 }
 
@@ -79,7 +79,7 @@ const getDownstreamNodePosition = (node: Node, graph: Graph, dx = 250, dy = 100)
 };
 
 // 根据节点的类型获取ports
-const getPortsByType = (entity: XFileInfo) => {
+const getPortsByType = (entity: XEntity) => {
   let ports = [];
   switch (entity.typeName) {
     default:
@@ -98,8 +98,8 @@ const getPortsByType = (entity: XFileInfo) => {
   return ports;
 };
 
-export const addNode = <X extends XFileInfo, S>(
-  props: NodeOptions & DataNode<X, S>,
+export const addNode = <S extends {}>(
+  props: NodeOptions & DataNode<S>,
 ): Node<Node.Properties> => {
   const { graph, position, entity } = props;
   const node: Node.Metadata = {
@@ -147,7 +147,7 @@ export const createEdge = (source: string, target: string, graph: Graph) => {
 };
 
 // 创建下游的节点和边
-export const createDownstream = (graph: Graph, node: Node, entity: XFileInfo) => {
+export const createDownstream = (graph: Graph, node: Node, entity: XEntity) => {
   // 获取下游节点的初始位置信息
   const position = getDownstreamNodePosition(node, graph);
   // 创建下游节点
@@ -185,7 +185,7 @@ const menus: { [key: string]: MenuItemType } = {
 };
 
 /** 拉出节点可以创建的下一步节点 */
-const getNextMenu = (entity: XFileInfo): MenuItemType[] => {
+const getNextMenu = (entity: XEntity): MenuItemType[] => {
   switch (entity.typeName) {
     case '请求':
       return [menus.request, menus.script, menus.mapping];
@@ -199,7 +199,7 @@ const getNextMenu = (entity: XFileInfo): MenuItemType[] => {
 };
 
 export const ProcessingNode: React.FC<Info> = ({ node }) => {
-  const { entity, status } = node.getData() as DataNode<XFileInfo, ExecStatus>;
+  const { entity, status } = node.getData() as DataNode<ExecStatus>;
   const [visible, setVisible] = useState<boolean>(false);
   const [visibleOperate, setVisibleOperate] = useState<boolean>(false);
   const menus = getNextMenu(entity);

@@ -60,9 +60,10 @@ const LinkEditor: React.FC<IProps> = ({ current, children }) => {
 const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
   switch (cmd) {
     case 'insertRequest':
-      let requests: IRequest[] = args;
+    case 'insertMapping':
+      let entities: IEntity<XEntity>[] = args;
       let [x, y, offset] = [0, 0, 20];
-      for (let request of requests) {
+      for (let request of entities) {
         addNode({
           graph: graph,
           position: {
@@ -111,7 +112,7 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
             ),
             onOk: () => {
               for (const select of selected) {
-                createDownstream(graph, node, select.metadata as XFileInfo);
+                createDownstream(graph, node, select.metadata);
               }
               linkCmd.emitter('node', 'unselected', { node: node });
             },
