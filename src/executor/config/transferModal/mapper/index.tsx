@@ -1,8 +1,8 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
 import useMenuUpdate from '@/hooks/useMenuUpdate';
 import { IDirectory } from '@/ts/core';
-import React from 'react';
-import { loadMenu } from '..';
+import React, { useRef } from 'react';
+import { loadDirs, loadMenu } from '..';
 import MappingTable from './parts/table';
 import { Controller } from '@/ts/controller';
 import MainLayout from '@/components/MainLayout';
@@ -13,9 +13,10 @@ interface IProps {
 }
 
 const MappingModal: React.FC<IProps> = ({ current, finished }) => {
+  const ctrl = useRef(new Controller(''));
   const [_, root, selected, setSelected] = useMenuUpdate(
-    () => loadMenu(current, '映射'),
-    new Controller(''),
+    () => loadDirs(current),
+    ctrl.current,
   );
 
   if (!root || !selected) return <></>;
@@ -29,8 +30,14 @@ const MappingModal: React.FC<IProps> = ({ current, finished }) => {
       destroyOnClose
       title={'映射配置'}
       onCancel={() => finished()}>
-      <MainLayout siderMenuData={root} selectMenu={selected} onSelect={setSelected}>
-        <MappingTable current={current}></MappingTable>
+      <MainLayout
+        siderMenuData={root}
+        selectMenu={selected}
+        onSelect={(item) => {
+          setSelected(item);
+          ctrl.current.changCallback();
+        }}>
+        <MappingTable current={selected.item} ctrl={ctrl.current} />
       </MainLayout>
     </FullScreenModal>
   );

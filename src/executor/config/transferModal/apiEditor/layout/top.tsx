@@ -100,7 +100,7 @@ const Top: React.FC<IProps> = ({ cmd, dir }) => {
       {curTab && <RequestLayout current={curTab.item} />}
       {open && (
         <RequestForm
-          dir={curDir}
+          current={curDir}
           cancel={() => setOpen(false)}
           finished={(request) => {
             setOpen(false);

@@ -1,18 +1,17 @@
-import React from 'react';
-import cls from './../index.module.less';
-import { XForm } from '@/ts/base/schema';
+import { XAttribute } from '@/ts/base/schema';
+import React, { ReactNode } from 'react';
 
 interface IProps {
-  form?: XForm;
+  attr: XAttribute;
+  operate: ReactNode;
 }
 
-const Field: React.FC<IProps> = ({ form }) => {
+const Field: React.FC<IProps> = ({ attr, operate }) => {
   return (
-    <ul className={cls['mapping-content']}>
-      {form?.attributes?.map((item) => {
-        return <li> {item.name}</li>;
-      })}
-    </ul>
+    <div>
+      <div>{attr.name}</div>
+      {operate}
+    </div>
   );
 };
 

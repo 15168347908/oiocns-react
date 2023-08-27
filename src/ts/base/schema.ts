@@ -1,6 +1,5 @@
 import { Model } from '@antv/x6';
 import { AxiosRequestConfig } from 'axios';
-import { ConfigColl } from '../core/thing/directory';
 
 export type Xbase = {
   // 雪花ID
@@ -602,9 +601,9 @@ export type XMapping = {
   sourceForm: XForm;
   targetForm: XForm;
   mappings: {
-    sourceAttrId: string;
-    targetAttrId: string;
-    options: { [key: string]: string };
+    sourceAttr?: XAttribute;
+    targetAttr?: XAttribute;
+    options?: { [key: string]: string };
   }[];
 } & XFileInfo;
 

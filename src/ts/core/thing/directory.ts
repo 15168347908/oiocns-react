@@ -100,7 +100,7 @@ export interface IDirectory extends IFileInfo<schema.XDirectory> {
   configs: IFileInfo<schema.XFileInfo>[];
   /** 新建请求配置 */
   createConfig(
-    collName: string,
+    coll: string,
     data: schema.XFileInfo,
   ): Promise<IFileInfo<schema.XFileInfo> | undefined>;
   /** 加载请求配置 */
@@ -506,6 +506,9 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
         break;
       case ConfigColl.Scripts:
         data.typeName = '脚本';
+        break;
+      case ConfigColl.Mappings:
+        data.typeName = '映射';
         break;
       default:
         data.typeName = '未知';

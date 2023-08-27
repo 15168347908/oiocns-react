@@ -9,12 +9,12 @@ import { ConfigColl } from '@/ts/core/thing/directory';
 import { generateUuid } from '@/ts/base/common';
 
 interface IProps {
-  dir: IDirectory;
+  current: IDirectory;
   finished: (request: IRequest) => void;
   cancel: () => void;
 }
 
-const RequestForm: React.FC<IProps> = ({ dir, finished, cancel }) => {
+const RequestForm: React.FC<IProps> = ({ current, finished, cancel }) => {
   const columns: ProFormColumnsType<XRequest>[] = [
     {
       title: '名称',
@@ -28,9 +28,6 @@ const RequestForm: React.FC<IProps> = ({ dir, finished, cancel }) => {
       dataIndex: 'remark',
       valueType: 'textarea',
       colProps: { span: 24 },
-      formItemProps: {
-        rules: [{ required: true, message: '备注为必填项' }],
-      },
     },
   ];
   return (
@@ -65,7 +62,7 @@ const RequestForm: React.FC<IProps> = ({ dir, finished, cancel }) => {
             };
           },
         );
-        let request = await dir.createConfig(ConfigColl.Requests, values);
+        let request = await current.createConfig(ConfigColl.Requests, values);
         finished(request as IRequest);
       }}
     />

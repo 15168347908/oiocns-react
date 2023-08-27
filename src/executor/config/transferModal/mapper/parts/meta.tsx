@@ -1,19 +1,16 @@
-import { XForm } from '@/ts/base/schema';
-import { IBelong, IDirectory, IForm } from '@/ts/core';
 import { Modal } from 'antd';
 import React from 'react';
 import { AiFillPlusCircle } from 'react-icons/ai';
 import Selector from '../../selector';
-import cls from './../index.module.less';
 
 interface IProps {
   form?: XForm;
-  setForm: (form: XForm) => void;
+  onChange: (form: XForm) => void;
   belong: IBelong;
   typeName: string;
 }
 
-const Form: React.FC<IProps> = ({ form, setForm, typeName, belong }) => {
+const Form: React.FC<IProps> = ({ form, onChange, typeName, belong }) => {
   const openSelector = () => {
     Modal.confirm({
       icon: <></>,
@@ -26,7 +23,6 @@ const Form: React.FC<IProps> = ({ form, setForm, typeName, belong }) => {
             if (selected.length > 0) {
               const form = selected[0] as IForm;
               form.metadata.attributes = await form.loadAttributes();
-              setForm(form.metadata);
             }
           }}
           loadItems={async (current: IDirectory) => await current.loadForms()}
