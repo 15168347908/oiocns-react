@@ -6,6 +6,7 @@ import {
   XRequest,
   XEnvironment,
   XMapping,
+  XAttribute,
 } from '@/ts/base/schema';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ConfigColl, IDirectory } from './directory';
@@ -152,10 +153,21 @@ export class Executable extends BaseFileInfo<XExecutable> implements IExecutable
 }
 
 /** 实体映射 */
-export interface IMapping extends IBaseFileInfo<XMapping> {}
+export interface IMapping extends IBaseFileInfo<XMapping> {
+  source?: { index: number; attr: XAttribute };
+  target?: { index: number; attr: XAttribute };
+  clear(): void;
+}
 
 export class Mapping extends BaseFileInfo<XMapping> implements IMapping {
   constructor(mapping: XMapping, dir: IDirectory) {
     super(ConfigColl.Mappings, mapping, dir);
+  }
+  source?: { index: number; attr: XAttribute };
+  target?: { index: number; attr: XAttribute };
+
+  clear(): void {
+    this.source = undefined;
+    this.target = undefined;
   }
 }

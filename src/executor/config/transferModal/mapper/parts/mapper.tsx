@@ -1,51 +1,38 @@
-import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { IMapping } from '@/ts/core/thing/config';
 import { Col, Layout, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import React from 'react';
-import DraggableFields from './draggableFields';
+import Center from './center';
 import Fields from './fields';
+import { Controller } from '@/ts/controller';
 
 interface IProps {
   current: IMapping;
+  ctrl: Controller;
 }
 
-const Mapper: React.FC<IProps> = ({ current }) => {
+const Mapper: React.FC<IProps> = ({ current, ctrl }) => {
   return (
     <Layout>
       <Content>
         <Row>
-          <Col span={8}>
+          <Col span={6}>
             <Fields
               current={current}
+              targetForm={'sourceForm'}
               targetAttrs={'sourceAttrs'}
-              targetAttr={'sourceAttr'}
+              targetAttr={'source'}
             />
           </Col>
-          <Col span={8}>
-            <Row>
-              <Col span={12}>
-                <DraggableFields
-                  current={current}
-                  targetAttrs={'sourceAttrs'}
-                  targetAttr={'sourceAttr'}
-                />
-              </Col>
-              <Col span={12}>
-                <DraggableFields
-                  current={current}
-                  targetAttrs={'targetAttrs'}
-                  targetAttr={'targetAttr'}
-                />
-              </Col>
-            </Row>
+          <Col span={12}>
+            <Center current={current} ctrl={ctrl}/>
           </Col>
-          <Col span={8}>
-            <EntityIcon entity={current.metadata.targetForm} showName />
+          <Col span={6}>
             <Fields
               current={current}
+              targetForm={'targetForm'}
               targetAttrs={'targetAttrs'}
-              targetAttr={'targetAttr'}
+              targetAttr={'target'}
             />
           </Col>
         </Row>

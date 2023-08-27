@@ -62,7 +62,6 @@ const MappingTable: React.FC<IProps> = ({ current, ctrl }) => {
           {
             title: '映射字段',
             render: (_, entity) => {
-              entity;
               return <span>已映射 {entity.metadata.mappings?.length ?? 0} 个字段</span>;
             },
           },
@@ -85,7 +84,7 @@ const MappingTable: React.FC<IProps> = ({ current, ctrl }) => {
                       okText: '关闭',
                       width: 1200,
                       maskClosable: true,
-                      content: <Mapper current={record} />,
+                      content: <Mapper current={record} ctrl={ctrl} />,
                     });
                   }}>
                   配置字段

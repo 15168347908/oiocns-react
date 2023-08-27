@@ -575,7 +575,6 @@ export type XReport = {
 export type XFileInfo = {
   directoryId: string;
   collName: string;
-  typeName: string;
 } & XEntity;
 
 // 请求定义
@@ -603,8 +602,8 @@ export type XMapping = {
   targetForm: XForm;
   targetAttrs: XAttribute[];
   mappings: {
-    sourceAttr?: XAttribute;
-    targetAttr?: XAttribute;
+    sourceAttr: XAttribute;
+    targetAttr: XAttribute;
     options?: { [key: string]: string };
   }[];
 } & XFileInfo;
