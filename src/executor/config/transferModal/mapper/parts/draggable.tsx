@@ -4,10 +4,10 @@ import React, { ReactNode } from 'react';
 import { generateUuid } from '@/ts/base/common';
 
 interface IProps {
-  node: ReactNode;
+  children: ReactNode;
 }
 
-const Draggable: React.FC<IProps> = ({ node }) => {
+const Draggable: React.FC<IProps> = ({ children }) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: generateUuid(),
   });
@@ -16,7 +16,7 @@ const Draggable: React.FC<IProps> = ({ node }) => {
   };
   return (
     <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
-      {node}
+      {children}
     </div>
   );
 };

@@ -1,11 +1,11 @@
 import SchemaForm from '@/components/SchemaForm';
-import { XForm, XMapping } from '@/ts/base/schema';
+import { XMapping } from '@/ts/base/schema';
+import orgCtrl from '@/ts/controller';
 import { IDirectory, IForm } from '@/ts/core';
 import { ConfigColl } from '@/ts/core/thing/directory';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React, { useRef, useState } from 'react';
 import { MenuItem, loadFormsMenu } from '../transferModal';
-import orgCtrl from '@/ts/controller';
 
 interface IProps {
   current: IDirectory;
@@ -15,8 +15,8 @@ interface IProps {
 
 const MappingForm: React.FC<IProps> = ({ current, finished, cancel }) => {
   const [treeData, setTreeData] = useState<MenuItem[]>([loadFormsMenu(current)]);
-  const sourceForm = useRef<XForm>();
-  const targetForm = useRef<XForm>();
+  const source = useRef<IForm>();
+  const target = useRef<IForm>();
   const formSelector = (
     title: string,
     dataIndex: string,
@@ -54,14 +54,10 @@ const MappingForm: React.FC<IProps> = ({ current, finished, cancel }) => {
   };
   const columns: ProFormColumnsType<XMapping>[] = [
     formSelector('源表单', 'sourceForm', async (node) => {
-      const form = node.item as IForm;
-      sourceForm.current = form.metadata;
-      sourceForm.current.attributes = await form.loadAttributes();
+      source.current = node.item as IForm;
     }),
     formSelector('目标表单', 'targetForm', async (node) => {
-      const form = node.item as IForm;
-      targetForm.current = form.metadata;
-      targetForm.current.attributes = await form.loadAttributes();
+      target.current = node.item as IForm;
     }),
     {
       title: '备注',
@@ -86,11 +82,12 @@ const MappingForm: React.FC<IProps> = ({ current, finished, cancel }) => {
         }
       }}
       onFinish={async (values) => {
-        console.log(values);
-        values.sourceForm = sourceForm.current!;
-        values.targetForm = targetForm.current!;
+        values.sourceForm = source.current!.metadata;
+        values.targetForm = target.current!.metadata;
+        values.sourceAttrs = [...await source.current!.loadAttributes()];
+        values.targetAttrs = [...await target.current!.loadAttributes()];
         values.mappings = [];
-        values.name = sourceForm.current?.name + '->' + targetForm.current?.name;
+        values.name = source.current?.name + '->' + target.current?.name;
         await current.createConfig(ConfigColl.Mappings, values);
         finished();
         orgCtrl.changCallback();

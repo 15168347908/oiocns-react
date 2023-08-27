@@ -7,7 +7,7 @@ import { IconBaseProps } from 'react-icons';
 import { AiFillPlusCircle, AiOutlineCheck, AiOutlineLoading } from 'react-icons/ai';
 import { MenuItemType } from 'typings/globelType';
 import { linkCmd } from '@/ts/base/common/command';
-import cls from './../index.module.less';
+import cls from './../../../index.module.less';
 import { ConfigColl } from '@/ts/core/thing/directory';
 
 export enum ExecStatus {

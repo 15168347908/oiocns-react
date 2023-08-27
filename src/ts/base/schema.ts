@@ -599,7 +599,9 @@ export type XEnvironment = {
 // 映射定义
 export type XMapping = {
   sourceForm: XForm;
+  sourceAttrs: XAttribute[];
   targetForm: XForm;
+  targetAttrs: XAttribute[];
   mappings: {
     sourceAttr?: XAttribute;
     targetAttr?: XAttribute;

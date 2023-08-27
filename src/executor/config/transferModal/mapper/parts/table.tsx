@@ -83,7 +83,7 @@ const MappingTable: React.FC<IProps> = ({ current, ctrl }) => {
                       icon: <></>,
                       title: '字段映射',
                       okText: '关闭',
-                      width: 800,
+                      width: 1200,
                       maskClosable: true,
                       content: <Mapper current={record} />,
                     });
