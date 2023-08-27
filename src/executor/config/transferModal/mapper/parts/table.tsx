@@ -6,6 +6,7 @@ import { IMapping } from '@/ts/core/thing/config';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Modal, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
+import Mapper from './mapper';
 
 interface IProps {
   current: IDirectory;
@@ -19,18 +20,18 @@ const getMappings = (current: IDirectory) => {
 };
 
 const MappingTable: React.FC<IProps> = ({ current, ctrl }) => {
-  const [selectedMappings, setSelectedMappings] = useState<IMapping[]>([]);
+  const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
   const [open, setOpen] = useState<boolean>(false);
   const [data, setData] = useState<readonly IMapping[]>(getMappings(current));
   useEffect(() => {
     const id = ctrl.subscribe(() => {
-      setSelectedMappings([]);
+      setSelectedKeys([]);
       setData(getMappings(current));
     });
     return () => {
       ctrl.unsubscribe(id);
     };
-  });
+  }, [current, ctrl]);
   return (
     <>
       <ProTable<IMapping>
@@ -38,6 +39,7 @@ const MappingTable: React.FC<IProps> = ({ current, ctrl }) => {
         search={false}
         cardProps={{ bodyStyle: { padding: 0 } }}
         scroll={{ y: 300 }}
+        rowKey={'id'}
         columns={[
           {
             title: '序号',
@@ -47,22 +49,14 @@ const MappingTable: React.FC<IProps> = ({ current, ctrl }) => {
             title: '源表单',
             dataIndex: 'sourceName',
             render: (_: any, record: IMapping) => (
-              <EntityIcon
-                entityId={record.metadata.sourceForm.icon}
-                entity={record.metadata.sourceForm}
-                showName
-              />
+              <EntityIcon entity={record.metadata.sourceForm} showName />
             ),
           },
           {
             title: '目标表单',
             dataIndex: 'targetName',
-            render: (_: any, record: IMapping) => (
-              <EntityIcon
-                entityId={record.metadata.targetForm.icon}
-                entity={record.metadata.targetForm}
-                showName
-              />
+            render: (_, record: IMapping) => (
+              <EntityIcon entity={record.metadata.targetForm} showName />
             ),
           },
           {
@@ -76,11 +70,33 @@ const MappingTable: React.FC<IProps> = ({ current, ctrl }) => {
             title: '备注',
             dataIndex: 'remark',
           },
+          {
+            title: '操作',
+            dataIndex: 'action',
+            render: (_, record: IMapping) => {
+              return (
+                <Button
+                  type="primary"
+                  ghost
+                  onClick={() => {
+                    Modal.info({
+                      icon: <></>,
+                      title: '字段映射',
+                      okText: '关闭',
+                      width: 800,
+                      maskClosable: true,
+                      content: <Mapper current={record} />,
+                    });
+                  }}>
+                  配置字段
+                </Button>
+              );
+            },
+          },
         ]}
         rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedMappings(selectedRows);
-          },
+          selectedRowKeys: selectedKeys,
+          onChange: setSelectedKeys,
         }}
         toolBarRender={() => {
           return [
@@ -93,8 +109,8 @@ const MappingTable: React.FC<IProps> = ({ current, ctrl }) => {
                     onOk: async () => {
                       const mappings = getMappings(current);
                       for (const mapping of mappings) {
-                        for (const selectedMapping of selectedMappings) {
-                          if (selectedMapping.id == mapping.id) {
+                        for (const selectedKey of selectedKeys) {
+                          if (selectedKey == mapping.id) {
                             await mapping.delete();
                           }
                         }

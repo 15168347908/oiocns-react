@@ -53,16 +53,16 @@ const MappingForm: React.FC<IProps> = ({ current, finished, cancel }) => {
     };
   };
   const columns: ProFormColumnsType<XMapping>[] = [
-    formSelector(
-      '源表单',
-      'sourceForm',
-      (node) => (sourceForm.current = (node.item as IForm).metadata),
-    ),
-    formSelector(
-      '目标表单',
-      'targetForm',
-      (node) => (targetForm.current = (node.item as IForm).metadata),
-    ),
+    formSelector('源表单', 'sourceForm', async (node) => {
+      const form = node.item as IForm;
+      sourceForm.current = form.metadata;
+      sourceForm.current.attributes = await form.loadAttributes();
+    }),
+    formSelector('目标表单', 'targetForm', async (node) => {
+      const form = node.item as IForm;
+      targetForm.current = form.metadata;
+      targetForm.current.attributes = await form.loadAttributes();
+    }),
     {
       title: '备注',
       dataIndex: 'remark',
@@ -86,6 +86,7 @@ const MappingForm: React.FC<IProps> = ({ current, finished, cancel }) => {
         }
       }}
       onFinish={async (values) => {
+        console.log(values);
         values.sourceForm = sourceForm.current!;
         values.targetForm = targetForm.current!;
         values.mappings = [];

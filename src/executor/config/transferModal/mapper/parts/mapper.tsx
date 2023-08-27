@@ -1,195 +1,187 @@
+import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { XAttribute, XForm, XMapping } from '@/ts/base/schema';
-import { IBelong } from '@/ts/core';
 import { IMapping } from '@/ts/core/thing/config';
+import { DndContext } from '@dnd-kit/core';
 import { Col, Layout, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import * as im from 'react-icons/im';
 import cls from './../index.module.less';
-import Form from './meta';
-import Fields from './fields';
-import { DndContext } from '@dnd-kit/core';
 import Draggable from './draggable';
 import Field from './field';
-import * as im from 'react-icons/im';
-import { Controller } from '@/ts/controller';
 
 interface IProps {
-  current?: IMapping;
-  belong: IBelong;
-  status: 'edit' | 'view';
+  current: IMapping;
 }
 
-const Mapper: React.FC<IProps> = ({ current, belong }) => {
-  // const [mapping, setMapping] = useState<XMapping>(metadata.current);
-  // useEffect(() => {
-  //   const id = ctrl.current.subscribe(() => {
-  //     setMapping(metadata.current);
-  //   });
-  //   return () => {
-  //     ctrl.current.unsubscribe(id);
-  //   };
-  // });
-  // return (
-  //   <Layout className={cls.layout}>
-  //     <Content className={cls.content}>
-  //       <Row>
-  //         <Col span={12}>
-  //           <Form
-  //             onChange={(form: XForm) => {
-  //               metadata.current.sourceForm = form;
-  //               ctrl.current.changCallback();
-  //             }}
-  //             belong={belong}
-  //             typeName={'源对象'}></Form>
-  //         </Col>
-  //         <Col span={12}>
-  //           <Form
-  //             onChange={(form: XForm) => {
-  //               metadata.current.targetForm = form;
-  //               ctrl.current.changCallback();
-  //             }}
-  //             belong={belong}
-  //             typeName={'目标对象'}></Form>
-  //         </Col>
-  //       </Row>
-  //       <Row className={cls['mapping-body']}>
-  //         <Col span={10}>
-  //           {mapping && (
-  //             <Fields
-  //               attrs={mapping.sourceForm?.attributes ?? []}
-  //               node={(attr: XAttribute | undefined, index: number) => {
-  //                 return (
-  //                   <Field
-  //                     attr={attr!}
-  //                     operate={
-  //                       <im.ImArrowRight
-  //                         onClick={() => {
-  //                           metadata.current.sourceForm?.attributes?.splice(index, 1);
-  //                           const has = current?.metadata.mappings.find(
-  //                             (item) => !item.sourceAttr,
-  //                           );
-  //                           if (has) {
-  //                             has.sourceAttr = attr;
-  //                           } else {
-  //                             current?.metadata.mappings?.push({ sourceAttr: attr });
-  //                           }
-  //                           ctrl.current.changCallback();
-  //                         }}
-  //                       />
-  //                     }
-  //                   />
-  //                 );
-  //               }}
-  //             />
-  //           )}
-  //         </Col>
-  //         <Col span={4}>
-  //           <DndContext>
-  //             <Fields
-  //               attrs={metadata.current.mappings.map((item) => item.sourceAttr) ?? []}
-  //               node={(attr: XAttribute | undefined, index: number) => {
-  //                 return (
-  //                   <Draggable
-  //                     node={
-  //                       attr ? (
-  //                         <Field
-  //                           attr={attr}
-  //                           operate={
-  //                             <im.ImArrowLeft
-  //                               onClick={() => {
-  //                                 const row = current?.metadata.mappings[index];
-  //                                 if (!row?.targetAttr) {
-  //                                   current?.metadata.mappings.splice(index, 1);
-  //                                 } else {
-  //                                   row.sourceAttr = undefined;
-  //                                   row.options = undefined;
-  //                                 }
-  //                                 ctrl.current.changCallback();
-  //                               }}
-  //                             />
-  //                           }
-  //                         />
-  //                       ) : (
-  //                         <></>
-  //                       )
-  //                     }
-  //                   />
-  //                 );
-  //               }}
-  //             />
-  //           </DndContext>
-  //           <DndContext>
-  //             <Fields
-  //               attrs={metadata.current.mappings.map((item) => item.targetAttr) ?? []}
-  //               node={(attr: XAttribute | undefined, index: number) => {
-  //                 return (
-  //                   <Draggable
-  //                     node={
-  //                       attr ? (
-  //                         <Field
-  //                           attr={attr}
-  //                           operate={
-  //                             <im.ImArrowRight
-  //                               onClick={() => {
-  //                                 const row = current?.metadata.mappings[index];
-  //                                 if (!row?.sourceAttr) {
-  //                                   current?.metadata.mappings.splice(index, 1);
-  //                                 } else {
-  //                                   row.targetAttr = undefined;
-  //                                   row.options = undefined;
-  //                                 }
-  //                                 ctrl.current.changCallback();
-  //                               }}
-  //                             />
-  //                           }
-  //                         />
-  //                       ) : (
-  //                         <></>
-  //                       )
-  //                     }
-  //                   />
-  //                 );
-  //               }}
-  //             />
-  //           </DndContext>
-  //         </Col>
-  //         <Col span={10}>
-  //           {target && (
-  //             <Fields
-  //               attrs={target.attributes ?? []}
-  //               node={(attr: XAttribute | undefined, index: number) => {
-  //                 return attr ? (
-  //                   <Field
-  //                     attr={attr}
-  //                     operate={
-  //                       <im.ImArrowRight
-  //                         onClick={() => {
-  //                           current?.metadata.sourceForm.attributes?.splice(index, 1);
-  //                           const has = current?.metadata.mappings.find(
-  //                             (item) => !item.sourceAttr,
-  //                           );
-  //                           if (has) {
-  //                             has.sourceAttr = attr;
-  //                           } else {
-  //                             current?.metadata.mappings?.push({ sourceAttr: attr });
-  //                           }
-  //                           ctrl.current.changCallback();
-  //                         }}
-  //                       />
-  //                     }
-  //                   />
-  //                 ) : (
-  //                   <></>
-  //                 );
-  //               }}
-  //             />
-  //           )}
-  //         </Col>
-  //       </Row>
-  //     </Content>
-  //   </Layout>
-  // );
-  return <></>;
+const Mapper: React.FC<IProps> = ({ current }) => {
+  const [sourceForm, setSourceForm] = useState<XForm>(current.metadata.sourceForm);
+  const [targetForm, setTargetForm] = useState<XForm>(current.metadata.targetForm);
+  const [sourceAttrs, setSourceAttrs] = useState<XAttribute[]>(
+    current.metadata.sourceForm.attributes ?? [],
+  );
+  const [targetAttrs, setTargetAttrs] = useState<XAttribute[]>(
+    current.metadata.targetForm.attributes ?? [],
+  );
+  const [mappings, setMappings] = useState<
+    {
+      sourceAttr?: XAttribute;
+      targetAttr?: XAttribute;
+      options?: { [key: string]: string };
+    }[]
+  >(current.metadata.mappings ?? []);
+  useEffect(() => {
+    const id = current.subscribe(() => {
+      setSourceForm(current.metadata.sourceForm);
+      setTargetForm(current.metadata.targetForm);
+      setSourceAttrs(current.metadata.sourceForm.attributes ?? []);
+      setTargetAttrs(current.metadata.targetForm.attributes ?? []);
+      setMappings(current.metadata.mappings ?? []);
+    });
+    return () => {
+      current.unsubscribe(id);
+    };
+  }, [current]);
+  return (
+    <Layout className={cls.layout}>
+      <Content className={cls.content}>
+        <Row>
+          <Col span={12} style={{ display: 'flex', justifyContent: 'center' }}>
+            <EntityIcon entity={sourceForm} showName />
+          </Col>
+          <Col span={12} style={{ display: 'flex', justifyContent: 'center' }}>
+            <EntityIcon entity={targetForm} showName />
+          </Col>
+        </Row>
+        <Row className={cls['mapping-body']}>
+          <Col span={10}>
+            <div className={cls['mapping-content']}>
+              {sourceAttrs.map((attr, index) => {
+                console.log(attr, index);
+                return (
+                  <Field
+                    attr={attr}
+                    operate={
+                      <im.ImArrowRight
+                        onClick={() => {
+                          current.metadata.sourceForm.attributes?.splice(index, 1);
+                          const has = current.metadata.mappings.find(
+                            (item) => !item.sourceAttr,
+                          );
+                          if (has) {
+                            has.sourceAttr = attr;
+                          } else {
+                            current.metadata.mappings.push({ sourceAttr: attr });
+                          }
+                          current.refresh(current.metadata);
+                        }}
+                      />
+                    }
+                  />
+                );
+              })}
+            </div>
+          </Col>
+          <Col span={4}>
+            <DndContext>
+              <div className={cls['mapping-content']}>
+                {mappings.map((item, index) => {
+                  return (
+                    <Draggable
+                      node={
+                        item.sourceAttr ? (
+                          <Field
+                            attr={item.sourceAttr}
+                            operate={
+                              <im.ImArrowLeft
+                                onClick={() => {
+                                  const row = current.metadata.mappings[index];
+                                  if (!row.targetAttr) {
+                                    current.metadata.mappings.splice(index, 1);
+                                  } else {
+                                    row.sourceAttr = undefined;
+                                    row.options = undefined;
+                                  }
+                                  current.refresh(current.metadata);
+                                }}
+                              />
+                            }
+                          />
+                        ) : (
+                          <></>
+                        )
+                      }
+                    />
+                  );
+                })}
+              </div>
+            </DndContext>
+            <DndContext>
+              <div className={cls['mapping-content']}>
+                {mappings.map((item, index) => {
+                  return (
+                    <Draggable
+                      node={
+                        item.targetAttr ? (
+                          <Field
+                            attr={item.targetAttr}
+                            operate={
+                              <im.ImArrowRight
+                                onClick={() => {
+                                  const row = current.metadata.mappings[index];
+                                  if (!row.sourceAttr) {
+                                    current.metadata.mappings.splice(index, 1);
+                                  } else {
+                                    row.targetAttr = undefined;
+                                    row.options = undefined;
+                                  }
+                                  current.refresh(current.metadata);
+                                }}
+                              />
+                            }
+                          />
+                        ) : (
+                          <></>
+                        )
+                      }
+                    />
+                  );
+                })}
+              </div>
+            </DndContext>
+          </Col>
+          <Col span={10}>
+            <div className={cls['mapping-content']}>
+              {targetAttrs.map((attr, index) => {
+                return (
+                  <Field
+                    key={attr.id}
+                    attr={attr}
+                    operate={
+                      <im.ImArrowRight
+                        onClick={() => {
+                          current.metadata.sourceForm.attributes?.splice(index, 1);
+                          const has = current.metadata.mappings.find(
+                            (item) => !item.sourceAttr,
+                          );
+                          if (has) {
+                            has.sourceAttr = attr;
+                          } else {
+                            current.metadata.mappings.push({ sourceAttr: attr });
+                          }
+                          current.refresh(current.metadata);
+                        }}
+                      />
+                    }
+                  />
+                );
+              })}
+            </div>
+          </Col>
+        </Row>
+      </Content>
+    </Layout>
+  );
 };
 
 export default Mapper;
