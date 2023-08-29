@@ -24,7 +24,8 @@ const entityMap: any = {
   报表: 'Report',
   请求: 'Request',
   链接: 'Link',
-  映射: 'Mapping'
+  映射: 'Mapping',
+  脚本: 'Executable'
 };
 
 interface IProps {

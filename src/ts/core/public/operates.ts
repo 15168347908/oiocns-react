@@ -175,6 +175,12 @@ export const directoryOperates = {
     label: '新建映射配置',
     iconType: '映射配置',
   },
+  NewExecutable: {
+    sort: 13,
+    cmd: 'newExecutable',
+    label: '新建脚本配置',
+    iconType: '脚本配置',
+  },
 };
 
 /** 目录下新增 */
@@ -196,6 +202,7 @@ export const directoryNew = {
     directoryOperates.NewRequest,
     directoryOperates.NewLink,
     directoryOperates.NewMapping,
+    directoryOperates.NewExecutable
   ],
 };
 

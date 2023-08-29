@@ -606,4 +606,6 @@ export type XMapping = {
 } & XFileInfo;
 
 // 脚本配置
-export type XExecutable = XFileInfo;
+export type XExecutable = {
+  coder: string;
+} & XFileInfo;
