@@ -1,26 +1,28 @@
+import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { Command } from '@/ts/base';
-import { generateUuid } from '@/ts/base/common';
-import { XEntity, XFileInfo } from '@/ts/base/schema';
-import { Graph, Node, StringExt } from '@antv/x6';
-import React, { useEffect, useState } from 'react';
-import { IconBaseProps } from 'react-icons';
-import { AiFillPlusCircle, AiOutlineCheck, AiOutlineLoading } from 'react-icons/ai';
-import { MenuItemType } from 'typings/globelType';
+import { generateUuid, sleep } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
-import cls from './../../../index.module.less';
+import { XEntity } from '@/ts/base/schema';
+import { ShareIdSet } from '@/ts/core/public/entity';
 import { ConfigColl } from '@/ts/core/thing/directory';
+import {
+  CheckCircleOutlined,
+  LoadingOutlined,
+  PauseCircleOutlined,
+} from '@ant-design/icons';
+import { Graph, Node } from '@antv/x6';
+import React, { useEffect, useState } from 'react';
+import { AiFillPlusCircle } from 'react-icons/ai';
+import { MenuItemType } from 'typings/globelType';
+import cls from './../../../index.module.less';
+import { IRequest, ShareConfigs } from '@/ts/core/thing/config';
+import { message } from 'antd';
 
 export enum ExecStatus {
   Stop = 'stop',
   Running = 'running',
   Completed = 'completed',
 }
-
-const config: IconBaseProps = { size: 12, color: '#9498df' };
-const statusMap: { [key: string]: React.ReactNode } = {
-  [ExecStatus.Stop]: <AiOutlineCheck {...config} />,
-  [ExecStatus.Running]: <AiOutlineLoading {...config} />,
-};
 
 export interface DataNode<S> {
   entity: XEntity;
@@ -195,33 +197,56 @@ const getNextMenu = (entity: XEntity): MenuItemType[] => {
 
 export const ProcessingNode: React.FC<Info> = ({ node }) => {
   const { entity, status } = node.getData() as DataNode<ExecStatus>;
+  const [nodeStatus, setNodeStatus] = useState<ExecStatus>(status);
   const [visible, setVisible] = useState<boolean>(false);
   const [visibleOperate, setVisibleOperate] = useState<boolean>(false);
-  const menus = getNextMenu(entity);
+
   useEffect(() => {
-    const id = linkCmd.subscribe((type, cmd, args) => {
-      console.log(args);
-      if (type != 'node') return;
-      if (args.node.id == node.id) {
-        switch (cmd) {
-          case 'selected':
-            setVisible(true);
-            break;
-          case 'unselected':
-            setVisible(false);
-            setVisibleOperate(false);
-            break;
-        }
+    const id = linkCmd.subscribe(async (type, cmd, args) => {
+      switch (type) {
+        case 'node':
+          if (args.node.id == node.id) {
+            switch (cmd) {
+              case 'selected':
+                setVisible(true);
+                break;
+              case 'unselected':
+                setVisible(false);
+                setVisibleOperate(false);
+                break;
+            }
+          }
+          break;
+        case 'ergodic':
+          if (args != node.id) return;
+          switch (cmd) {
+            case 'request':
+              const request = ShareConfigs.get(entity.id) as IRequest;
+              setNodeStatus(ExecStatus.Running);
+              try {
+                await sleep(3000);
+                const res = await request.exec();
+                message.success('成功读取到数据' + res.data.data.records.length);
+                setNodeStatus(ExecStatus.Completed);
+              } catch(error) {
+                console.log(error);
+                message.error("执行请求异常");
+                setNodeStatus(ExecStatus.Stop);
+              }
+              break;
+          }
+          break;
       }
     });
     return () => {
       linkCmd.unsubscribe(id);
     };
   });
-  return (
-    <div className={`${cls['flex-row']} ${cls['container']} `}>
-      <div>{entity.name}</div>
-      {statusMap[status]}
+
+  // 展开菜单
+  const PlusMenus: React.FC<{}> = () => {
+    const menus = getNextMenu(entity);
+    return (
       <div
         style={{ visibility: visible ? 'visible' : 'hidden' }}
         className={`${cls['flex-row']} ${cls['plus-menu']}`}>
@@ -236,6 +261,7 @@ export const ProcessingNode: React.FC<Info> = ({ node }) => {
           {menus.map((item) => {
             return (
               <li
+                key={item.key}
                 className={`${cls['item']}`}
                 onClick={() => {
                   switch (item.itemType) {
@@ -252,6 +278,53 @@ export const ProcessingNode: React.FC<Info> = ({ node }) => {
           })}
         </ul>
       </div>
+    );
+  };
+
+  // 状态
+  const Status: React.FC<{}> = () => {
+    const style = { color: '#9498df', fontSize: 18 };
+    switch (nodeStatus) {
+      case ExecStatus.Stop:
+        return <PauseCircleOutlined style={style} />;
+      case ExecStatus.Running:
+        return <LoadingOutlined style={style} />;
+      case ExecStatus.Completed:
+        return <CheckCircleOutlined style={style} />;
+    }
+  };
+
+  // 节点信息
+  const Info: React.FC<{}> = () => {
+    return (
+      <div className={`${cls['flex-row']} ${cls['info']} ${cls['border']}`}>
+        <EntityIcon entity={entity} />
+        <div style={{ marginLeft: 10 }}>{entity.name}</div>
+      </div>
+    );
+  };
+
+  // 标签
+  const Tag: React.FC<{}> = () => {
+    return (
+      <div className={cls['tag']}>
+        <div className={`${cls['tag-item']} ${cls['text-overflow']}`}>
+          {entity.typeName}
+        </div>
+        <div className={`${cls['tag-item']} ${cls['text-overflow']}`}>
+          {ShareIdSet.get(entity.belongId)?.name}
+        </div>
+      </div>
+    );
+  };
+
+  // 结构
+  return (
+    <div className={`${cls['flex-row']} ${cls['container']} ${cls['border']}`}>
+      <Tag></Tag>
+      <Status></Status>
+      <PlusMenus></PlusMenus>
+      <Info></Info>
     </div>
   );
 };

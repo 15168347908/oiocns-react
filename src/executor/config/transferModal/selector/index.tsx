@@ -1,14 +1,14 @@
 import ShareShowComp from '@/components/Common/ShareShowComp';
 import CustomTree from '@/components/CustomTree';
-import { XEntity, XFileInfo } from '@/ts/base/schema';
+import { linkCmd } from '@/ts/base/common/command';
+import { XEntity } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity } from '@/ts/core';
-import { IBaseFileInfo, ILink } from '@/ts/core/thing/config';
+import { ILink } from '@/ts/core/thing/config';
 import { ConfigColl } from '@/ts/core/thing/directory';
 import { Button, Input, Modal, Space, TreeProps } from 'antd';
 import React, { Key, useState } from 'react';
 import { AiOutlineSearch } from 'react-icons/ai';
 import cls from './index.module.css';
-import { linkCmd } from '@/ts/base/common/command';
 
 interface IProps {
   current: ILink;
@@ -47,6 +47,7 @@ export const NodeTools = ({ current }: IProps) => {
       <Button onClick={() => onClick(ConfigColl.Requests)}>插入 Request</Button>
       <Button onClick={() => onClick(ConfigColl.Scripts)}>插入 Script</Button>
       <Button onClick={() => onClick(ConfigColl.Mappings)}>插入 Mapping</Button>
+      <Button onClick={() => linkCmd.emitter('main', 'executing')}>执行</Button>
     </Space>
   );
 };

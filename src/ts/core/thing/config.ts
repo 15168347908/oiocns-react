@@ -12,6 +12,8 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ConfigColl, IDirectory } from './directory';
 import { FileInfo, IFileInfo } from './fileinfo';
 
+export const ShareConfigs = new Map<string, IBaseFileInfo<XFileInfo>>();
+
 export interface IBaseFileInfo<T extends XFileInfo> extends IFileInfo<T> {
   refresh(data: T): void;
 }
@@ -25,6 +27,7 @@ export class BaseFileInfo<T extends XFileInfo>
   constructor(collName: ConfigColl, metadata: T, dir: IDirectory) {
     super(metadata, dir);
     this.collName = collName;
+    ShareConfigs.set(metadata.id, this);
   }
 
   refresh(data: T): void {
@@ -42,7 +45,6 @@ export class BaseFileInfo<T extends XFileInfo>
     const res = await kernel.anystore.remove(this.belongId, this.collName, {
       id: this.metadata.id,
     });
-    console.log(res);
     if (res.success) {
       this.directory.configs = this.directory.configs.filter((i) => i.key != this.key);
     }
@@ -163,6 +165,7 @@ export class Mapping extends BaseFileInfo<XMapping> implements IMapping {
   constructor(mapping: XMapping, dir: IDirectory) {
     super(ConfigColl.Mappings, mapping, dir);
   }
+
   source?: { index: number; attr: XAttribute };
   target?: { index: number; attr: XAttribute };
 

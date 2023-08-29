@@ -1,15 +1,14 @@
 import { linkCmd } from '@/ts/base/common/command';
-import { XEntity, XFileInfo } from '@/ts/base/schema';
+import { XEntity } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity } from '@/ts/core';
-import { ILink, IRequest } from '@/ts/core/thing/config';
+import { ILink } from '@/ts/core/thing/config';
 import { Graph, Node } from '@antv/x6';
 import { Modal } from 'antd';
 import React, { createRef, useEffect } from 'react';
 import { MenuItemType } from 'typings/globelType';
-import Mapper from '../../../mapper';
 import Selector from '../../../selector';
 import { createGraph } from './widgets/graph';
-import { ExecStatus, addNode, createDownstream } from './widgets/node';
+import { DataNode, ExecStatus, addNode, createDownstream } from './widgets/node';
 
 export interface IProps {
   current: ILink;
@@ -102,6 +101,17 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
               linkCmd.emitter('node', 'unselected', { node: node });
             },
           });
+      }
+      break;
+    case 'executing':
+      const nodes = graph.getNodes();
+      for (const node of nodes) {
+        const { entity } = node.getData() as DataNode<ExecStatus>;
+        switch (entity.typeName) {
+          case '请求':
+            linkCmd.emitter('ergodic', 'request', node.id);
+            break;
+        }
       }
       break;
   }
