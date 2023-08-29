@@ -29,6 +29,11 @@ export function createProxy() {
       changeOrigin: true, // 是否允许跨域
       rewrite: (path) => path.replace(/^\/jx/, ''),
     },
+    '/assetCloud': {
+      target: 'http://assetcloud.zj.gov.cn',
+      changeOrigin: true, // 是否允许跨域
+      rewrite: (path) => path.replace(/^\/assetCloud/, ''),
+    }
   };
   return ProxyList;
 }

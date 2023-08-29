@@ -160,6 +160,7 @@ const using = (graph: Graph) => {
       rubberband: true,
       movable: true,
       showNodeSelectionBox: true,
+      pointerEvents: 'none',
     }),
   );
 };

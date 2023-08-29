@@ -137,9 +137,13 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
 }
 
 /** 请求链接 */
-export interface ILink extends IBaseFileInfo<XLink> {}
+export interface ILink extends IBaseFileInfo<XLink> {
+  environment?: { [key: string]: string };
+}
 
 export class Link extends BaseFileInfo<XLink> implements ILink {
+  environment?: { [key: string]: string };
+
   constructor(link: XLink, dir: IDirectory) {
     super(ConfigColl.RequestLinks, link, dir);
   }
@@ -162,12 +166,12 @@ export interface IMapping extends IBaseFileInfo<XMapping> {
 }
 
 export class Mapping extends BaseFileInfo<XMapping> implements IMapping {
+  source?: { index: number; attr: XAttribute };
+  target?: { index: number; attr: XAttribute };
+
   constructor(mapping: XMapping, dir: IDirectory) {
     super(ConfigColl.Mappings, mapping, dir);
   }
-
-  source?: { index: number; attr: XAttribute };
-  target?: { index: number; attr: XAttribute };
 
   clear(): void {
     this.source = undefined;

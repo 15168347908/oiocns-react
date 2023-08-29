@@ -34,6 +34,7 @@ const LinkEditor: React.FC<IProps> = ({ current, children }) => {
     };
     graph.on('node:added', update);
     graph.on('node:moved', update);
+    graph.on('node:removed', update);
     graph.on('node:selected', (args) => linkCmd.emitter('node', 'selected', args));
     graph.on('node:unselected', (args) => linkCmd.emitter('node', 'unselected', args));
     return () => {
@@ -105,12 +106,15 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
       break;
     case 'executing':
       const nodes = graph.getNodes();
+      linkCmd.emitter('environments', 'clear');
       for (const node of nodes) {
-        const { entity } = node.getData() as DataNode<ExecStatus>;
-        switch (entity.typeName) {
-          case '请求':
-            linkCmd.emitter('ergodic', 'request', node.id);
-            break;
+        if (graph.isRootNode(node)) {
+          const { entity } = node.getData() as DataNode<ExecStatus>;
+          switch (entity.typeName) {
+            case '请求':
+              linkCmd.emitter('ergodic', 'request', { nodeId: node.id });
+              break;
+          }
         }
       }
       break;

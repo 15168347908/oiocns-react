@@ -2,26 +2,30 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { Command } from '@/ts/base';
 import { generateUuid, sleep } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
-import { XEntity } from '@/ts/base/schema';
+import { XEntity, XExecutable } from '@/ts/base/schema';
 import { ShareIdSet } from '@/ts/core/public/entity';
 import { ConfigColl } from '@/ts/core/thing/directory';
 import {
   CheckCircleOutlined,
+  CloseCircleOutlined,
   LoadingOutlined,
   PauseCircleOutlined,
+  StopOutlined,
 } from '@ant-design/icons';
-import { Graph, Node } from '@antv/x6';
+import { Graph, Model, Node } from '@antv/x6';
 import React, { useEffect, useState } from 'react';
 import { AiFillPlusCircle } from 'react-icons/ai';
 import { MenuItemType } from 'typings/globelType';
 import cls from './../../../index.module.less';
 import { IRequest, ShareConfigs } from '@/ts/core/thing/config';
 import { message } from 'antd';
+import { Sandbox } from '@/utils/sandbox';
 
 export enum ExecStatus {
   Stop = 'stop',
   Running = 'running',
   Completed = 'completed',
+  Error = 'error',
 }
 
 export interface DataNode<S> {
@@ -32,11 +36,6 @@ export interface DataNode<S> {
 interface NodeOptions {
   graph: Graph;
   position: { x: number; y: number };
-}
-
-interface Info {
-  node: Node;
-  graph: Graph;
 }
 
 /**
@@ -187,7 +186,7 @@ const getNextMenu = (entity: XEntity): MenuItemType[] => {
     case '请求':
       return [menus.request, menus.script, menus.mapping];
     case '脚本':
-      return [menus.script];
+      return [menus.script, menus.request];
     case '映射':
       return [];
     default:
@@ -195,11 +194,23 @@ const getNextMenu = (entity: XEntity): MenuItemType[] => {
   }
 };
 
-export const ProcessingNode: React.FC<Info> = ({ node }) => {
+// 遍历参数
+interface ErgodicArgs {
+  nodeId: string;
+  response: any;
+}
+
+interface Info {
+  node: Node;
+  graph: Graph;
+}
+
+export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   const { entity, status } = node.getData() as DataNode<ExecStatus>;
   const [nodeStatus, setNodeStatus] = useState<ExecStatus>(status);
   const [visible, setVisible] = useState<boolean>(false);
   const [visibleOperate, setVisibleOperate] = useState<boolean>(false);
+  const [visibleClosing, setVisibleClosing] = useState<boolean>(false);
 
   useEffect(() => {
     const id = linkCmd.subscribe(async (type, cmd, args) => {
@@ -218,22 +229,61 @@ export const ProcessingNode: React.FC<Info> = ({ node }) => {
           }
           break;
         case 'ergodic':
-          if (args != node.id) return;
-          switch (cmd) {
-            case 'request':
-              const request = ShareConfigs.get(entity.id) as IRequest;
-              setNodeStatus(ExecStatus.Running);
-              try {
-                await sleep(3000);
+          const ergodicArgs = args as ErgodicArgs;
+          if (ergodicArgs.nodeId != node.id) return;
+          setNodeStatus(ExecStatus.Running);
+          try {
+            await sleep(1000);
+            switch (cmd) {
+              case 'request': {
+                const request = ShareConfigs.get(entity.id) as IRequest;
                 const res = await request.exec();
-                message.success('成功读取到数据' + res.data.data.records.length);
-                setNodeStatus(ExecStatus.Completed);
-              } catch(error) {
-                console.log(error);
-                message.error("执行请求异常");
-                setNodeStatus(ExecStatus.Stop);
+                const iterator: Model.SearchIterator = (cell, distance) => {
+                  if (distance == 1) {
+                    const { entity } = cell.getData() as DataNode<ExecStatus>;
+                    switch (entity.typeName) {
+                      case '脚本':
+                        linkCmd.emitter('ergodic', 'executable', {
+                          nodeId: cell.id,
+                          response: res,
+                        });
+                        break;
+                    }
+                  }
+                };
+                graph.searchCell(node, iterator, { outgoing: true });
+                break;
               }
-              break;
+              case 'executable': {
+                const exec = entity as XExecutable;
+                const runtime = {
+                  environment: {},
+                  response: ergodicArgs.response,
+                };
+                Sandbox(exec.coder)(runtime);
+                linkCmd.emitter('environments', 'add', runtime.environment);
+                const iterator: Model.SearchIterator = (cell, distance) => {
+                  if (distance == 1) {
+                    const { entity } = cell.getData() as DataNode<ExecStatus>;
+                    switch (entity.typeName) {
+                      case '脚本':
+                        linkCmd.emitter('ergodic', 'executable', { nodeId: cell.id });
+                        break;
+                      case '请求':
+                        linkCmd.emitter('ergodic', 'request', { nodeId: cell.id });
+                        break;
+                    }
+                  }
+                };
+                graph.searchCell(node, iterator, { outgoing: true });
+                break;
+              }
+            }
+            setNodeStatus(ExecStatus.Completed);
+          } catch (error) {
+            console.log(error);
+            message.error('执行请求异常');
+            setNodeStatus(ExecStatus.Error);
           }
           break;
       }
@@ -283,14 +333,15 @@ export const ProcessingNode: React.FC<Info> = ({ node }) => {
 
   // 状态
   const Status: React.FC<{}> = () => {
-    const style = { color: '#9498df', fontSize: 18 };
     switch (nodeStatus) {
       case ExecStatus.Stop:
-        return <PauseCircleOutlined style={style} />;
+        return <PauseCircleOutlined style={{ color: '#9498df', fontSize: 18 }} />;
       case ExecStatus.Running:
-        return <LoadingOutlined style={style} />;
+        return <LoadingOutlined style={{ color: '#9498df', fontSize: 18 }} />;
       case ExecStatus.Completed:
-        return <CheckCircleOutlined style={style} />;
+        return <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 18 }} />;
+      case ExecStatus.Error:
+        return <StopOutlined style={{ color: '#ff4d4f', fontSize: 18 }} />;
     }
   };
 
@@ -318,9 +369,30 @@ export const ProcessingNode: React.FC<Info> = ({ node }) => {
     );
   };
 
+  // 删除标记
+  const Remove: React.FC<{}> = () => {
+    if (visibleClosing) {
+      const style = { color: '#9498df', fontSize: 12 };
+      return (
+        <CloseCircleOutlined
+          style={style}
+          className={cls['remove']}
+          onClick={() => {
+            node.remove();
+          }}
+        />
+      );
+    }
+    return <></>;
+  };
+
   // 结构
   return (
-    <div className={`${cls['flex-row']} ${cls['container']} ${cls['border']}`}>
+    <div
+      className={`${cls['flex-row']} ${cls['container']} ${cls['border']}`}
+      onMouseEnter={() => setVisibleClosing(true)}
+      onMouseLeave={() => setVisibleClosing(false)}>
+      <Remove></Remove>
       <Tag></Tag>
       <Status></Status>
       <PlusMenus></PlusMenus>
