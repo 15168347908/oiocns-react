@@ -31,6 +31,7 @@ export enum ConfigColl {
   RequestLinks = 'request-links',
   Scripts = 'scripts',
   Mappings = 'mappings',
+  Stores = 'stores',
   Unknown = 'unknown',
 }
 

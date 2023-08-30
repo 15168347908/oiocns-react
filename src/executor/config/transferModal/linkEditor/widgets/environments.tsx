@@ -1,17 +1,19 @@
 import { linkCmd } from '@/ts/base/common/command';
 import { Table } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
-import React, { useEffect, useState } from 'react';
+import React, { CSSProperties, useEffect, useState } from 'react';
 import cls from './../index.module.less';
 
-interface IProps {}
+interface IProps {
+  style?: CSSProperties;
+}
 
 interface Kv {
   k: string;
   v: string;
 }
 
-export const Environments: React.FC<IProps> = () => {
+export const Environments: React.FC<IProps> = ({ style }) => {
   const [kvs, setKvs] = useState<Kv[]>([]);
   const columns: ColumnsType<Kv> = [
     {
@@ -58,5 +60,9 @@ export const Environments: React.FC<IProps> = () => {
   if (kvs.length == 0) {
     return <></>;
   }
-  return <Table columns={columns} dataSource={kvs} />;
+  return (
+    <div style={style}>
+      <Table columns={columns} dataSource={kvs} />;
+    </div>
+  );
 };

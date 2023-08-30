@@ -178,17 +178,25 @@ const menus: { [key: string]: MenuItemType } = {
     itemType: '映射',
     children: [],
   },
+  store: {
+    key: ConfigColl.Stores,
+    label: '数据',
+    itemType: '数据',
+    children: [],
+  },
 };
 
 /** 拉出节点可以创建的下一步节点 */
 const getNextMenu = (entity: XEntity): MenuItemType[] => {
   switch (entity.typeName) {
     case '请求':
-      return [menus.request, menus.script, menus.mapping];
+      return [menus.script];
     case '脚本':
-      return [menus.script, menus.request];
+      return [menus.script, menus.request, menus.mapping, menus.store];
     case '映射':
-      return [];
+      return [menus.script, menus.mapping, menus.store];
+    case '数据':
+
     default:
       return [];
   }

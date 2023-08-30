@@ -1,17 +1,26 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
-import { Environment, ILink } from '@/ts/core/thing/config';
-import { Space } from 'antd';
-import React from 'react';
+import { ILink } from '@/ts/core/thing/config';
+import React, { CSSProperties, ReactNode } from 'react';
 import LinkEditor from './widgets/editor';
-import { NodeTools } from './widgets/nodeTools';
 import { Environments } from './widgets/environments';
+import { NodeTools } from './widgets/nodeTools';
+
+enum Retention {
+  Runtime,
+  Configuration,
+}
 
 interface IProps {
   current: ILink;
   finished: () => void;
+  retention?: Retention;
 }
 
-const LinkModal: React.FC<IProps> = ({ current, finished }) => {
+const LinkModal: React.FC<IProps> = ({
+  current,
+  finished,
+  retention = Retention.Configuration,
+}) => {
   return (
     <FullScreenModal
       open
@@ -22,22 +31,33 @@ const LinkModal: React.FC<IProps> = ({ current, finished }) => {
       destroyOnClose
       title={'链接配置'}
       onCancel={() => finished()}>
-      <LinkEditor current={current} children={<ToolBar current={current} />} />
+      <LinkEditor
+        current={current}
+        children={<ToolBar current={current} retention={retention} />}
+      />
     </FullScreenModal>
   );
 };
 
-const ToolBar: React.FC<{ current: ILink }> = ({ current }) => {
-  return (
-    <>
-      <Space style={{ position: 'absolute', left: 10, top: 10 }}>
-        <NodeTools current={current} />
-      </Space>
-      <div style={{ position: 'absolute', right: 10, top: 10 }}>
-        <Environments />
-      </div>
-    </>
-  );
+type ToolProps = Omit<IProps, 'finished'>;
+
+const ToolBar: React.FC<ToolProps> = ({
+  current,
+  retention = Retention.Configuration,
+}) => {
+  // 节点
+  const nodes: ReactNode[] = [];
+
+  // 环境变量
+  const style: CSSProperties = { position: 'absolute', right: 10, top: 10 };
+  nodes.push(<Environments style={style} />);
+
+  // 配置态可以编辑图
+  if (retention == Retention.Configuration) {
+    const style: CSSProperties = { position: 'absolute', left: 10, top: 10 };
+    nodes.push(<NodeTools current={current} style={style} />);
+  }
+  return <>{nodes}</>;
 };
 
 export default LinkModal;
