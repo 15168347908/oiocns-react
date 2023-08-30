@@ -248,6 +248,11 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                           response: res,
                         });
                         break;
+                      case '映射':
+                        linkCmd.emitter('ergodic', 'mapping', {
+                          nodeId: cell.id,
+                        });
+                        break;
                     }
                   }
                 };
@@ -276,6 +281,9 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                   }
                 };
                 graph.searchCell(node, iterator, { outgoing: true });
+                break;
+              }
+              case 'mapping': {
                 break;
               }
             }
