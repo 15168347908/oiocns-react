@@ -89,7 +89,11 @@ export class Unknown extends BaseFileInfo<XFileInfo> implements IUnknown {}
 /** 环境配置 */
 export type IEnvironment = IBaseFileInfo<XEnvironment>;
 
-export class Environment extends BaseFileInfo<XEnvironment> implements IEnvironment {}
+export class Environment extends BaseFileInfo<XEnvironment> implements IEnvironment {
+  constructor(environment: XEnvironment, dir: IDirectory) {
+    super(ConfigColl.Environments, environment, dir);
+  }
+}
 
 /** 请求配置，需要持久化 */
 export interface IRequest extends IBaseFileInfo<XRequest> {
@@ -121,9 +125,13 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
   }
 
   private replace(data: any, env: IEnvironment): any {
+    let kvs = env.metadata.kvs;
     let ansStr = JSON.stringify(data);
     Object.keys(env.metadata).forEach((key) => {
-      ansStr = ansStr.replace(`{{${key}}}`, env.metadata[key]);
+      const value = kvs[key];
+      if (value) {
+        ansStr = ansStr.replace(`{{${key}}}`, value);
+      }
     });
     return JSON.parse(ansStr);
   }

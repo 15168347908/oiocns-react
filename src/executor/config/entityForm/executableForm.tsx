@@ -79,6 +79,7 @@ const ExecutableForm: React.FC<IProps> = ({ formType, current, finished }) => {
         switch (formType) {
           case 'newExecutable':
             const dir = current as IDirectory;
+            values.typeName = "脚本";
             let executable = await dir.createConfig(ConfigColl.Scripts, values);
             finished(executable as IExecutable);
             break;

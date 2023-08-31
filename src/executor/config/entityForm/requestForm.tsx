@@ -46,6 +46,7 @@ const RequestForm: React.FC<IProps> = ({ current, finished, cancel }) => {
         }
       }}
       onFinish={async (values) => {
+        values.typeName = '请求';
         values.curTab = 'Param';
         values.axios = {
           method: 'GET',

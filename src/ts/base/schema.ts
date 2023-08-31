@@ -152,7 +152,7 @@ export type XForm = {
   bindNodes: XWorkNode[] | undefined;
   // 单的目录
   directory: XDirectory | undefined;
-  schema:schemaType
+  schema: schemaType;
 } & XEntity;
 
 //身份证明
@@ -589,7 +589,7 @@ export type XLink = {
 
 // 环境定义
 export type XEnvironment = {
-  [key: string]: string;
+  kvs: { [key: string]: string | undefined };
 } & XFileInfo;
 
 // 映射定义

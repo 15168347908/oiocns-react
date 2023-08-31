@@ -46,6 +46,7 @@ const LinkModal: React.FC<IProps> = ({ current, finished }) => {
         }
       }}
       onFinish={async (values) => {
+        values.typeName = "链接";
         let request = await current.createConfig(ConfigColl.RequestLinks, values);
         finished(request as ILink);
       }}
