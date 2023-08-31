@@ -69,6 +69,21 @@ const EnvironmentForm: React.FC<IProps> = ({ formType, current, finished }) => {
                 title: '值',
                 dataIndex: 'v',
               },
+              {
+                title: '操作',
+                dataIndex: 'operate',
+                editable: false,
+                width: 80,
+                render: (_, record) => [
+                  <a
+                    key="delete"
+                    onClick={() =>
+                      setKvs(kvs.filter((item) => item.id != record.id))
+                    }>
+                    删除
+                  </a>,
+                ],
+              },
             ]}
             value={kvs}
             onChange={(values) => setKvs(values)}
@@ -97,9 +112,8 @@ const EnvironmentForm: React.FC<IProps> = ({ formType, current, finished }) => {
         values.typeName = '环境';
         values.kvs = {};
         kvs.filter((item) => item.k).forEach((item) => (values.kvs[item.k!] = item.v));
-        console.log(kvs, values);
         switch (formType) {
-          case 'addEnvironment': {
+          case 'newEnvironment': {
             let directory = current as IDirectory;
             let environment = await directory.createConfig(
               ConfigColl.Environments,

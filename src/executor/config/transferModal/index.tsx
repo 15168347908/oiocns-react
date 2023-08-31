@@ -57,6 +57,11 @@ export const loadFormsMenu = (current: IDirectory) => {
   return loadMenus(current, ['事项配置', '实体配置']);
 };
 
+/** 环境 */
+export const loadEnvironmentsMenu = (current: IDirectory) => {
+  return loadMenus(current, ['环境']);
+};
+
 /** 文件项菜单 */
 export const loadEntity = (entity: IEntity<XEntity>): MenuItem => {
   return {

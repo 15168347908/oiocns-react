@@ -50,12 +50,12 @@ const ToolBar: React.FC<ToolProps> = ({
 
   // 环境变量
   const style: CSSProperties = { position: 'absolute', right: 10, top: 10 };
-  nodes.push(<Environments style={style} />);
+  nodes.push(<Environments key={'environments'} style={style} />);
 
   // 配置态可以编辑图
   if (retention == Retention.Configuration) {
     const style: CSSProperties = { position: 'absolute', left: 10, top: 10 };
-    nodes.push(<NodeTools current={current} style={style} />);
+    nodes.push(<NodeTools key={'nodeTools'} current={current} style={style} />);
   }
   return <>{nodes}</>;
 };

@@ -23,16 +23,6 @@ export function createProxy() {
       // target: 'http://localhost:7000', // 后台接口
       changeOrigin: true, // 是否允许跨域
       ws: true,
-    },
-    '/jx': {
-      target: 'https://hzjx-gzzcy-saber-assetstore-ssl.zcyonline.hzjuxiu.com',
-      changeOrigin: true, // 是否允许跨域
-      rewrite: (path) => path.replace(/^\/jx/, ''),
-    },
-    '/assetCloud': {
-      target: 'http://assetcloud.zj.gov.cn',
-      changeOrigin: true, // 是否允许跨域
-      rewrite: (path) => path.replace(/^\/assetCloud/, ''),
     }
   };
   return ProxyList;

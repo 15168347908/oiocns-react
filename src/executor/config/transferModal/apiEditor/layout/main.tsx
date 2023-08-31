@@ -1,5 +1,5 @@
 import { Command } from '@/ts/base';
-import { Col, Layout, Row } from 'antd';
+import { Col, Layout, Row, message } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import { AxiosError } from 'axios';
 import React, { useRef } from 'react';
@@ -30,6 +30,8 @@ const RequestLayout: React.FC<IProps> = ({ current }) => {
                 if (error instanceof AxiosError) {
                   current.resp = (error as AxiosError).response;
                   cmd.current.emitter('', 'onValueChange', current.resp);
+                } else if (error instanceof Error) {
+                  message.error("请求异常，异常信息" + error.message);
                 }
               }
             }}

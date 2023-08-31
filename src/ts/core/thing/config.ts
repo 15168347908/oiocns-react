@@ -1,12 +1,12 @@
 import { kernel } from '@/ts/base';
 import {
+  XAttribute,
+  XEnvironment,
   XExecutable,
   XFileInfo,
   XLink,
-  XRequest,
-  XEnvironment,
   XMapping,
-  XAttribute,
+  XRequest,
 } from '@/ts/base/schema';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ConfigColl, IDirectory } from './directory';
@@ -31,7 +31,7 @@ export class BaseFileInfo<T extends XFileInfo>
   }
 
   refresh(data: T): void {
-    this.setMetadata(data);
+  this.setMetadata(data);
     kernel.anystore
       .remove(this.belongId, this.collName, {
         id: this.metadata.id,
@@ -103,7 +103,7 @@ export interface IRequest extends IBaseFileInfo<XRequest> {
   resp?: AxiosResponse;
 
   /** 请求执行 */
-  exec(env?: IEnvironment): Promise<AxiosResponse>;
+  exec(): Promise<any>;
 }
 
 export class Request extends BaseFileInfo<XRequest> implements IRequest {
@@ -118,29 +118,33 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
   private replaceHolder(env: IEnvironment): AxiosRequestConfig {
     return {
       ...this.metadata.axios,
-      params: this.replace(this.metadata.axios.params, env),
-      headers: this.replace(this.metadata.axios.headers, env),
-      data: this.replace(this.metadata.axios.data, env),
+      url: this.replace(this.axios.url, env),
+      params: this.replace(this.axios.params, env),
+      headers: this.replace(this.axios.headers, env),
+      data: this.replace(this.axios.data, env),
     };
   }
 
   private replace(data: any, env: IEnvironment): any {
-    let kvs = env.metadata.kvs;
-    let ansStr = JSON.stringify(data);
-    Object.keys(env.metadata).forEach((key) => {
-      const value = kvs[key];
-      if (value) {
-        ansStr = ansStr.replace(`{{${key}}}`, value);
-      }
-    });
-    return JSON.parse(ansStr);
+    if (data) {
+      let kvs = env.metadata.kvs;
+      let ansStr = JSON.stringify(data);
+      Object.keys(kvs).forEach((key) => {
+        const value = kvs[key];
+        ansStr = ansStr.replace(`{{${key}}}`, value ?? '');
+      });
+      ansStr = ansStr.replace(/\{\{.*\}\}/g, '');
+      return JSON.parse(ansStr);
+    }
   }
 
-  async exec(env?: IEnvironment): Promise<AxiosResponse> {
-    if (env) {
-      return await axios.request(this.replaceHolder(env));
+  async exec(): Promise<any> {
+    let config = this.axios;
+    let envId = this.metadata.envId;
+    if (envId && ShareConfigs.has(envId)) {
+      config = this.replaceHolder(ShareConfigs.get(envId) as IEnvironment);
     }
-    return await axios.request(this.metadata.axios);
+    return await axios.request(config);
   }
 }
 

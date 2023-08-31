@@ -580,6 +580,7 @@ export type XRequest = {
   params: readonly any[];
   headers: readonly any[];
   curTab: string;
+  envId?: string;
 } & XFileInfo;
 
 // 链接定义
