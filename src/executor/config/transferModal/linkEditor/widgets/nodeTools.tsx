@@ -13,7 +13,7 @@ interface IProps {
 }
 
 export const NodeTools: React.FC<IProps> = ({ current, style }) => {
-  const onClick = (collName: ConfigColl) => {
+  const onClick = (collName: string) => {
     let selected: IEntity<XEntity>[] = [];
     Modal.confirm({
       icon: <></>,
@@ -23,25 +23,23 @@ export const NodeTools: React.FC<IProps> = ({ current, style }) => {
           current={current.directory.target as IBelong}
           onChange={(files) => (selected = files)}
           loadItems={async (current: IDirectory) => {
-            return current.loadConfigs(collName);
+            switch (collName) {
+              case 'Form':
+                return await current.loadForms();
+              default:
+                return await current.loadConfigs(collName);
+            }
           }}
         />
       ),
       onOk: () => {
-        switch (collName) {
-          case ConfigColl.Requests:
-          case ConfigColl.Mappings:
-            linkCmd.emitter('main', 'insertRequest', selected);
-            break;
-          case ConfigColl.Scripts:
-            linkCmd.emitter('main', 'insertScript', selected);
-            break;
-        }
+        linkCmd.emitter('main', 'insertEntity', selected);
       },
     });
   };
   return (
     <Space style={style}>
+      <Button onClick={() => onClick('Form')}>插入 Form</Button>
       <Button onClick={() => onClick(ConfigColl.Requests)}>插入 Request</Button>
       <Button onClick={() => onClick(ConfigColl.Scripts)}>插入 Script</Button>
       <Button onClick={() => onClick(ConfigColl.Mappings)}>插入 Mapping</Button>

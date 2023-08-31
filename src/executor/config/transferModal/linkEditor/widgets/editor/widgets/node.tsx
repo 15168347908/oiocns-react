@@ -367,7 +367,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   const Tag: React.FC<{}> = () => {
     return (
       <div className={cls['tag']}>
-        <div className={`${cls['tag-item']} ${cls['text-overflow']}`}>
+        <div className={`${cls['tag-item']} ${cls['flex-max']} ${cls['text-overflow']}`}>
           {entity.typeName}
         </div>
         <div className={`${cls['tag-item']} ${cls['text-overflow']}`}>

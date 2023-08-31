@@ -31,10 +31,9 @@ const LinkModal: React.FC<IProps> = ({
       destroyOnClose
       title={'链接配置'}
       onCancel={() => finished()}>
-      <LinkEditor
-        current={current}
-        children={<ToolBar current={current} retention={retention} />}
-      />
+      <LinkEditor current={current}>
+        <ToolBar current={current} retention={retention} />
+      </LinkEditor>
     </FullScreenModal>
   );
 };
@@ -45,14 +44,9 @@ const ToolBar: React.FC<ToolProps> = ({
   current,
   retention = Retention.Configuration,
 }) => {
-  // 节点
   const nodes: ReactNode[] = [];
-
-  // 环境变量
   const style: CSSProperties = { position: 'absolute', right: 10, top: 10 };
   nodes.push(<Environments key={'environments'} style={style} />);
-
-  // 配置态可以编辑图
   if (retention == Retention.Configuration) {
     const style: CSSProperties = { position: 'absolute', left: 10, top: 10 };
     nodes.push(<NodeTools key={'nodeTools'} current={current} style={style} />);

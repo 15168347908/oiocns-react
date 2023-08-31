@@ -59,8 +59,7 @@ const LinkEditor: React.FC<IProps> = ({ current, children }) => {
  */
 const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
   switch (cmd) {
-    case 'insertRequest':
-    case 'insertMapping':
+    case 'insertEntity':
       let entities: IEntity<XEntity>[] = args;
       let [x, y, offset] = [0, 0, 20];
       for (let request of entities) {
