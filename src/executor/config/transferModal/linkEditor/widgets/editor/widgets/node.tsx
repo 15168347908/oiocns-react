@@ -4,7 +4,9 @@ import { generateUuid, sleep } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity, XExecutable } from '@/ts/base/schema';
 import { ShareIdSet } from '@/ts/core/public/entity';
+import { IRequest, ShareConfigs } from '@/ts/core/thing/config';
 import { ConfigColl } from '@/ts/core/thing/directory';
+import { Sandbox } from '@/utils/sandbox';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -13,13 +15,11 @@ import {
   StopOutlined,
 } from '@ant-design/icons';
 import { Graph, Model, Node } from '@antv/x6';
+import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { AiFillPlusCircle } from 'react-icons/ai';
 import { MenuItemType } from 'typings/globelType';
 import cls from './../../../index.module.less';
-import { IRequest, ShareConfigs } from '@/ts/core/thing/config';
-import { message } from 'antd';
-import { Sandbox } from '@/utils/sandbox';
 
 export enum ExecStatus {
   Stop = 'stop',
@@ -196,7 +196,7 @@ const getNextMenu = (entity: XEntity): MenuItemType[] => {
     case '映射':
       return [menus.script, menus.mapping, menus.store];
     case '数据':
-
+      return [];
     default:
       return [];
   }
@@ -204,9 +204,19 @@ const getNextMenu = (entity: XEntity): MenuItemType[] => {
 
 // 遍历参数
 interface ErgodicArgs {
+  preNode?: Node;
+  preData?: any;
   nodeId: string;
-  response: any;
 }
+
+// 发送消息
+const emitter = (type: string, preNode: Node, nextId: string, preData: any) => {
+  linkCmd.emitter('ergodic', type, {
+    preNode: preNode,
+    preData: preData,
+    nodeId: nextId,
+  });
+};
 
 interface Info {
   node: Node;
@@ -237,68 +247,50 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
           }
           break;
         case 'ergodic':
-          const ergodicArgs = args as ErgodicArgs;
-          if (ergodicArgs.nodeId != node.id) return;
+          const { nodeId, preData } = args as ErgodicArgs;
+          if (nodeId != node.id) return;
           setNodeStatus(ExecStatus.Running);
+          const ergodic = (nextData: any) => {
+            const iterator: Model.SearchIterator = (cell, distance) => {
+              if (distance == 1) {
+                const { entity } = cell.getData() as DataNode<ExecStatus>;
+                emitter(entity.typeName, node, cell.id, nextData);
+              }
+            };
+            graph.searchCell(node, iterator, { outgoing: true });
+          };
           try {
             await sleep(1000);
             switch (cmd) {
-              case 'request': {
+              case '请求': {
                 const request = ShareConfigs.get(entity.id) as IRequest;
-                const res = await request.exec();
-                const iterator: Model.SearchIterator = (cell, distance) => {
-                  if (distance == 1) {
-                    const { entity } = cell.getData() as DataNode<ExecStatus>;
-                    switch (entity.typeName) {
-                      case '脚本':
-                        linkCmd.emitter('ergodic', 'executable', {
-                          nodeId: cell.id,
-                          response: res,
-                        });
-                        break;
-                      case '映射':
-                        linkCmd.emitter('ergodic', 'mapping', {
-                          nodeId: cell.id,
-                        });
-                        break;
-                    }
-                  }
-                };
-                graph.searchCell(node, iterator, { outgoing: true });
+                ergodic(await request.exec());
                 break;
               }
-              case 'executable': {
+              case '脚本': {
                 const exec = entity as XExecutable;
-                const runtime = {
-                  environment: {},
-                  response: ergodicArgs.response,
-                };
+                const runtime: any = { environment: {}, preData: preData, nextData: {} };
                 Sandbox(exec.coder)(runtime);
                 linkCmd.emitter('environments', 'add', runtime.environment);
-                const iterator: Model.SearchIterator = (cell, distance) => {
-                  if (distance == 1) {
-                    const { entity } = cell.getData() as DataNode<ExecStatus>;
-                    switch (entity.typeName) {
-                      case '脚本':
-                        linkCmd.emitter('ergodic', 'executable', { nodeId: cell.id });
-                        break;
-                      case '请求':
-                        linkCmd.emitter('ergodic', 'request', { nodeId: cell.id });
-                        break;
-                    }
-                  }
-                };
-                graph.searchCell(node, iterator, { outgoing: true });
+                ergodic(runtime.nextData);
                 break;
               }
-              case 'mapping': {
+              case '映射': {
+                const input = preData.array;
+                if (!(input instanceof Array)) {
+                  throw new Error('映射输入必须是一个数组！');
+                }
                 break;
               }
             }
             setNodeStatus(ExecStatus.Completed);
           } catch (error) {
             console.log(error);
-            message.error('执行请求异常');
+            if (error instanceof Error) {
+              message.error('执行请求异常，错误信息：' + error.message);
+            } else {
+              message.error('执行请求异常');
+            }
             setNodeStatus(ExecStatus.Error);
           }
           break;

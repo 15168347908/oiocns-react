@@ -181,6 +181,12 @@ export const directoryOperates = {
     label: '新建脚本配置',
     iconType: '脚本配置',
   },
+  NewEnvironment: {
+    sort: 14,
+    cmd: 'newEnvironment',
+    label: '新建环境配置',
+    iconType: '环境配置',
+  },
 };
 
 /** 目录下新增 */
@@ -202,7 +208,8 @@ export const directoryNew = {
     directoryOperates.NewRequest,
     directoryOperates.NewLink,
     directoryOperates.NewMapping,
-    directoryOperates.NewExecutable
+    directoryOperates.NewExecutable,
+    directoryOperates.NewEnvironment
   ],
 };
 

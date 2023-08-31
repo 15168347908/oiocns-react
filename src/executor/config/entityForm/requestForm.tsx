@@ -33,7 +33,7 @@ const RequestForm: React.FC<IProps> = ({ current, finished, cancel }) => {
   return (
     <SchemaForm<XRequest>
       open
-      title="请求配置"
+      title="请求定义"
       width={640}
       columns={columns}
       rowProps={{

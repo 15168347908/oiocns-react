@@ -110,11 +110,7 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
       for (const node of nodes) {
         if (graph.isRootNode(node)) {
           const { entity } = node.getData() as DataNode<ExecStatus>;
-          switch (entity.typeName) {
-            case '请求':
-              linkCmd.emitter('ergodic', 'request', { nodeId: node.id });
-              break;
-          }
+          linkCmd.emitter('ergodic', entity.typeName, { nodeId: node.id });
         }
       }
       break;
