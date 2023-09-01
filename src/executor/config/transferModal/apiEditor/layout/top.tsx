@@ -103,8 +103,8 @@ const Top: React.FC<IProps> = ({ cmd, dir }) => {
           formType={'newRequest'}
           current={curDir}
           finished={(request) => {
+            setOpen(false);
             if (request) {
-              setOpen(false);
               cmd.emitter('', 'onAdd', loadEntity(request));
             }
           }}
