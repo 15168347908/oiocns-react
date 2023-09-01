@@ -282,6 +282,10 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 }
                 break;
               }
+              case '实体配置':
+              case '事项配置': {
+                break;
+              }
             }
             setNodeStatus(ExecStatus.Completed);
           } catch (error) {
