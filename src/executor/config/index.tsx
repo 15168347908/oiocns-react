@@ -70,7 +70,7 @@ const ConfigExecutor: React.FC<IProps> = ({ cmd, args, finished }) => {
         return <EntityForm cmd={cmd} entity={args[0]} finished={finished} />;
       }
       break;
-    case "newRequest":
+    case "batchRequest":
       return <RequestModal current={args[0]} finished={finished}></RequestModal>;
     case 'newMapping':
       return <MappingModal current={args[0]} finished={finished}></MappingModal>;

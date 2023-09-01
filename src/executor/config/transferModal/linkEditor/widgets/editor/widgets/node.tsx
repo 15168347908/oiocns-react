@@ -260,6 +260,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
           if (nodeId != node.id) return;
           setNodeStatus(ExecStatus.Running);
           const ergodic = (nextData: any) => {
+            console.log(nextData);
             const iterator: Model.SearchIterator = (cell, distance) => {
               if (distance == 1) {
                 const { entity } = cell.getData() as DataNode<ExecStatus>;
@@ -276,7 +277,20 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             switch (cmd) {
               case '请求': {
                 const request = ShareConfigs.get(entity.id) as IRequest;
-                ergodic(await request.exec(curEnv));
+                const response = await request.exec(curEnv);
+                const exec = request.metadata.suffixExec;
+                if (exec) {
+                  const executable = ShareIdSet.get(exec) as XExecutable; 
+                  const runtime = {
+                    environment: curEnv,
+                    preData: {},
+                    curData: response,
+                    nextData: {},
+                    ...Encryption,
+                  };
+                  Sandbox(executable.coder)(runtime);
+                }
+                ergodic(response);
                 break;
               }
               case '脚本': {
@@ -284,6 +298,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 const runtime = {
                   environment: curEnv,
                   preData: preData,
+                  curData: {},
                   nextData: {},
                   ...Encryption,
                 };

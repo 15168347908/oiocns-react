@@ -163,6 +163,12 @@ export const directoryOperates = {
     label: '新建请求配置',
     iconType: '请求配置',
   },
+  BatchRequest: {
+    sort: 10,
+    cmd: 'batchRequest',
+    label: '批量请求配置',
+    iconType: '批量请求配置',
+  },
   NewLink: {
     sort: 11,
     cmd: 'newLink',
@@ -216,6 +222,7 @@ export const transferNew = {
   iconType: 'new',
   menus: [
     directoryOperates.NewRequest,
+    directoryOperates.BatchRequest,
     directoryOperates.NewLink,
     directoryOperates.NewMapping,
     directoryOperates.NewExecutable,

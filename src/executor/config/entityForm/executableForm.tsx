@@ -40,7 +40,7 @@ const ExecutableForm: React.FC<IProps> = ({ formType, current, finished }) => {
             <div style={{ color: 'red' }}>
               1. 提供一个沙盒运行环境，不能访问 document、console、windows 等浏览器变量;
               <br />
-              2. 脚本执行的上下文中只有 environment, preData, nextData 三个参数可以使用;
+              2. 脚本执行的上下文中只有 environment, curData, preData, nextData 四个参数可以使用;
               <br />
               3. preData 包含上一个节点运行返回的值，可能为空，可能为 AxiosResponse, 可能为上一个脚本返回的值;
               <br />
@@ -63,7 +63,7 @@ const ExecutableForm: React.FC<IProps> = ({ formType, current, finished }) => {
     <SchemaForm<XExecutable>
       open
       title="脚本配置"
-      width={800}
+      width={1000}
       columns={columns}
       initialValues={initialValue}
       rowProps={{
