@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
 import SchemaForm from '@/components/SchemaForm';
-import { ProFormColumnsType } from '@ant-design/pro-components';
-import { IDirectory } from '@/ts/core';
-import { XRequest } from '@/ts/base/schema';
-import { IRequest } from '@/ts/core/thing/config';
-import {} from '@/ts/core/';
-import { ConfigColl } from '@/ts/core/thing/directory';
 import { generateUuid } from '@/ts/base/common';
-import { MenuItem, expand, loadScriptsMenu } from '../transferModal';
+import { XRequest } from '@/ts/base/schema';
+import { IDirectory } from '@/ts/core';
+import { IRequest } from '@/ts/core/thing/config';
+import { ConfigColl } from '@/ts/core/thing/directory';
+import { ProFormColumnsType } from '@ant-design/pro-components';
+import React from 'react';
+import { expand, loadScriptsMenu } from '../transferModal';
 
 interface IProps {
   formType: string;
