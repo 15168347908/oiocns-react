@@ -5,7 +5,7 @@ import { entityOperates } from './operates';
 
 /** 共享信息数据集 */
 export const ShareIdSet = new Map<string, any>();
-export const ShareSet = new Map<string, IEntity<any>>(); 
+export const ShareSet = new Map<string, IEntity<schema.XEntity>>(); 
 
 /** 实体类接口 */
 export interface IEntity<T> extends Emitter {

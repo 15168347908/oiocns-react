@@ -1,11 +1,11 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
-import { Command } from '@/ts/base';
 import { generateUuid, sleep } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
-import { XEntity, XExecutable, XForm } from '@/ts/base/schema';
-import { ShareIdSet } from '@/ts/core/public/entity';
-import { IRequest, ShareConfigs } from '@/ts/core/thing/config';
+import { XEntity, XExecutable } from '@/ts/base/schema';
+import { IEntity, ShareIdSet, ShareSet } from '@/ts/core/public/entity';
+import { IExecutable, IRequest, ShareConfigs } from '@/ts/core/thing/config';
 import { ConfigColl } from '@/ts/core/thing/directory';
+import Encryption from '@/utils/encryption';
 import { Sandbox } from '@/utils/sandbox';
 import {
   CheckCircleOutlined,
@@ -14,14 +14,14 @@ import {
   PauseCircleOutlined,
   StopOutlined,
 } from '@ant-design/icons';
-import { Graph, Model, Node } from '@antv/x6';
+import { Cell, Graph, Model, Node } from '@antv/x6';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { AiFillPlusCircle } from 'react-icons/ai';
 import { MenuItemType } from 'typings/globelType';
 import cls from './../../../index.module.less';
-import Encryption from '@/utils/encryption';
 import { Persistence, Temping } from './graph';
+import { CellProperties } from 'handsontable/settings';
 
 export enum ExecStatus {
   Stop = 'stop',
@@ -30,9 +30,8 @@ export enum ExecStatus {
   Error = 'error',
 }
 
-export interface DataNode<S> {
-  entity: XEntity;
-  status: S;
+export interface DataNode {
+  entityId: string;
 }
 
 interface NodeOptions {
@@ -95,21 +94,14 @@ const getPortsByType = (id: string) => {
   ];
 };
 
-export const addNode = <S extends {}>(
-  props: NodeOptions & DataNode<S>,
-): Node<Node.Properties> => {
-  const { graph, position, entity } = props;
+export const addNode = (props: NodeOptions & DataNode): Node<Node.Properties> => {
+  const { graph, position, entityId } = props;
   const id = generateUuid();
   const node: Node.Metadata = {
     id: id,
     shape: 'data-processing-dag-node',
     ...position,
-    data: {
-      nodeType: entity.typeName,
-      status: ExecStatus.Stop,
-      entity: entity,
-      cmd: Command,
-    },
+    data: { entityId: entityId },
     ports: getPortsByType(id),
   };
   return graph.addNode(node);
@@ -145,15 +137,14 @@ export const createEdge = (source: string, target: string, graph: Graph) => {
 };
 
 // 创建下游的节点和边
-export const createDownstream = (graph: Graph, node: Node, entity: XEntity) => {
+export const createDownstream = (graph: Graph, node: Node, entityId: string) => {
   // 获取下游节点的初始位置信息
   const position = getDownstreamNodePosition(node, graph);
   // 创建下游节点
   const newNode = addNode({
     graph: graph,
     position: { ...position },
-    entity: entity,
-    status: ExecStatus.Stop,
+    entityId: entityId,
   });
   const source = node.id;
   const target = newNode.id;
@@ -195,8 +186,8 @@ const menus: { [key: string]: MenuItemType } = {
 };
 
 /** 拉出节点可以创建的下一步节点 */
-const getNextMenu = (entity: XEntity): MenuItemType[] => {
-  switch (entity.typeName) {
+const getNextMenu = (typeName: string): MenuItemType[] => {
+  switch (typeName) {
     case '请求':
       return [menus.script];
     case '脚本':
@@ -232,12 +223,22 @@ interface Info {
   graph: Graph;
 }
 
+export const getShareEntity = (
+  node: Node | Cell<Cell.Properties>,
+): IEntity<XEntity> | undefined => {
+  const { entityId } = node.getData() as DataNode;
+  return ShareSet.get(entityId);
+};
+
 export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
-  const { entity, status } = node.getData() as DataNode<ExecStatus>;
-  const [nodeStatus, setNodeStatus] = useState<ExecStatus>(status);
+  const [nodeStatus, setNodeStatus] = useState<ExecStatus>(ExecStatus.Stop);
   const [visible, setVisible] = useState<boolean>(false);
   const [visibleOperate, setVisibleOperate] = useState<boolean>(false);
   const [visibleClosing, setVisibleClosing] = useState<boolean>(false);
+  const entity = getShareEntity(node);
+  if (!entity) {
+    return <></>;
+  }
 
   useEffect(() => {
     const id = linkCmd.subscribe(async (type, cmd, args) => {
@@ -263,24 +264,25 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             console.log(nextData);
             const iterator: Model.SearchIterator = (cell, distance) => {
               if (distance == 1) {
-                const { entity } = cell.getData() as DataNode<ExecStatus>;
-                emitter(entity.typeName, node, cell.id, nextData);
+                const next = getShareEntity(cell);
+                if (next) {
+                  emitter(next.metadata.typeName, node, cell.id, nextData);
+                }
               }
             };
             graph.searchCell(node, iterator, { outgoing: true });
           };
-          // 当前插件
           const temping = graph.getPlugin<Temping>(Persistence);
           const curEnv = temping?.curEnv();
           try {
             await sleep(1000);
             switch (cmd) {
               case '请求': {
-                const request = ShareConfigs.get(entity.id) as IRequest;
+                const request = entity as IRequest;
                 const response = await request.exec(curEnv);
                 const exec = request.metadata.suffixExec;
                 if (exec) {
-                  const executable = ShareIdSet.get(exec) as XExecutable; 
+                  const executable = ShareIdSet.get(exec) as XExecutable;
                   const runtime = {
                     environment: curEnv,
                     preData: {},
@@ -294,7 +296,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 break;
               }
               case '脚本': {
-                const exec = entity as XExecutable;
+                const exec = entity as IExecutable;
                 const runtime = {
                   environment: curEnv,
                   preData: preData,
@@ -302,7 +304,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                   nextData: {},
                   ...Encryption,
                 };
-                Sandbox(exec.coder)(runtime);
+                Sandbox(exec.metadata.coder)(runtime);
                 linkCmd.emitter('environments', 'refresh');
                 ergodic(runtime.nextData);
                 break;
@@ -346,6 +348,11 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             setNodeStatus(ExecStatus.Error);
           }
           break;
+        case 'clearStatus': {
+          console.log('清空菜单啦');
+          setNodeStatus(ExecStatus.Stop);
+          break;
+        }
       }
     });
     return () => {
@@ -355,7 +362,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
 
   // 展开菜单
   const PlusMenus: React.FC<{}> = () => {
-    const menus = getNextMenu(entity);
+    const menus = getNextMenu(entity.typeName);
     return (
       <div
         style={{ visibility: visible ? 'visible' : 'hidden' }}
@@ -409,7 +416,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   const Info: React.FC<{}> = () => {
     return (
       <div className={`${cls['flex-row']} ${cls['info']} ${cls['border']}`}>
-        <EntityIcon entity={entity} />
+        <EntityIcon entity={entity.metadata} />
         <div style={{ marginLeft: 10 }}>{entity.name}</div>
       </div>
     );
@@ -423,7 +430,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
           {entity.typeName}
         </div>
         <div className={`${cls['tag-item']} ${cls['text-overflow']}`}>
-          {ShareIdSet.get(entity.belongId)?.name}
+          {ShareIdSet.get(entity.metadata.belongId)?.name}
         </div>
       </div>
     );

@@ -6,11 +6,11 @@ import { Graph, Node } from '@antv/x6';
 import { Modal } from 'antd';
 import React, { createRef, useEffect, useRef, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
-import Selector from '../../../selector';
-import { Persistence, Temping, createGraph } from './widgets/graph';
-import { DataNode, ExecStatus, addNode, createDownstream } from './widgets/node';
 import { Retention } from '../..';
+import Selector from '../../../selector';
 import { ToolBar } from '../toolBar';
+import { Persistence, Temping, createGraph } from './widgets/graph';
+import { addNode, createDownstream, getShareEntity } from './widgets/node';
 
 export interface IProps {
   current: ILink;
@@ -77,8 +77,7 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
             x: x,
             y: y,
           },
-          entity: request.metadata,
-          status: ExecStatus.Stop,
+          entityId: request.metadata.id,
         });
         x += offset;
         y += offset;
@@ -104,7 +103,7 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
             ),
             onOk: () => {
               for (const select of selected) {
-                createDownstream(graph, node, select.metadata);
+                createDownstream(graph, node, select.id);
               }
               linkCmd.emitter('node', 'unselected', { node: node });
             },
@@ -112,15 +111,17 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
       }
       break;
     case 'executing':
+      const nodes = graph.getNodes();
+
       // 使用临时存储插件创建环境
       const temping = graph.getPlugin<Temping>(Persistence);
       temping?.createEnv();
+      linkCmd.emitter('clearStatus', 'nodes');
 
       // 遍历根节点
-      const nodes = graph.getNodes();
       for (const node of nodes) {
-        if (graph.isRootNode(node)) {
-          const { entity } = node.getData() as DataNode<ExecStatus>;
+        const entity = getShareEntity(node);
+        if (entity && graph.isRootNode(node)) {
           linkCmd.emitter('ergodic', entity.typeName, { nodeId: node.id });
         }
       }

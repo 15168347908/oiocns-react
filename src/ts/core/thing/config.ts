@@ -149,6 +149,7 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
     if (kv) {
       config = this.replaceHolder(config, kv);
     }
+    console.log(kv, config);
     return await axios.request(config);
   }
 }

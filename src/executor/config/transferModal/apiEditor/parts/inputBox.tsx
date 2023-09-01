@@ -4,7 +4,7 @@ import { Button, Input, Select, Space, TreeSelect } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Param } from './request/widgets/params';
 import cls from './../index.module.less';
-import { loadEnvironmentsMenu } from '../..';
+import { expand, loadEnvironmentsMenu } from '../..';
 
 interface IProps {
   current: IRequest;
@@ -36,6 +36,7 @@ const InputBox: React.FC<IProps> = ({ current, send }) => {
   const [envId, setEnvId] = useState<string | undefined>(current.metadata.envId);
   const [url, setUrl] = useState<string | undefined>(current.axios.url);
   const [method, setMethod] = useState<string>(current.axios.method ?? 'GET');
+  const treeData = [loadEnvironmentsMenu(current.directory.target.directory)];
   useEffect(() => {
     const id = current.subscribe(() => {
       setEnvId(current.metadata.envId);
@@ -82,8 +83,8 @@ const InputBox: React.FC<IProps> = ({ current, send }) => {
           children: 'children',
         }}
         dropdownStyle={{ maxHeight: 400, overflow: 'auto', minWidth: 300 }}
-        treeData={[loadEnvironmentsMenu(current.directory.target.directory)]}
-        treeDefaultExpandAll={true}
+        treeData={treeData}
+        treeDefaultExpandedKeys={expand(treeData, '环境')}
         placement="bottomRight"
         onSelect={(value) => {
           current.metadata.envId = value;

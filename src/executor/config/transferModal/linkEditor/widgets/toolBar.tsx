@@ -30,7 +30,7 @@ export const ToolBar: React.FC<ToolProps> = ({
     const style: CSSProperties = { position: 'absolute', left: 10, top: 10 };
     nodes.push(<NodeTools key={'nodeTools'} current={current} style={style} />);
   }
-  nodes.push(<FormInput key={'formInput'}/>);
+  nodes.push(<FormInput key={'formInput'} />);
   return <>{nodes}</>;
 };
 
@@ -134,7 +134,11 @@ const FormInput: React.FC<{}> = ({}) => {
             belong={form!.directory.target as IBelong}
             onValuesChange={(_, values) => {
               for (const key in values) {
-                formData.current[key] = values[key];
+                for (const field of form!.fields) {
+                  if (field.id == key) {
+                    formData.current[field.code] = values[key];
+                  }
+                }
               }
             }}
           />
