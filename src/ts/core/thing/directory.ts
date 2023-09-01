@@ -36,6 +36,7 @@ import {
   Mapping,
   Environment,
 } from '@/ts/core/thing/config';
+import { transferNew } from '../public/operates';
 /** 可为空的进度回调 */
 export type OnProgress = (p: number) => void;
 
@@ -428,6 +429,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       );
       if (mode === 2 && this.target.hasRelationAuth()) {
         operates.push(directoryNew);
+        operates.push(transferNew);
         if (this.target.space.user.copyFiles.size > 0) {
           operates.push(fileOperates.Parse);
         }

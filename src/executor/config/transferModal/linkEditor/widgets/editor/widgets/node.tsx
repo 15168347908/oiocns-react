@@ -2,7 +2,7 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { Command } from '@/ts/base';
 import { generateUuid, sleep } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
-import { XEntity, XExecutable } from '@/ts/base/schema';
+import { XEntity, XExecutable, XForm } from '@/ts/base/schema';
 import { ShareIdSet } from '@/ts/core/public/entity';
 import { IRequest, ShareConfigs } from '@/ts/core/thing/config';
 import { ConfigColl } from '@/ts/core/thing/directory';
@@ -20,6 +20,8 @@ import React, { useEffect, useState } from 'react';
 import { AiFillPlusCircle } from 'react-icons/ai';
 import { MenuItemType } from 'typings/globelType';
 import cls from './../../../index.module.less';
+import Encryption from '@/utils/encryption';
+import { Persistence, Temping } from './graph';
 
 export enum ExecStatus {
   Stop = 'stop',
@@ -184,6 +186,12 @@ const menus: { [key: string]: MenuItemType } = {
     itemType: '数据',
     children: [],
   },
+  form: {
+    key: 'form',
+    label: '表单',
+    itemType: '表单',
+    children: [],
+  },
 };
 
 /** 拉出节点可以创建的下一步节点 */
@@ -195,8 +203,9 @@ const getNextMenu = (entity: XEntity): MenuItemType[] => {
       return [menus.script, menus.request, menus.mapping, menus.store];
     case '映射':
       return [menus.script, menus.mapping, menus.store];
-    case '数据':
-      return [];
+    case '实体配置':
+    case '事项配置':
+      return [menus.script];
     default:
       return [];
   }
@@ -259,19 +268,27 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             };
             graph.searchCell(node, iterator, { outgoing: true });
           };
+          // 当前插件
+          const temping = graph.getPlugin<Temping>(Persistence);
+          const curEnv = temping?.curEnv();
           try {
             await sleep(1000);
             switch (cmd) {
               case '请求': {
                 const request = ShareConfigs.get(entity.id) as IRequest;
-                ergodic(await request.exec());
+                ergodic(await request.exec(curEnv));
                 break;
               }
               case '脚本': {
                 const exec = entity as XExecutable;
-                const runtime: any = { environment: {}, preData: preData, nextData: {} };
+                const runtime = {
+                  environment: curEnv,
+                  preData: preData,
+                  nextData: {},
+                  ...Encryption,
+                };
                 Sandbox(exec.coder)(runtime);
-                linkCmd.emitter('environments', 'add', runtime.environment);
+                linkCmd.emitter('environments', 'refresh');
                 ergodic(runtime.nextData);
                 break;
               }
@@ -284,7 +301,23 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               }
               case '实体配置':
               case '事项配置': {
-                break;
+                linkCmd.emitter('form', 'open', {
+                  formId: entity.id,
+                  call: (type: string, data: any, msg?: string) => {
+                    switch (type) {
+                      case '成功':
+                        ergodic(data);
+                        setNodeStatus(ExecStatus.Completed);
+                        break;
+                      case '取消':
+                      case '错误':
+                        message.error(msg);
+                        setNodeStatus(ExecStatus.Error);
+                        break;
+                    }
+                  },
+                });
+                return;
               }
             }
             setNodeStatus(ExecStatus.Completed);

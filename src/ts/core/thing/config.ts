@@ -31,7 +31,7 @@ export class BaseFileInfo<T extends XFileInfo>
   }
 
   refresh(data: T): void {
-  this.setMetadata(data);
+    this.setMetadata(data);
     kernel.anystore
       .remove(this.belongId, this.collName, {
         id: this.metadata.id,
@@ -95,6 +95,8 @@ export class Environment extends BaseFileInfo<XEnvironment> implements IEnvironm
   }
 }
 
+type Kv = { [key: string]: string | undefined };
+
 /** 请求配置，需要持久化 */
 export interface IRequest extends IBaseFileInfo<XRequest> {
   /** 配置文件 */
@@ -103,7 +105,7 @@ export interface IRequest extends IBaseFileInfo<XRequest> {
   resp?: AxiosResponse;
 
   /** 请求执行 */
-  exec(): Promise<any>;
+  exec(kv?: Kv): Promise<any>;
 }
 
 export class Request extends BaseFileInfo<XRequest> implements IRequest {
@@ -115,22 +117,21 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
     return this.metadata.axios;
   }
 
-  private replaceHolder(env: IEnvironment): AxiosRequestConfig {
+  private replaceHolder(axios: any, kv: Kv): AxiosRequestConfig {
     return {
       ...this.metadata.axios,
-      url: this.replace(this.axios.url, env),
-      params: this.replace(this.axios.params, env),
-      headers: this.replace(this.axios.headers, env),
-      data: this.replace(this.axios.data, env),
+      url: this.replace(axios.url, kv),
+      params: this.replace(axios.params, kv),
+      headers: this.replace(axios.headers, kv),
+      data: this.replace(axios.data, kv),
     };
   }
 
-  private replace(data: any, env: IEnvironment): any {
+  private replace(data: any, kv: Kv): any {
     if (data) {
-      let kvs = env.metadata.kvs;
       let ansStr = JSON.stringify(data);
-      Object.keys(kvs).forEach((key) => {
-        const value = kvs[key];
+      Object.keys(kv).forEach((key) => {
+        const value = kv[key];
         ansStr = ansStr.replace(`{{${key}}}`, value ?? '');
       });
       ansStr = ansStr.replace(/\{\{.*\}\}/g, '');
@@ -138,11 +139,15 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
     }
   }
 
-  async exec(): Promise<any> {
+  async exec(kv?: Kv): Promise<any> {
     let config = this.axios;
     let envId = this.metadata.envId;
     if (envId && ShareConfigs.has(envId)) {
-      config = this.replaceHolder(ShareConfigs.get(envId) as IEnvironment);
+      const env = ShareConfigs.get(envId) as IEnvironment;
+      config = this.replaceHolder(config, env.metadata.kvs);
+    }
+    if (kv) {
+      config = this.replaceHolder(config, kv);
     }
     return await axios.request(config);
   }

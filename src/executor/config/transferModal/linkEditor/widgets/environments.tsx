@@ -3,8 +3,11 @@ import { Table } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import React, { CSSProperties, useEffect, useState } from 'react';
 import cls from './../index.module.less';
+import { Graph } from '@antv/x6';
+import { Persistence, Temping } from './editor/widgets/graph';
 
 interface IProps {
+  graph: Graph;
   style?: CSSProperties;
 }
 
@@ -13,8 +16,20 @@ interface Kv {
   v: string;
 }
 
-export const Environments: React.FC<IProps> = ({ style }) => {
-  const [kvs, setKvs] = useState<Kv[]>([]);
+export const getKvs = (graph: Graph): Kv[] => {
+  const temping = graph.getPlugin<Temping>(Persistence);
+  const env = temping?.curEnv();
+  const kvs: Kv[] = [];
+  if (env) {
+    for (const k in env) {
+      kvs.push({ k: k, v: env[k] });
+    }
+  }
+  return kvs;
+};
+
+export const Environments: React.FC<IProps> = ({ graph, style }) => {
+  const [kvs, setKvs] = useState<Kv[]>(getKvs(graph));
   const columns: ColumnsType<Kv> = [
     {
       title: '键',
@@ -35,20 +50,11 @@ export const Environments: React.FC<IProps> = ({ style }) => {
     },
   ];
   useEffect(() => {
-    const id = linkCmd.subscribe((type, cmd, args) => {
+    const id = linkCmd.subscribe((type, cmd) => {
       if (type == 'environments') {
         switch (cmd) {
-          case 'add':
-            const newKvs: Kv[] = [...kvs];
-            Object.entries(args as { [key: string]: string }).forEach((item) => {
-              const old = newKvs.findIndex((old) => (old.k = item[0]));
-              newKvs.splice(old, 1);
-              newKvs.push({ k: item[0], v: item[1] });
-            });
-            setKvs(newKvs);
-            break;
-          case 'clear':
-            setKvs([]);
+          case 'refresh':
+            setKvs(getKvs(graph));
             break;
         }
       }

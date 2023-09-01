@@ -205,6 +205,16 @@ export const directoryNew = {
     directoryOperates.NewThingConfig,
     directoryOperates.NewWorkConfig,
     directoryOperates.NewReport,
+  ],
+};
+
+/** 数据迁移 */
+export const transferNew = {
+  sort: 1,
+  cmd: 'transfer',
+  label: '迁移配置',
+  iconType: 'new',
+  menus: [
     directoryOperates.NewRequest,
     directoryOperates.NewLink,
     directoryOperates.NewMapping,

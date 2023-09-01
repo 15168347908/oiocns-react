@@ -4,28 +4,32 @@ import { IBelong, IDirectory, IEntity } from '@/ts/core';
 import { ILink } from '@/ts/core/thing/config';
 import { Graph, Node } from '@antv/x6';
 import { Modal } from 'antd';
-import React, { createRef, useEffect } from 'react';
+import React, { createRef, useEffect, useRef, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
 import Selector from '../../../selector';
-import { createGraph } from './widgets/graph';
+import { Persistence, Temping, createGraph } from './widgets/graph';
 import { DataNode, ExecStatus, addNode, createDownstream } from './widgets/node';
+import { Retention } from '../..';
+import { ToolBar } from '../toolBar';
 
 export interface IProps {
   current: ILink;
-  children?: React.ReactNode;
+  retention: Retention;
 }
 
 /**
  * 返回一个请求编辑器
  * @returns
  */
-const LinkEditor: React.FC<IProps> = ({ current, children }) => {
+const LinkEditor: React.FC<IProps> = ({ current, retention }) => {
   const ref = createRef<HTMLDivElement>();
+  const graphRef = useRef<Graph>();
+  const [visible, setVisible] = useState<boolean>();
   useEffect(() => {
     const graph = createGraph(ref, current);
     const id = linkCmd.subscribe((type: string, cmd: string, args: any) => {
-      console.log('接收到消息啦', linkCmd);
       if (type != 'main') return;
+      console.log(type, '接收到消息啦', linkCmd);
       handler(current, graph, cmd, args);
     });
     const update = () => {
@@ -37,6 +41,8 @@ const LinkEditor: React.FC<IProps> = ({ current, children }) => {
     graph.on('node:removed', update);
     graph.on('node:selected', (args) => linkCmd.emitter('node', 'selected', args));
     graph.on('node:unselected', (args) => linkCmd.emitter('node', 'unselected', args));
+    graphRef.current = graph;
+    setVisible(true);
     return () => {
       graph.off();
       linkCmd.unsubscribe(id);
@@ -46,7 +52,9 @@ const LinkEditor: React.FC<IProps> = ({ current, children }) => {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <div style={{ position: 'relative', width: '100%', height: '100%' }} ref={ref} />
-      {children}
+      {visible && (
+        <ToolBar current={current} graph={graphRef.current!} retention={retention} />
+      )}
     </div>
   );
 };
@@ -104,8 +112,12 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
       }
       break;
     case 'executing':
+      // 使用临时存储插件创建环境
+      const temping = graph.getPlugin<Temping>(Persistence);
+      temping?.createEnv();
+
+      // 遍历根节点
       const nodes = graph.getNodes();
-      linkCmd.emitter('environments', 'clear');
       for (const node of nodes) {
         if (graph.isRootNode(node)) {
           const { entity } = node.getData() as DataNode<ExecStatus>;
