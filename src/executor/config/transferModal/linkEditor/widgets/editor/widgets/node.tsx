@@ -261,7 +261,6 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
           if (nodeId != node.id) return;
           setNodeStatus(ExecStatus.Running);
           const ergodic = (nextData: any) => {
-            console.log(nextData);
             const iterator: Model.SearchIterator = (cell, distance) => {
               if (distance == 1) {
                 const next = getShareEntity(cell);
@@ -305,7 +304,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                   ...Encryption,
                 };
                 Sandbox(exec.metadata.coder)(runtime);
-                linkCmd.emitter('environments', 'refresh');
+                linkCmd.emitter('environments', 'refresh', graph);
                 ergodic(runtime.nextData);
                 break;
               }

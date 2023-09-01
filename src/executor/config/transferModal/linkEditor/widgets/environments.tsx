@@ -7,7 +7,6 @@ import { Graph } from '@antv/x6';
 import { Persistence, Temping } from './editor/widgets/graph';
 
 interface IProps {
-  graph: Graph;
   style?: CSSProperties;
 }
 
@@ -28,8 +27,8 @@ export const getKvs = (graph: Graph): Kv[] => {
   return kvs;
 };
 
-export const Environments: React.FC<IProps> = ({ graph, style }) => {
-  const [kvs, setKvs] = useState<Kv[]>(getKvs(graph));
+export const Environments: React.FC<IProps> = ({ style }) => {
+  const [kvs, setKvs] = useState<Kv[]>([]);
   const columns: ColumnsType<Kv> = [
     {
       title: '键',
@@ -50,7 +49,7 @@ export const Environments: React.FC<IProps> = ({ graph, style }) => {
     },
   ];
   useEffect(() => {
-    const id = linkCmd.subscribe((type, cmd) => {
+    const id = linkCmd.subscribe((type, cmd, graph) => {
       if (type == 'environments') {
         switch (cmd) {
           case 'refresh':

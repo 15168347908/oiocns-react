@@ -20,12 +20,11 @@ interface ToolProps {
 
 export const ToolBar: React.FC<ToolProps> = ({
   current,
-  graph,
   retention = Retention.Configuration,
 }) => {
   const nodes: ReactNode[] = [];
   const style: CSSProperties = { position: 'absolute', right: 10, top: 10 };
-  nodes.push(<Environments key={'environments'} style={style} graph={graph} />);
+  nodes.push(<Environments key={'environments'} style={style} />);
   if (retention == Retention.Configuration) {
     const style: CSSProperties = { position: 'absolute', left: 10, top: 10 };
     nodes.push(<NodeTools key={'nodeTools'} current={current} style={style} />);

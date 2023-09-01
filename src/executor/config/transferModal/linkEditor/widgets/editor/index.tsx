@@ -117,6 +117,7 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
       const temping = graph.getPlugin<Temping>(Persistence);
       temping?.createEnv();
       linkCmd.emitter('clearStatus', 'nodes');
+      linkCmd.emitter('environments', 'refresh', graph);
 
       // 遍历根节点
       for (const node of nodes) {
