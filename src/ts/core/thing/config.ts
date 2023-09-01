@@ -11,8 +11,7 @@ import {
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ConfigColl, IDirectory } from './directory';
 import { FileInfo, IFileInfo } from './fileinfo';
-
-export const ShareConfigs = new Map<string, IBaseFileInfo<XFileInfo>>();
+import { ShareSet } from '../public/entity';
 
 export interface IBaseFileInfo<T extends XFileInfo> extends IFileInfo<T> {
   refresh(data: T): void;
@@ -27,7 +26,6 @@ export class BaseFileInfo<T extends XFileInfo>
   constructor(collName: ConfigColl, metadata: T, dir: IDirectory) {
     super(metadata, dir);
     this.collName = collName;
-    ShareConfigs.set(metadata.id, this);
   }
 
   refresh(data: T): void {
@@ -117,16 +115,6 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
     return this.metadata.axios;
   }
 
-  private replaceHolder(axios: any, kv: Kv): AxiosRequestConfig {
-    return {
-      ...this.metadata.axios,
-      url: this.replace(axios.url, kv),
-      params: this.replace(axios.params, kv),
-      headers: this.replace(axios.headers, kv),
-      data: this.replace(axios.data, kv),
-    };
-  }
-
   private replace(data: any, kv: Kv): any {
     if (data) {
       let ansStr = JSON.stringify(data);
@@ -134,22 +122,45 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
         const value = kv[key];
         ansStr = ansStr.replace(`{{${key}}}`, value ?? '');
       });
-      ansStr = ansStr.replace(/\{\{.*\}\}/g, '');
       return JSON.parse(ansStr);
     }
   }
 
+  private replaceClear(data: any) {
+    if (data) {
+      let ansStr = JSON.stringify(data);
+      ansStr = ansStr.replace(/\{\{[^{}]*\}\}/g, '');
+      return JSON.parse(ansStr);
+    }
+  }
+
+  private paramsEscape(url: string) {
+    const split: string[] = url.split('?');
+    const ans: string[] = [];
+    if (split.length > 1) {
+      const params = split[1].split('&');
+      for (const param of params) {
+        const kv = param.split('=', 2);
+        if (kv.length > 1) {
+          ans.push(kv[0] + "=" + encodeURIComponent(kv[1]));
+        }
+      }
+    }
+    return split[0] + '?' + ans.join('&');
+  }
+
   async exec(kv?: Kv): Promise<any> {
-    let config = this.axios;
+    let config = { ...this.axios };
     let envId = this.metadata.envId;
-    if (envId && ShareConfigs.has(envId)) {
-      const env = ShareConfigs.get(envId) as IEnvironment;
-      config = this.replaceHolder(config, env.metadata.kvs);
+    if (envId && ShareSet.has(envId)) {
+      const env = ShareSet.get(envId) as IEnvironment;
+      config = this.replace(config, env.metadata.kvs);
     }
     if (kv) {
-      config = this.replaceHolder(config, kv);
+      config = this.replace(config, kv);
     }
-    console.log(kv, config);
+    config = this.replaceClear(config);
+    config.url = this.paramsEscape(config.url);
     return await axios.request(config);
   }
 }

@@ -3,7 +3,7 @@ import { generateUuid, sleep } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity, XExecutable } from '@/ts/base/schema';
 import { IEntity, ShareIdSet, ShareSet } from '@/ts/core/public/entity';
-import { IExecutable, IRequest, ShareConfigs } from '@/ts/core/thing/config';
+import { IExecutable, IRequest } from '@/ts/core/thing/config';
 import { ConfigColl } from '@/ts/core/thing/directory';
 import Encryption from '@/utils/encryption';
 import { Sandbox } from '@/utils/sandbox';
@@ -21,7 +21,7 @@ import { AiFillPlusCircle } from 'react-icons/ai';
 import { MenuItemType } from 'typings/globelType';
 import cls from './../../../index.module.less';
 import { Persistence, Temping } from './graph';
-import { CellProperties } from 'handsontable/settings';
+import { AxiosError } from 'axios';
 
 export enum ExecStatus {
   Stop = 'stop',
@@ -279,7 +279,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             switch (cmd) {
               case '请求': {
                 const request = entity as IRequest;
-                const response = await request.exec(curEnv);
+                const response = await request.exec({ ...curEnv, ...preData });
                 const exec = request.metadata.suffixExec;
                 if (exec) {
                   const executable = ShareIdSet.get(exec) as XExecutable;
@@ -339,17 +339,23 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             }
             setNodeStatus(ExecStatus.Completed);
           } catch (error) {
-            console.log(error);
-            if (error instanceof Error) {
-              message.error('执行请求异常，错误信息：' + error.message);
+            if (error instanceof AxiosError) {
+              if (error.response) {
+                const data = error.response.data;
+                const msg = '执行请求异常，错误信息：' + JSON.stringify(data);
+                message.error(msg);
+              } else {
+                message.error('执行请求异常，错误信息：' + error.message);
+              }
+            } else if (error instanceof Error) {
+              message.error('执行异常，错误信息：' + error.message);
             } else {
-              message.error('执行请求异常');
+              message.error('执行异常');
             }
             setNodeStatus(ExecStatus.Error);
           }
           break;
         case 'clearStatus': {
-          console.log('清空菜单啦');
           setNodeStatus(ExecStatus.Stop);
           break;
         }
