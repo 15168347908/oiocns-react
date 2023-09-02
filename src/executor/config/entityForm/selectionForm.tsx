@@ -1,48 +1,36 @@
 import SchemaForm from '@/components/SchemaForm';
-import { XEnvironment } from '@/ts/base/schema';
+import { XSelection } from '@/ts/base/schema';
 import { IDirectory } from '@/ts/core';
-import {} from '@/ts/core/';
-import { ConfigColl, IEnvironment } from '@/ts/core/thing/config';
+import { ConfigColl, ISelection } from '@/ts/core/thing/config';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React, { useState } from 'react';
-import EditableTable from '../transferModal/apiEditor/parts/request/widgets/editable';
-import { generateUuid } from '@/ts/base/common';
+import { MenuItem, expand, loadFormsMenu } from '../transferModal';
 
 interface IProps {
   formType: string;
-  current: IDirectory | IEnvironment;
-  finished: (environment?: IEnvironment) => void;
+  current: IDirectory | ISelection;
+  finished: (selection?: ISelection) => void;
 }
 
-interface Kv {
-  id: string;
-  k?: string;
-  v?: string;
-}
+const getTrees = (current: IDirectory | ISelection) => {
+  return [
+    loadFormsMenu(
+      current.typeName == '选择'
+        ? (current as ISelection).directory.target.directory
+        : (current as IDirectory).target.directory,
+    ),
+  ];
+};
 
 const SelectionForm: React.FC<IProps> = ({ formType, current, finished }) => {
+  const [treeData, setTreeData] = useState<MenuItem[]>(getTrees(current));
   let initialValue = {};
   switch (formType) {
-    case 'updateEnvironment':
+    case 'updateSelection':
       initialValue = current.metadata;
       break;
   }
-  const temp: Kv[] = [];
-  if (current.typeName == '环境') {
-    const environment = current as IEnvironment;
-    const kvs = environment.metadata.kvs;
-    temp.push(
-      ...Object.entries(kvs).map((value) => {
-        return {
-          id: generateUuid(),
-          k: value[0],
-          v: value[1],
-        };
-      }),
-    );
-  }
-  const [kvs, setKvs] = useState<readonly Kv[]>(temp);
-  const columns: ProFormColumnsType<XEnvironment>[] = [
+  const columns: ProFormColumnsType<XSelection>[] = [
     {
       title: '名称',
       dataIndex: 'name',
@@ -51,48 +39,37 @@ const SelectionForm: React.FC<IProps> = ({ formType, current, finished }) => {
       },
     },
     {
-      title: '备注',
-      dataIndex: 'remark',
-      valueType: 'textarea',
+      title: '展示表单',
+      dataIndex: 'formId',
+      valueType: 'treeSelect',
       colProps: { span: 24 },
-      initialValue: kvs,
-      renderFormItem: () => {
-        return (
-          <EditableTable<Kv>
-            columns={[
-              {
-                title: '键',
-                dataIndex: 'k',
-              },
-              {
-                title: '值',
-                dataIndex: 'v',
-              },
-              {
-                title: '操作',
-                dataIndex: 'operate',
-                editable: false,
-                width: 80,
-                render: (_, record) => [
-                  <a
-                    key="delete"
-                    onClick={() =>
-                      setKvs(kvs.filter((item) => item.id != record.id))
-                    }>
-                    删除
-                  </a>,
-                ],
-              },
-            ]}
-            value={kvs}
-            onChange={(values) => setKvs(values)}
-          />
-        );
+      formItemProps: {
+        rules: [{ required: true, message: '展示为必填项' }],
+      },
+      fieldProps: {
+        fieldNames: {
+          label: 'label',
+          value: 'key',
+          children: 'children',
+        },
+        showSearch: true,
+        loadData: async (node: MenuItem): Promise<void> => {
+          console.log(node.isLeaf);
+          if (!node.isLeaf) {
+            let forms = await (node.item as IDirectory).loadForms();
+            if (forms.length > 0) {
+              setTreeData(getTrees(current));
+            }
+          }
+        },
+        treeNodeFilterProp: 'label',
+        treeDefaultExpandedKeys: expand(treeData, ['事项配置', '表单配置']),
+        treeData: treeData,
       },
     },
   ];
   return (
-    <SchemaForm<XEnvironment>
+    <SchemaForm<XSelection>
       open
       title="环境定义"
       width={800}
@@ -108,23 +85,18 @@ const SelectionForm: React.FC<IProps> = ({ formType, current, finished }) => {
         }
       }}
       onFinish={async (values) => {
-        values.typeName = '环境';
-        values.kvs = {};
-        kvs.filter((item) => item.k).forEach((item) => (values.kvs[item.k!] = item.v));
+        values.typeName = '选择';
         switch (formType) {
-          case 'newEnvironment': {
+          case 'newSelection': {
             let directory = current as IDirectory;
-            let environment = await directory.createConfig(
-              ConfigColl.Environments,
-              values,
-            );
-            finished(environment as IEnvironment);
+            let selection = await directory.createConfig(ConfigColl.Selections, values);
+            finished(selection as ISelection);
             break;
           }
           case 'updateEnvironment': {
-            let environment = current as IEnvironment;
-            await environment.refresh({ ...initialValue, ...values });
-            finished(environment);
+            let selection = current as ISelection;
+            await selection.refresh({ ...initialValue, ...values });
+            finished(selection);
             break;
           }
         }

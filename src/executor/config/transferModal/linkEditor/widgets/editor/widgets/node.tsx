@@ -3,7 +3,7 @@ import { generateUuid, sleep } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity, XExecutable } from '@/ts/base/schema';
 import { IEntity, ShareIdSet, ShareSet } from '@/ts/core/public/entity';
-import { ConfigColl, IExecutable, IRequest } from '@/ts/core/thing/config';
+import { ConfigColl, IExecutable, IRequest, ISelection } from '@/ts/core/thing/config';
 import Encryption from '@/utils/encryption';
 import { Sandbox } from '@/utils/sandbox';
 import {
@@ -182,15 +182,20 @@ const menus: { [key: string]: MenuItemType } = {
     itemType: '表单',
     children: [],
   },
+  selection: {
+    key: ConfigColl.Selections,
+    label: '选择',
+    itemType: '选择',
+    children: [],
+  },
 };
 
 /** 拉出节点可以创建的下一步节点 */
 const getNextMenu = (typeName: string): MenuItemType[] => {
   switch (typeName) {
     case '请求':
-      return [menus.script];
     case '脚本':
-      return [menus.script, menus.request, menus.mapping, menus.store];
+      return [menus.script, menus.request, menus.mapping, menus.store, menus.selection];
     case '映射':
       return [menus.script, menus.mapping, menus.store];
     case '实体配置':
@@ -270,8 +275,39 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             };
             graph.searchCell(node, iterator, { outgoing: true });
           };
+          const formCall = (type: string, data: any, msg?: string) => {
+            switch (type) {
+              case '成功':
+                setNodeStatus(ExecStatus.Completed);
+                ergodic(data);
+                break;
+              case '取消':
+              case '错误':
+                message.error(msg);
+                setNodeStatus(ExecStatus.Error);
+                break;
+            }
+          };
+          const isArray = (data: any) => {
+            console.log(data);
+            if (!(data instanceof Array)) {
+              throw new Error('输入必须是一个数组！');
+            }
+          };
           const temping = graph.getPlugin<Temping>(Persistence);
           const curEnv = temping?.curEnv();
+          const executing = (input: any, coder: string): any => {
+            const runtime = {
+              environment: curEnv,
+              preData: input,
+              nextData: {},
+              ...Encryption,
+            };
+            console.log(runtime);
+            Sandbox(coder)(runtime);
+            linkCmd.emitter('environments', 'refresh', graph);
+            return runtime.nextData;
+          };
           try {
             await sleep(1000);
             switch (cmd) {
@@ -281,58 +317,37 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 const exec = request.metadata.suffixExec;
                 if (exec) {
                   const executable = ShareIdSet.get(exec) as XExecutable;
-                  const runtime = {
-                    environment: curEnv,
-                    preData: {},
-                    curData: response,
-                    nextData: {},
-                    ...Encryption,
-                  };
-                  Sandbox(executable.coder)(runtime);
+                  ergodic(executing(response, executable.coder));
+                  break;
                 }
                 ergodic(response);
                 break;
               }
               case '脚本': {
                 const exec = entity as IExecutable;
-                const runtime = {
-                  environment: curEnv,
-                  preData: preData,
-                  curData: {},
-                  nextData: {},
-                  ...Encryption,
-                };
-                Sandbox(exec.metadata.coder)(runtime);
-                linkCmd.emitter('environments', 'refresh', graph);
-                ergodic(runtime.nextData);
+                ergodic(executing(preData, exec.metadata.coder));
                 break;
               }
               case '映射': {
-                const input = preData.array;
-                if (!(input instanceof Array)) {
-                  throw new Error('映射输入必须是一个数组！');
-                }
+                isArray(preData.array);
                 break;
               }
               case '实体配置':
               case '事项配置': {
                 linkCmd.emitter('form', 'open', {
                   formId: entity.id,
-                  call: (type: string, data: any, msg?: string) => {
-                    switch (type) {
-                      case '成功':
-                        ergodic(data);
-                        setNodeStatus(ExecStatus.Completed);
-                        break;
-                      case '取消':
-                      case '错误':
-                        message.error(msg);
-                        setNodeStatus(ExecStatus.Error);
-                        break;
-                    }
-                  },
+                  call: formCall,
                 });
                 return;
+              }
+              case '选择': {
+                isArray(preData.array);
+                const selection = entity as ISelection;
+                linkCmd.emitter('selection', 'open', {
+                  formId: selection.metadata.formId,
+                  call: formCall,
+                });
+                break;
               }
             }
             setNodeStatus(ExecStatus.Completed);
@@ -390,6 +405,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                     case '请求':
                     case '脚本':
                     case '映射':
+                    case '选择':
                       linkCmd.emitter('main', 'openSelector', [node, item]);
                       break;
                   }

@@ -40,7 +40,7 @@ const RequestForm: React.FC<IProps> = ({ formType, current, finished }) => {
       },
     },
     {
-      title: '后置脚本, 解析 CurData(ResponseData)',
+      title: '后置脚本, 解析 ResponseData',
       dataIndex: 'suffixExec',
       valueType: 'treeSelect',
       colProps: { span: 24 },

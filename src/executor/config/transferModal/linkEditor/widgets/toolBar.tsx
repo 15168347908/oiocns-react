@@ -66,6 +66,7 @@ const NodeTools: React.FC<IProps> = ({ current, style }) => {
       <Button onClick={() => onClick(ConfigColl.Requests)}>插入 Request</Button>
       <Button onClick={() => onClick(ConfigColl.Scripts)}>插入 Script</Button>
       <Button onClick={() => onClick(ConfigColl.Mappings)}>插入 Mapping</Button>
+      <Button onClick={() => onClick(ConfigColl.Selections)}>插入 Selection</Button>
       <Button onClick={() => linkCmd.emitter('main', 'executing')}>执行</Button>
     </Space>
   );
@@ -142,4 +143,8 @@ const FormInput: React.FC<{}> = ({}) => {
       )}
     </>
   );
+};
+
+const SelectionTabl: React.FC<{}> = ({}) => {
+  return <></>;
 };
