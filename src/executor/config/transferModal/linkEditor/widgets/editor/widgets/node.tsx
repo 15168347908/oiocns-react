@@ -289,7 +289,6 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             }
           };
           const isArray = (data: any) => {
-            console.log(data);
             if (!(data instanceof Array)) {
               throw new Error('输入必须是一个数组！');
             }
@@ -345,6 +344,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 const selection = entity as ISelection;
                 linkCmd.emitter('selection', 'open', {
                   formId: selection.metadata.formId,
+                  data: preData.array,
                   call: formCall,
                 });
                 break;

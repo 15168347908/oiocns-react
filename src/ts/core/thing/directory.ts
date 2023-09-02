@@ -526,14 +526,13 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
   }
   async loadAllConfigs(reload: boolean = false): Promise<void> {
     await Promise.all([
-      Object.entries(config.ConfigColl).forEach((value) => {
-        this.loadConfigs(value[1], reload);
+      Object.entries(config.ConfigColl).map((value) => {
+        return this.loadConfigs(value[1], reload);
       }),
     ]);
   }
   converting(data: schema.XFileInfo): IFileInfo<schema.XFileInfo> {
-    const typeName = data.typeName;
-    switch (typeName) {
+    switch (data.typeName) {
       case '请求':
         return new config.Request(data as schema.XRequest, this);
       case '链接':
