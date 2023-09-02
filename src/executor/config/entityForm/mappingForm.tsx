@@ -2,10 +2,10 @@ import SchemaForm from '@/components/SchemaForm';
 import { XMapping } from '@/ts/base/schema';
 import orgCtrl from '@/ts/controller';
 import { IDirectory, IForm } from '@/ts/core';
-import { ConfigColl } from '@/ts/core/thing/directory';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React, { useRef, useState } from 'react';
 import { MenuItem, expand, loadFormsMenu } from '../transferModal';
+import { ConfigColl } from '@/ts/core/thing/config';
 
 interface IProps {
   current: IDirectory;

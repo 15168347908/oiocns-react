@@ -338,6 +338,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             }
             setNodeStatus(ExecStatus.Completed);
           } catch (error) {
+            console.log(error);
             if (error instanceof AxiosError) {
               if (error.response) {
                 const data = error.response.data;

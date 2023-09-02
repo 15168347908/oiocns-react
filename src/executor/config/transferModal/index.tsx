@@ -1,7 +1,7 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { XEntity } from '@/ts/base/schema';
 import { IDirectory, IEntity } from '@/ts/core';
-import { ConfigColl } from '@/ts/core/thing/directory';
+import { ConfigColl } from '@/ts/core/thing/config';
 import React from 'react';
 import { MenuItemType } from 'typings/globelType';
 

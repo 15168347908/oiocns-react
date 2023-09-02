@@ -15,6 +15,7 @@ import LinkForm from './linkForm';
 import ExecutableForm from './executableForm';
 import EnvironmentForm from './environmentForm';
 import RequestForm from './requestForm';
+import SelectionForm from './selectionForm';
 
 interface IProps {
   cmd: string;
@@ -112,6 +113,11 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
     case 'updateEnvironment':
       return (
         <EnvironmentForm formType={cmd} current={entity as any} finished={reloadFinish} />
+      );
+    case 'newSelection':
+    case 'updateSelection':
+      return (
+        <SelectionForm formType={cmd} current={entity as any} finished={reloadFinish} />
       );
     case 'newProperty':
     case 'updateProperty':

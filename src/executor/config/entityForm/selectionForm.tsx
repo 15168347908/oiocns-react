@@ -20,7 +20,7 @@ interface Kv {
   v?: string;
 }
 
-const EnvironmentForm: React.FC<IProps> = ({ formType, current, finished }) => {
+const SelectionForm: React.FC<IProps> = ({ formType, current, finished }) => {
   let initialValue = {};
   switch (formType) {
     case 'updateEnvironment':
@@ -133,4 +133,4 @@ const EnvironmentForm: React.FC<IProps> = ({ formType, current, finished }) => {
   );
 };
 
-export default EnvironmentForm;
+export default SelectionForm;

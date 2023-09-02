@@ -611,3 +611,8 @@ export type XMapping = {
 export type XExecutable = {
   coder: string;
 } & XFileInfo;
+
+// 选择器配置
+export type XSelection = {
+  formId: string;
+} & XFileInfo;

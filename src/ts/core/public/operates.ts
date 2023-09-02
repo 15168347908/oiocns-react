@@ -193,6 +193,12 @@ export const directoryOperates = {
     label: '新建环境配置',
     iconType: '环境配置',
   },
+  NewSelection: {
+    sort: 15,
+    cmd: 'newSelection',
+    label: '新建选择配置',
+    iconType: '选择配置'
+  }
 };
 
 /** 目录下新增 */
@@ -226,7 +232,8 @@ export const transferNew = {
     directoryOperates.NewLink,
     directoryOperates.NewMapping,
     directoryOperates.NewExecutable,
-    directoryOperates.NewEnvironment
+    directoryOperates.NewEnvironment,
+    directoryOperates.NewSelection
   ],
 };
 

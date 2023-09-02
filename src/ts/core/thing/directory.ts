@@ -36,20 +36,10 @@ import {
   Unknown,
   Mapping,
   Environment,
+  ConfigColl,
 } from '@/ts/core/thing/config';
 /** 可为空的进度回调 */
 export type OnProgress = (p: number) => void;
-
-/** 配置集合名称 */
-export enum ConfigColl {
-  Requests = 'requests',
-  RequestLinks = 'request-links',
-  Scripts = 'scripts',
-  Mappings = 'mappings',
-  Environments = 'environments',
-  Stores = 'stores',
-  Unknown = 'unknown',
-}
 
 /** 目录接口类 */
 export interface IDirectory extends IFileInfo<schema.XDirectory> {

@@ -7,11 +7,24 @@ import {
   XLink,
   XMapping,
   XRequest,
+  XSelection,
 } from '@/ts/base/schema';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ConfigColl, IDirectory } from './directory';
+import { IDirectory } from './directory';
 import { FileInfo, IFileInfo } from './fileinfo';
 import { ShareSet } from '../public/entity';
+
+/** 配置集合名称 */
+export enum ConfigColl {
+  Requests = 'requests',
+  RequestLinks = 'request-links',
+  Scripts = 'scripts',
+  Mappings = 'mappings',
+  Environments = 'environments',
+  Stores = 'stores',
+  Selections = 'selections',
+  Unknown = 'unknown',
+}
 
 export interface IBaseFileInfo<T extends XFileInfo> extends IFileInfo<T> {
   refresh(data: T): void;
@@ -45,7 +58,8 @@ export class BaseFileInfo<T extends XFileInfo>
     });
     const coll = this.directory.configs.get(this.collName);
     if (res.success && coll) {
-      coll.splice(coll.findIndex(item => item.key = this.key), 1);
+      const index = coll.findIndex((item) => (item.key = this.key));
+      coll.splice(index, 1);
     }
     return res.success;
   }
@@ -143,7 +157,7 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
       for (const param of params) {
         const kv = param.split('=', 2);
         if (kv.length > 1) {
-          ans.push(kv[0] + "=" + encodeURIComponent(kv[1]));
+          ans.push(kv[0] + '=' + encodeURIComponent(kv[1]));
         }
       }
     }
@@ -162,7 +176,9 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
     }
     config = this.replaceClear(config);
     config.url = this.paramsEscape(config.url);
-    return await axios.request(config);
+    const res = await axios.request(config);
+    console.log('返回结果', res);
+    return res;
   }
 }
 
@@ -206,5 +222,13 @@ export class Mapping extends BaseFileInfo<XMapping> implements IMapping {
   clear(): void {
     this.source = undefined;
     this.target = undefined;
+  }
+}
+
+/** 选择 */
+export interface ISelection extends IBaseFileInfo<XSelection> {}
+export class Selection extends BaseFileInfo<XSelection> implements ISelection {
+  constructor(selection: XSelection, dir: IDirectory) {
+    super(ConfigColl.Selections, selection, dir);
   }
 }
