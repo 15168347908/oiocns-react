@@ -1,14 +1,17 @@
+import { sleep } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity } from '@/ts/core';
 import { ILink } from '@/ts/core/thing/config';
+import { LoadingOutlined } from '@ant-design/icons';
 import { Graph, Node } from '@antv/x6';
 import { Modal } from 'antd';
-import React, { createRef, useEffect, useRef, useState } from 'react';
+import React, { createRef, useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
 import { Retention } from '../..';
 import Selector from '../../../selector';
 import { ToolBar } from '../toolBar';
+import cls from './../../index.module.less';
 import { Persistence, Temping, createGraph } from './widgets/graph';
 import { addNode, createDownstream, getShareEntity } from './widgets/node';
 
@@ -17,43 +20,55 @@ export interface IProps {
   retention: Retention;
 }
 
+const loadProps = async (current: IDirectory) => {
+  await current.loadAllConfigs();
+  for (const child of current.children) {
+    await loadProps(child);
+  }
+};
+
 /**
  * 返回一个请求编辑器
  * @returns
  */
 const LinkEditor: React.FC<IProps> = ({ current, retention }) => {
   const ref = createRef<HTMLDivElement>();
-  const graphRef = useRef<Graph>();
-  const [visible, setVisible] = useState<boolean>();
+  const [initializing, setInitializing] = useState<boolean>(true);
   useEffect(() => {
-    const graph = createGraph(ref, current);
-    const id = linkCmd.subscribe((type: string, cmd: string, args: any) => {
-      if (type != 'main') return;
-      console.log(type, '接收到消息啦', linkCmd);
-      handler(current, graph, cmd, args);
-    });
-    const update = () => {
-      current.metadata.data = graph.toJSON({ diff: true });
-      current.refresh(current.metadata);
-    };
-    graph.on('node:added', update);
-    graph.on('node:moved', update);
-    graph.on('node:removed', update);
-    graph.on('node:selected', (args) => linkCmd.emitter('node', 'selected', args));
-    graph.on('node:unselected', (args) => linkCmd.emitter('node', 'unselected', args));
-    graphRef.current = graph;
-    setVisible(true);
-    return () => {
-      graph.off();
-      linkCmd.unsubscribe(id);
-      graph.dispose();
-    };
+    if (initializing) {
+      let root = current.directory.target.directory;
+      loadProps(root).then(() => setInitializing(false));
+    } else {
+      const graph = createGraph(ref, current);
+      const id = linkCmd.subscribe((type: string, cmd: string, args: any) => {
+        if (type != 'main') return;
+        console.log(type, '接收到消息啦', linkCmd);
+        handler(current, graph, cmd, args);
+      });
+      const update = () => {
+        current.metadata.data = graph.toJSON({ diff: true });
+        current.refresh(current.metadata);
+      };
+      graph.on('node:added', update);
+      graph.on('node:moved', update);
+      graph.on('node:removed', update);
+      graph.on('node:selected', (args) => linkCmd.emitter('node', 'selected', args));
+      graph.on('node:unselected', (args) => linkCmd.emitter('node', 'unselected', args));
+      return () => {
+        graph.off();
+        linkCmd.unsubscribe(id);
+        graph.dispose();
+      };
+    }
   }, [ref]);
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <div style={{ position: 'relative', width: '100%', height: '100%' }} ref={ref} />
-      {visible && (
-        <ToolBar current={current} graph={graphRef.current!} retention={retention} />
+    <div className={cls.link}>
+      <div className={cls.link} ref={ref} />
+      <ToolBar current={current} retention={retention} />
+      {initializing && (
+        <div className={cls.loading}>
+          <LoadingOutlined />
+        </div>
       )}
     </div>
   );

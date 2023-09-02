@@ -121,7 +121,9 @@ export interface IDirectory extends IFileInfo<schema.XDirectory> {
     data: schema.XFileInfo,
   ): Promise<IFileInfo<schema.XFileInfo> | undefined>;
   /** 加载请求配置 */
-  loadConfigs(collName: string, reload?: boolean): Promise<IFileInfo<schema.XFileInfo>[]>;
+  loadConfigs(collName: string, reload?: boolean): Promise<IFileInfo<schema.XFileInfo>[]>
+  /** 加载所有配置 */
+  loadAllConfigs(reload?: boolean): Promise<void>;
 }
 
 /** 目录实现类 */
@@ -200,9 +202,6 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
           await this.loadSpecieses(reload),
           await this.loadApplications(reload),
           await this.loadReports(reload),
-          ...Object.entries(ConfigColl).map((item) => {
-            return this.loadConfigs(item[1], reload);
-          }),
         ]);
       }
     }

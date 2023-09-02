@@ -5,7 +5,6 @@ import { IBelong, IDirectory, IEntity, IForm } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
 import { ILink } from '@/ts/core/thing/config';
 import { ConfigColl } from '@/ts/core/thing/directory';
-import { Graph } from '@antv/x6';
 import { Button, Modal, Space } from 'antd';
 import React, { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import Selector from '../../selector';
@@ -14,7 +13,6 @@ import { Environments } from './environments';
 
 interface ToolProps {
   current: ILink;
-  graph: Graph;
   retention: Retention;
 }
 
