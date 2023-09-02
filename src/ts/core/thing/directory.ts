@@ -4,6 +4,7 @@ import {
   TargetType,
   directoryNew,
   directoryOperates,
+  transferNew,
   fileOperates,
   memberOperates,
   teamOperates,
@@ -36,7 +37,6 @@ import {
   Mapping,
   Environment,
 } from '@/ts/core/thing/config';
-import { transferNew } from '../public/operates';
 /** 可为空的进度回调 */
 export type OnProgress = (p: number) => void;
 

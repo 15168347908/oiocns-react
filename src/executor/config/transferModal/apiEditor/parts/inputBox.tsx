@@ -3,7 +3,6 @@ import { IRequest } from '@/ts/core/thing/config';
 import { Button, Input, Select, Space, TreeSelect } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Param } from './request/widgets/params';
-import cls from './../index.module.less';
 import { expand, loadEnvironmentsMenu } from '../..';
 
 interface IProps {
@@ -91,7 +90,7 @@ const InputBox: React.FC<IProps> = ({ current, send }) => {
           current.refresh(current.metadata);
         }}
       />
-      <Button className={cls['send']} onClick={() => send()}>
+      <Button onClick={() => send()}>
         Send
       </Button>
     </Space.Compact>

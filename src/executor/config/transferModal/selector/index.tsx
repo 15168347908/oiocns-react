@@ -96,6 +96,7 @@ export const Selector = ({
                 autoExpandParent={true}
                 onSelect={onSelect}
                 treeData={buildWorkThingTree([current.directory])}
+                defaultExpandAll={true}
               />
             </div>
           </div>
