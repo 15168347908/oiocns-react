@@ -19,6 +19,7 @@ interface IOpenProps {
   finished: () => void;
 }
 const ExecutorOpen: React.FC<IOpenProps> = (props: IOpenProps) => {
+  console.log(props);
   if ('size' in props.entity || 'filedata' in props.entity) {
     const data = 'size' in props.entity ? props.entity : props.entity.filedata;
     if (data.contentType?.startsWith('image') || data.thumbnail) {

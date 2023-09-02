@@ -67,6 +67,7 @@ const directoryRefresh = (dir: IDirectory | IApplication) => {
 const openDirectory = (
   entity: IDirectory | IApplication | ITarget | IEntity<schema.XEntity>,
 ) => {
+  console.log(entity);
   if ('identitys' in entity && entity.typeName != TargetType.Station) {
     entity = entity.directory;
   }

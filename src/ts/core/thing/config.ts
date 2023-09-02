@@ -43,8 +43,9 @@ export class BaseFileInfo<T extends XFileInfo>
     const res = await kernel.anystore.remove(this.belongId, this.collName, {
       id: this.metadata.id,
     });
-    if (res.success) {
-      this.directory.configs = this.directory.configs.filter((i) => i.key != this.key);
+    const coll = this.directory.configs.get(this.collName);
+    if (res.success && coll) {
+      coll.splice(coll.findIndex(item => item.key = this.key), 1);
     }
     return res.success;
   }

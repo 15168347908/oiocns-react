@@ -114,7 +114,7 @@ export interface IDirectory extends IFileInfo<schema.XDirectory> {
   /** 加载目录树 */
   loadSubDirectory(): void;
   /** 目录下的所有配置项 */
-  configs: IFileInfo<schema.XFileInfo>[];
+  configs: Map<string, IFileInfo<schema.XFileInfo>[]>;
   /** 新建请求配置 */
   createConfig(
     coll: string,
@@ -154,7 +154,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
   propertys: IProperty[] = [];
   applications: IApplication[] = [];
   reports: IReport[] = [];
-  configs: IFileInfo<XFileInfo>[] = [];
+  configs: Map<string, IFileInfo<XFileInfo>[]> = new Map();
   private _contentLoaded: boolean = false;
   get id(): string {
     if (!this.parent) {
@@ -173,7 +173,8 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     if (this.typeName === '成员目录') {
       cnt.push(...this.target.members.map((i) => new Member(i, this)));
     } else {
-      cnt.push(...this.forms, ...this.applications, ...this.files, ...this.configs);
+      cnt.push(...this.forms, ...this.applications, ...this.files);
+      this.configs.forEach((values) => cnt.push(...values));
       if (mode != 1) {
         cnt.push(...this.propertys);
         cnt.push(...this.specieses);
@@ -187,6 +188,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
   }
   async loadContent(reload: boolean = false): Promise<boolean> {
     await this.loadFiles(reload);
+    await this.loadAllConfigs(reload);
     if (reload) {
       if (this.typeName === '成员目录') {
         await this.target.loadContent(reload);
@@ -458,9 +460,6 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
           if (data) {
             this.loadChildren(data, res.data.result);
           }
-          for (let config of Object.entries(ConfigColl)) {
-            await this.loadConfigs(config[1], true);
-          }
         }
       }
     }
@@ -524,16 +523,19 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     let res = await kernel.anystore.insert(this.belongId, collName, data);
     if (res.success) {
       let config = this.converting(data);
-      this.configs.push(config);
+      if (!this.configs.has(collName)) {
+        this.configs.set(collName, []);
+      }
+      this.configs.get(collName)!.push(config);
       return config;
     }
   }
   async loadConfigs(
     collName: ConfigColl,
-    reload?: boolean | undefined,
+    reload: boolean = false,
   ): Promise<IFileInfo<schema.XFileInfo>[]> {
-    const configs = this.configs.filter((item) => item.metadata.collName == collName);
-    if (collName != ConfigColl.Unknown && (configs.length < 1 || reload)) {
+    if (collName == ConfigColl.Unknown) return [];
+    if (!this.configs.has(collName) || reload) {
       const res = await kernel.anystore.aggregate(this.belongId, collName, {
         match: {
           directoryId: this.id,
@@ -541,12 +543,20 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
         limit: 65536,
       });
       if (res.success && res.data.length > 0) {
-        this.configs = this.configs.filter((item) => item.metadata.collName != collName);
         let configs = (res.data as []).map((item) => this.converting(item));
-        this.configs.push(...configs);
+        this.configs.set(collName, configs);
+      } else {
+        this.configs.set(collName, []);
       }
     }
-    return configs;
+    return this.configs.get(collName)!;
+  }
+  async loadAllConfigs(reload: boolean = false): Promise<void> {
+    await Promise.all([
+      Object.entries(ConfigColl).forEach((value) => {
+        this.loadConfigs(value[1], reload);
+      }),
+    ]);
   }
   converting(data: XFileInfo): IFileInfo<schema.XFileInfo> {
     const typeName = data.typeName;

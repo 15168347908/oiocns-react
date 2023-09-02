@@ -1,6 +1,7 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { XEntity } from '@/ts/base/schema';
 import { IDirectory, IEntity } from '@/ts/core';
+import { ConfigColl } from '@/ts/core/thing/directory';
 import React from 'react';
 import { MenuItemType } from 'typings/globelType';
 
@@ -21,9 +22,7 @@ const loadFiles = (current: IDirectory, typeNames: string[]) => {
           ...current.forms.filter((item) => item.typeName == typeName).map(loadEntity),
         );
       default:
-        items.push(
-          ...current.configs.filter((item) => item.typeName == typeName).map(loadEntity),
-        );
+        items.push(...(current.configs.get(typeName)?.map(loadEntity) ?? []));
     }
   }
   return items;
@@ -63,17 +62,17 @@ export const loadFormsMenu = (current: IDirectory) => {
 
 /** 环境 */
 export const loadEnvironmentsMenu = (current: IDirectory) => {
-  return loadMenus(current, ['环境']);
+  return loadMenus(current, [ConfigColl.Environments]);
 };
 
 /** 脚本 */
 export const loadScriptsMenu = (current: IDirectory) => {
-  return loadMenus(current, ['脚本']);
+  return loadMenus(current, [ConfigColl.Scripts]);
 };
 
 /** 请求 */
 export const loadRequestsMenu = (current: IDirectory) => {
-  return loadMenus(current, ['请求']);
+  return loadMenus(current, [ConfigColl.Requests]);
 };
 
 /** 文件项菜单 */
