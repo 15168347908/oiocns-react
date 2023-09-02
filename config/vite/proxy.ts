@@ -23,7 +23,7 @@ export function createProxy() {
       // target: 'http://localhost:7000', // 后台接口
       changeOrigin: true, // 是否允许跨域
       ws: true,
-    }
+    },
   };
   return ProxyList;
 }

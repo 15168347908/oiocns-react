@@ -184,29 +184,6 @@ const GroupDetail: React.FC<any> = ({ chat }: { chat: IMsgChat }) => {
             );
           })}
         </div>
-        <div className={detailStyle.groupDetailActionArea}>
-          {actionList.map((item, index) => {
-            return (
-              <div
-                className={detailStyle.groupDetailActionAreaItem}
-                key={index}
-                onClick={() => {
-                  setActivityPublisherOpen(true);
-                }}>
-                <div
-                  className={
-                    detailStyle.groupDetailActionAreaItem__icon +
-                    (item.type === 'primary'
-                      ? ' ' + detailStyle.groupDetailActionAreaItem__iconActive
-                      : '')
-                  }>
-                  {item.icon}
-                </div>
-                <div>{item.title}</div>
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       {/* 历史记录搜索弹窗 */}
