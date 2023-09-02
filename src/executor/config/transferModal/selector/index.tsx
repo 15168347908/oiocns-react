@@ -2,7 +2,7 @@ import ShareShowComp from '@/components/Common/ShareShowComp';
 import CustomTree from '@/components/CustomTree';
 import { XEntity } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity } from '@/ts/core';
-import { Input, TreeProps } from 'antd';
+import { Input, Tree, TreeProps } from 'antd';
 import React, { Key, useState } from 'react';
 import { AiOutlineSearch } from 'react-icons/ai';
 import cls from './index.module.css';
@@ -91,7 +91,7 @@ export const Selector = ({
               placeholder="请设置关键字"
             />
             <div className={cls.leftContent}>
-              <CustomTree
+              <Tree
                 checkable={false}
                 autoExpandParent={true}
                 onSelect={onSelect}

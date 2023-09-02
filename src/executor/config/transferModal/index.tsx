@@ -90,17 +90,17 @@ export const loadEntity = (entity: IEntity<XEntity>): MenuItem => {
 };
 
 /** 默认展开的树节点 */
-export const expand = (nodes: MenuItem[], targetType: string): string[] => {
+export const expand = (nodes: MenuItem[], targetTypes: string[]): string[] => {
   let ans: string[] = [];
   for (const node of nodes) {
     if (node.children) {
-      const children = expand(node.children, targetType);
+      const children = expand(node.children, targetTypes);
       if (children.length > 0) {
         ans.push(node.key);
         ans.push(...children);
       }
     }
-    if (node.itemType == targetType) {
+    if (targetTypes.indexOf(node.itemType) != -1) {
       ans.push(node.key);
     }
   }

@@ -126,7 +126,7 @@ const MappingTable: React.FC<IProps> = ({ current, ctrl }) => {
       />
       {open && (
         <MappingForm
-          current={current}
+          current={current.target.directory}
           finished={() => {
             setData(getMappings(current));
             setOpen(false);

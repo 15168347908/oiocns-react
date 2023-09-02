@@ -5,7 +5,7 @@ import { IDirectory, IForm } from '@/ts/core';
 import { ConfigColl } from '@/ts/core/thing/directory';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React, { useRef, useState } from 'react';
-import { MenuItem, loadFormsMenu } from '../transferModal';
+import { MenuItem, expand, loadFormsMenu } from '../transferModal';
 
 interface IProps {
   current: IDirectory;
@@ -28,7 +28,7 @@ const MappingForm: React.FC<IProps> = ({ current, finished, cancel }) => {
       valueType: 'treeSelect',
       colProps: { span: 24 },
       formItemProps: {
-        rules: [{ required: true, message: '源表单为必填项' }],
+        rules: [{ required: true, message: title + '为必填项' }],
       },
       fieldProps: {
         fieldNames: {
@@ -38,6 +38,7 @@ const MappingForm: React.FC<IProps> = ({ current, finished, cancel }) => {
         },
         showSearch: true,
         loadData: async (node: MenuItem): Promise<void> => {
+          console.log(node.isLeaf);
           if (!node.isLeaf) {
             let forms = await (node.item as IDirectory).loadForms();
             if (forms.length > 0) {
@@ -46,7 +47,7 @@ const MappingForm: React.FC<IProps> = ({ current, finished, cancel }) => {
           }
         },
         treeNodeFilterProp: 'label',
-        treeDefaultExpandAll: true,
+        treeDefaultExpandedKeys: expand(treeData, ['事项配置', '表单配置']),
         treeData: treeData,
         onSelect: (_: string, node: MenuItem) => onSelect(node),
       },
@@ -84,11 +85,11 @@ const MappingForm: React.FC<IProps> = ({ current, finished, cancel }) => {
       onFinish={async (values) => {
         values.sourceForm = source.current!.metadata;
         values.targetForm = target.current!.metadata;
-        values.sourceAttrs = [...await source.current!.loadAttributes()];
-        values.targetAttrs = [...await target.current!.loadAttributes()];
+        values.sourceAttrs = [...(await source.current!.loadAttributes())];
+        values.targetAttrs = [...(await target.current!.loadAttributes())];
         values.mappings = [];
         values.name = source.current?.name + '->' + target.current?.name;
-        values.typeName = '映射'
+        values.typeName = '映射';
         await current.createConfig(ConfigColl.Mappings, values);
         finished();
         orgCtrl.changCallback();

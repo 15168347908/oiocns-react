@@ -83,7 +83,7 @@ const InputBox: React.FC<IProps> = ({ current, send }) => {
         }}
         dropdownStyle={{ maxHeight: 400, overflow: 'auto', minWidth: 300 }}
         treeData={treeData}
-        treeDefaultExpandedKeys={expand(treeData, '环境')}
+        treeDefaultExpandedKeys={expand(treeData, ['环境'])}
         placement="bottomRight"
         onSelect={(value) => {
           current.metadata.envId = value;

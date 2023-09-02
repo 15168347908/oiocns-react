@@ -52,7 +52,7 @@ const RequestForm: React.FC<IProps> = ({ formType, current, finished }) => {
           children: 'children',
         },
         showSearch: true,
-        treeDefaultExpandedKeys: expand(treeData, '脚本'),
+        treeDefaultExpandedKeys: expand(treeData, ['脚本']),
         treeNodeFilterProp: 'label',
         treeData: treeData,
       },
