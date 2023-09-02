@@ -20,24 +20,8 @@ import { Property, IProperty } from './property';
 import { Application, IApplication } from './application';
 import { BucketOpreates, DirectoryModel } from '@/ts/base/model';
 import { encodeKey, generateUuid } from '@/ts/base/common';
-import {
-  XEnvironment,
-  XExecutable,
-  XFileInfo,
-  XLink,
-  XMapping,
-  XRequest,
-} from '@/ts/base/schema';
 import { formatDate } from '@/utils';
-import {
-  Request,
-  Executable,
-  Link,
-  Unknown,
-  Mapping,
-  Environment,
-  ConfigColl,
-} from '@/ts/core/thing/config';
+import * as config from '@/ts/core/thing/config';
 /** 可为空的进度回调 */
 export type OnProgress = (p: number) => void;
 
@@ -111,7 +95,7 @@ export interface IDirectory extends IFileInfo<schema.XDirectory> {
     data: schema.XFileInfo,
   ): Promise<IFileInfo<schema.XFileInfo> | undefined>;
   /** 加载请求配置 */
-  loadConfigs(collName: string, reload?: boolean): Promise<IFileInfo<schema.XFileInfo>[]>
+  loadConfigs(collName: string, reload?: boolean): Promise<IFileInfo<schema.XFileInfo>[]>;
   /** 加载所有配置 */
   loadAllConfigs(reload?: boolean): Promise<void>;
 }
@@ -146,7 +130,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
   propertys: IProperty[] = [];
   applications: IApplication[] = [];
   reports: IReport[] = [];
-  configs: Map<string, IFileInfo<XFileInfo>[]> = new Map();
+  configs: Map<string, IFileInfo<schema.XFileInfo>[]> = new Map();
   private _contentLoaded: boolean = false;
   get id(): string {
     if (!this.parent) {
@@ -493,7 +477,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       return report;
     }
   }
-  defaultEntity(collName: string, data: XFileInfo) {
+  defaultEntity(collName: string, data: schema.XFileInfo) {
     const key = generateUuid();
     data.id = key;
     data.code = key;
@@ -505,7 +489,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     data.directoryId = this.id;
   }
   async createConfig(
-    collName: ConfigColl,
+    collName: config.ConfigColl,
     data: schema.XFileInfo,
   ): Promise<IFileInfo<schema.XFileInfo> | undefined> {
     this.defaultEntity(collName, data);
@@ -520,10 +504,10 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     }
   }
   async loadConfigs(
-    collName: ConfigColl,
+    collName: config.ConfigColl,
     reload: boolean = false,
   ): Promise<IFileInfo<schema.XFileInfo>[]> {
-    if (collName == ConfigColl.Unknown) return [];
+    if (collName == config.ConfigColl.Unknown) return [];
     if (!this.configs.has(collName) || reload) {
       const res = await kernel.anystore.aggregate(this.belongId, collName, {
         match: {
@@ -542,26 +526,28 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
   }
   async loadAllConfigs(reload: boolean = false): Promise<void> {
     await Promise.all([
-      Object.entries(ConfigColl).forEach((value) => {
+      Object.entries(config.ConfigColl).forEach((value) => {
         this.loadConfigs(value[1], reload);
       }),
     ]);
   }
-  converting(data: XFileInfo): IFileInfo<schema.XFileInfo> {
+  converting(data: schema.XFileInfo): IFileInfo<schema.XFileInfo> {
     const typeName = data.typeName;
     switch (typeName) {
       case '请求':
-        return new Request(data as XRequest, this);
+        return new config.Request(data as schema.XRequest, this);
       case '链接':
-        return new Link(data as XLink, this);
+        return new config.Link(data as schema.XLink, this);
       case '脚本':
-        return new Executable(data as XExecutable, this);
+        return new config.Executable(data as schema.XExecutable, this);
       case '映射':
-        return new Mapping(data as XMapping, this);
+        return new config.Mapping(data as schema.XMapping, this);
       case '环境':
-        return new Environment(data as XEnvironment, this);
+        return new config.Environment(data as schema.XEnvironment, this);
+      case '选择':
+        return new config.Selection(data as schema.XSelection, this);
       default:
-        return new Unknown(ConfigColl.Unknown, data, this);
+        return new config.Unknown(config.ConfigColl.Unknown, data, this);
     }
   }
 }

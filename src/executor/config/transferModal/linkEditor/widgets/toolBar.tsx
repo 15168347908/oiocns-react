@@ -27,6 +27,7 @@ export const ToolBar: React.FC<ToolProps> = ({
     nodes.push(<NodeTools key={'nodeTools'} current={current} style={style} />);
   }
   nodes.push(<FormInput key={'formInput'} />);
+  nodes.push(<SelectionTable key={'selectionTable'} />);
   return <>{nodes}</>;
 };
 
@@ -145,6 +146,14 @@ const FormInput: React.FC<{}> = ({}) => {
   );
 };
 
-const SelectionTabl: React.FC<{}> = ({}) => {
+const SelectionTable: React.FC<{}> = ({}) => {
+  useEffect(() => {
+    const id = linkCmd.subscribe((type, cmd, args) => {
+
+    });
+    return () => {
+      linkCmd.unsubscribe(id);
+    };
+  });
   return <></>;
 };
