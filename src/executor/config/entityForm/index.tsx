@@ -101,7 +101,8 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
         <RequestForm formType={cmd} current={entity as any} finished={reloadFinish} />
       );
     case 'newLink':
-      return <LinkForm current={entity as any} finished={reloadFinish} />;
+    case 'updateLink':
+      return <LinkForm formType={cmd} current={entity as any} finished={reloadFinish} />;
     case 'newExecutable':
     case 'updateExecutable':
       return (
