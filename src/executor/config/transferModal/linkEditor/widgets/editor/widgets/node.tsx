@@ -3,8 +3,7 @@ import { generateUuid, sleep } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity, XExecutable } from '@/ts/base/schema';
 import { IEntity, ShareIdSet, ShareSet } from '@/ts/core/public/entity';
-import { IExecutable, IRequest } from '@/ts/core/thing/config';
-import { ConfigColl } from '@/ts/core/thing/directory';
+import { ConfigColl, IExecutable, IRequest } from '@/ts/core/thing/config';
 import Encryption from '@/utils/encryption';
 import { Sandbox } from '@/utils/sandbox';
 import {
