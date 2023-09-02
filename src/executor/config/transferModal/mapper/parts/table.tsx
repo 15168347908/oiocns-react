@@ -2,12 +2,11 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import MappingForm from '@/executor/config/entityForm/mappingForm';
 import orgCtrl, { Controller } from '@/ts/controller';
 import { IDirectory } from '@/ts/core';
-import { IMapping } from '@/ts/core/thing/config';
+import { ConfigColl, IMapping } from '@/ts/core/thing/config';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Modal, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 import Mapper from './mapper';
-import { ConfigColl } from '@/ts/core/thing/directory';
 
 interface IProps {
   current: IDirectory;
