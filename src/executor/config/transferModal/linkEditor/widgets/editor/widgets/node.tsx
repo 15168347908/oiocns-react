@@ -201,6 +201,8 @@ const getNextMenu = (typeName: string): MenuItemType[] => {
     case '实体配置':
     case '事项配置':
       return [menus.script];
+    case '选择':
+      return [menus.script, menus.request];
     default:
       return [];
   }
@@ -343,7 +345,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 isArray(preData.array);
                 const selection = entity as ISelection;
                 linkCmd.emitter('selection', 'open', {
-                  formId: selection.metadata.formId,
+                  selection: selection.metadata,
                   data: preData.array,
                   call: formCall,
                 });
@@ -447,7 +449,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   const Tag: React.FC<{}> = () => {
     return (
       <div className={cls['tag']}>
-        <div className={`${cls['tag-item']} ${cls['flex-max']} ${cls['text-overflow']}`}>
+        <div className={`${cls['tag-item']} ${cls['text-overflow']}`}>
           {entity.typeName}
         </div>
         <div className={`${cls['tag-item']} ${cls['text-overflow']}`}>

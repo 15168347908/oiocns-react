@@ -1,10 +1,11 @@
 import SchemaForm from '@/components/SchemaForm';
-import { XSelection } from '@/ts/base/schema';
-import { IDirectory } from '@/ts/core';
+import { XAttribute, XSelection } from '@/ts/base/schema';
+import { IDirectory, IForm } from '@/ts/core';
 import { ConfigColl, ISelection } from '@/ts/core/thing/config';
-import { ProFormColumnsType } from '@ant-design/pro-components';
-import React, { useState } from 'react';
+import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
+import React, { useEffect, useRef, useState } from 'react';
 import { MenuItem, expand, loadFormsMenu } from '../transferModal';
+import { ShareSet } from '@/ts/core/public/entity';
 
 interface IProps {
   formType: string;
@@ -13,17 +14,38 @@ interface IProps {
 }
 
 const getTrees = (current: IDirectory | ISelection) => {
-  return [
+  const tree = [
     loadFormsMenu(
       current.typeName == '选择'
         ? (current as ISelection).directory.target.directory
         : (current as IDirectory).target.directory,
     ),
   ];
+  return tree;
+};
+
+const getFormId = (current: IDirectory | ISelection) => {
+  return current.typeName == '选择' ? (current as ISelection).metadata.formId : undefined;
+};
+
+const getAttributes = async (formId?: string) => {
+  if (formId) {
+    if (ShareSet.has(formId)) {
+      const form = ShareSet.get(formId) as IForm;
+      return await form.loadAttributes();
+    }
+  }
+  return [];
 };
 
 const SelectionForm: React.FC<IProps> = ({ formType, current, finished }) => {
+  const formRef = useRef<ProFormInstance>();
+  const [formId, setFormId] = useState<string | undefined>(getFormId(current));
   const [treeData, setTreeData] = useState<MenuItem[]>(getTrees(current));
+  const [attrs, setAttrs] = useState<XAttribute[]>([]);
+  useEffect(() => {
+    getAttributes(formId).then((res) => setAttrs(res));
+  }, [formId]);
   let initialValue = {};
   switch (formType) {
     case 'updateSelection':
@@ -39,7 +61,21 @@ const SelectionForm: React.FC<IProps> = ({ formType, current, finished }) => {
       },
     },
     {
-      title: '展示表单',
+      title: '类型',
+      dataIndex: 'type',
+      valueType: 'select',
+      formItemProps: {
+        rules: [{ required: true, message: '名称为必填项' }],
+      },
+      fieldProps: {
+        options: [
+          { value: 'checkbox', label: '多选' },
+          { value: 'radio', label: '单选' },
+        ],
+      },
+    },
+    {
+      title: '列表表单',
       dataIndex: 'formId',
       valueType: 'treeSelect',
       colProps: { span: 24 },
@@ -54,7 +90,6 @@ const SelectionForm: React.FC<IProps> = ({ formType, current, finished }) => {
         },
         showSearch: true,
         loadData: async (node: MenuItem): Promise<void> => {
-          console.log(node.isLeaf);
           if (!node.isLeaf) {
             let forms = await (node.item as IDirectory).loadForms();
             if (forms.length > 0) {
@@ -67,11 +102,29 @@ const SelectionForm: React.FC<IProps> = ({ formType, current, finished }) => {
         treeData: treeData,
       },
     },
+    {
+      title: '主键',
+      dataIndex: 'key',
+      valueType: 'select',
+      colProps: { span: 24 },
+      formItemProps: {
+        rules: [{ required: true, message: '名称为必填项' }],
+      },
+      fieldProps: {
+        options: attrs.map((item) => {
+          return {
+            label: item.name,
+            value: item.property?.info,
+          };
+        }),
+      },
+    },
   ];
   return (
     <SchemaForm<XSelection>
       open
-      title="环境定义"
+      formRef={formRef}
+      title="选择定义"
       width={800}
       columns={columns}
       rowProps={{
@@ -84,7 +137,15 @@ const SelectionForm: React.FC<IProps> = ({ formType, current, finished }) => {
           finished();
         }
       }}
+      onValuesChange={async (changedValues: any) => {
+        const formId = changedValues.formId;
+        if (formId) {
+          setFormId(formId);
+          formRef.current?.setFieldValue('key', undefined);
+        }
+      }}
       onFinish={async (values) => {
+        console.log(values, treeData);
         values.typeName = '选择';
         switch (formType) {
           case 'newSelection': {
@@ -93,7 +154,7 @@ const SelectionForm: React.FC<IProps> = ({ formType, current, finished }) => {
             finished(selection as ISelection);
             break;
           }
-          case 'updateEnvironment': {
+          case 'updateSelection': {
             let selection = current as ISelection;
             await selection.refresh({ ...initialValue, ...values });
             finished(selection);

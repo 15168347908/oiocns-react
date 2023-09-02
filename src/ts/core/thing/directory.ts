@@ -525,11 +525,11 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     return this.configs.get(collName)!;
   }
   async loadAllConfigs(reload: boolean = false): Promise<void> {
-    await Promise.all([
+    await Promise.all(
       Object.entries(config.ConfigColl).map((value) => {
         return this.loadConfigs(value[1], reload);
       }),
-    ]);
+    );
   }
   converting(data: schema.XFileInfo): IFileInfo<schema.XFileInfo> {
     switch (data.typeName) {

@@ -67,7 +67,7 @@ export const Environments: React.FC<IProps> = ({ style }) => {
   }
   return (
     <div style={style}>
-      <Table columns={columns} dataSource={kvs} />;
+      <Table key={'key'} columns={columns} dataSource={kvs} />;
     </div>
   );
 };

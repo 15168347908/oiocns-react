@@ -656,5 +656,7 @@ export type XExecutable = {
 
 // 选择器配置
 export type XSelection = {
+  type: 'checkbox' | 'radio';
+  key: string;
   formId: string;
 } & XFileInfo;

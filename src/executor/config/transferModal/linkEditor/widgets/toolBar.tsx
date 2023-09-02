@@ -1,6 +1,6 @@
 import OioForm from '@/components/Common/FormDesign/OioFormNext';
 import { linkCmd } from '@/ts/base/common/command';
-import { XEntity } from '@/ts/base/schema';
+import { XEntity, XSelection } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity, IForm } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
 import { ConfigColl, ILink } from '@/ts/core/thing/config';
@@ -27,7 +27,7 @@ export const ToolBar: React.FC<ToolProps> = ({
     const style: CSSProperties = { position: 'absolute', left: 10, top: 10 };
     nodes.push(<NodeTools key={'nodeTools'} current={current} style={style} />);
   }
-  nodes.push(<OperateModal key={'formInput'} />);
+  nodes.push(<OperateModal key={'operateModal'} />);
   return <>{nodes}</>;
 };
 
@@ -75,7 +75,12 @@ const NodeTools: React.FC<IProps> = ({ current, style }) => {
 
 interface OpenArgs {
   formId: string;
-  data?: any[];
+  call: Call;
+}
+
+interface SelArgs {
+  selection: XSelection;
+  data: any;
   call: Call;
 }
 
@@ -83,29 +88,31 @@ type Call = (type: string, data?: any, message?: string) => void;
 
 const OperateModal: React.FC<{}> = ({}) => {
   const [open, setOpen] = useState<boolean>();
-  const [form, setForm] = useState<IForm>();
-  const [content, setContent] = useState<ReactNode>(<></>);
-  const formData = useRef<Record<string, any>>({});
+  const [name, setName] = useState<string>();
+  const [center, setCenter] = useState<ReactNode>(<></>);
+  const data = useRef<any>();
   const call = useRef<Call>((_: string) => {});
   useEffect(() => {
     const id = linkCmd.subscribe(async (type, cmd, args) => {
-      if (['form', 'selection'].indexOf(type) == -1) {
-        return;
-      }
-      const openArgs = args as OpenArgs;
-      const form = ShareSet.get(openArgs.formId) as IForm;
-      if (!form) {
-        openArgs.call('错误', undefined, '未获取到表单信息！');
-        return;
-      }
-      await form.loadContent();
-      formData.current = {};
+      const loadForm = async (formId: string, call: Call): Promise<IForm | undefined> => {
+        const form = ShareSet.get(formId) as IForm;
+        if (!form) {
+          call('错误', undefined, '未获取到表单信息！');
+          return;
+        }
+        await form.loadContent();
+        data.current = {};
+        return form;
+      };
       switch (type) {
         case 'form':
           switch (cmd) {
             case 'open':
-              setContent(<InputForm form={form} formData={formData.current} />);
-              setForm(form);
+              const openArgs = args as OpenArgs;
+              const form = await loadForm(openArgs.formId, openArgs.call);
+              if (!form) return;
+              setCenter(<InputForm key={'form'} form={form} data={data} />);
+              setName(form.name);
               setOpen(true);
               call.current = openArgs.call;
               break;
@@ -114,10 +121,24 @@ const OperateModal: React.FC<{}> = ({}) => {
         case 'selection':
           switch (cmd) {
             case 'open':
-              setContent(<SelectionTable form={form} data={openArgs.data ?? []} />);
-              setForm(form);
+              const selArgs = args as SelArgs;
+              const dataSource = selArgs.data ?? [];
+              const form = await loadForm(selArgs.selection.formId, selArgs.call);
+              if (!form) return;
+              console.log(data);
+              setCenter(
+                <Selection
+                  key={'table'}
+                  selection={selArgs.selection}
+                  form={form}
+                  dataSource={dataSource}
+                  data={data}
+                />,
+              );
+              setName(selArgs.selection.name);
               setOpen(true);
-              call.current = openArgs.call;
+              call.current = selArgs.call;
+              break;
           }
       }
     });
@@ -130,9 +151,9 @@ const OperateModal: React.FC<{}> = ({}) => {
       {open && (
         <Modal
           open={open}
-          title={form!.name}
+          title={name}
           onOk={() => {
-            call.current('成功', formData.current);
+            call.current('成功', data.current);
             setOpen(false);
           }}
           onCancel={() => {
@@ -142,7 +163,7 @@ const OperateModal: React.FC<{}> = ({}) => {
           destroyOnClose={true}
           cancelText={'关闭'}
           width={1000}>
-          {content}
+          {center}
         </Modal>
       )}
     </>
@@ -151,10 +172,10 @@ const OperateModal: React.FC<{}> = ({}) => {
 
 interface FormProps {
   form: IForm;
-  formData: Record<string, any>;
+  data: React.MutableRefObject<any>;
 }
 
-const InputForm: React.FC<FormProps> = ({ form, formData }) => {
+const InputForm: React.FC<FormProps> = ({ form, data }) => {
   return (
     <OioForm
       form={form.metadata}
@@ -164,7 +185,7 @@ const InputForm: React.FC<FormProps> = ({ form, formData }) => {
         for (const key in values) {
           for (const field of form!.fields) {
             if (field.id == key) {
-              formData.current[field.code] = values[key];
+              data.current[field.code] = values[key];
             }
           }
         }
@@ -173,23 +194,36 @@ const InputForm: React.FC<FormProps> = ({ form, formData }) => {
   );
 };
 
-interface SelectionProps {
-  form: IForm;
-  data: any[];
+interface SelectionProps extends FormProps {
+  selection: XSelection;
+  dataSource: any[];
 }
 
-const SelectionTable: React.FC<SelectionProps> = ({ form, data }) => {
-  const [selectedKeys, setSelectedKeys] = useState<React.Key[]>();
+const Selection: React.FC<SelectionProps> = ({ selection, dataSource, form, data }) => {
   return (
     <ProTable<any>
-      dataSource={data}
+      dataSource={dataSource}
       search={false}
+      options={false}
       cardProps={{ bodyStyle: { padding: 0 } }}
       scroll={{ y: 300 }}
-      columns={[]}
+      rowKey={selection.key}
+      columns={form.attributes.map((item) => {
+        return { title: item.name, dataIndex: item.property?.info };
+      })}
+      tableAlertRender={false}
       rowSelection={{
-        selectedRowKeys: selectedKeys,
-        onChange: setSelectedKeys,
+        type: selection.type,
+        onChange: (_, rows) => {
+          switch (selection.type) {
+            case 'checkbox':
+              data.current = rows;
+              break;
+            case 'radio':
+              data.current = rows[0];
+              break;
+          }
+        },
       }}
     />
   );
