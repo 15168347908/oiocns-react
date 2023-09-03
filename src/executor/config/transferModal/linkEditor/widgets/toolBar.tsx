@@ -1,17 +1,17 @@
 import OioForm from '@/components/Common/FormDesign/OioFormNext';
+import EntityForm from '@/executor/config/entityForm';
+import OperateModal from '@/executor/config/operateModal';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity, XSelection } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity, IForm } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
-import { CollMap, ConfigColl, ILink } from '@/ts/core/thing/config';
-import { Button, Modal, Space, Tag } from 'antd';
+import { ConfigColl, ILink } from '@/ts/core/thing/config';
+import ProTable from '@ant-design/pro-table';
+import { Button, Dropdown, Modal, Space, Tag } from 'antd';
 import React, { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import Selector from '../../selector';
 import { Retention } from '../index';
 import { Environments } from './environments';
-import ProTable from '@ant-design/pro-table';
-import EntityForm from '@/executor/config/entityForm';
-import OperateModal from '@/executor/config/operateModal';
 
 interface ToolProps {
   current: ILink;
@@ -23,14 +23,14 @@ export const ToolBar: React.FC<ToolProps> = ({
   retention = Retention.Configuration,
 }) => {
   const nodes: ReactNode[] = [];
-  const style: CSSProperties = { position: 'absolute', right: 10, top: 10 };
+  const style: CSSProperties = { position: 'absolute', right: 20, top: 64 };
   nodes.push(<Environments key={'environments'} style={style} />);
   if (retention == Retention.Configuration) {
-    const style: CSSProperties = { position: 'absolute', left: 10, top: 10 };
+    const style: CSSProperties = { position: 'absolute', left: 20, top: 64 };
     nodes.push(<NodeTools key={'nodeTools'} current={current} style={style} />);
   }
   nodes.push(<Operate key={'operateModal'} />);
-  nodes.push(<TransferEntity></TransferEntity>);
+  nodes.push(<TransferEntity key={'transfer'}/>);
   return <>{nodes}</>;
 };
 
@@ -40,7 +40,7 @@ interface IProps {
 }
 
 const NodeTools: React.FC<IProps> = ({ current, style }) => {
-  const onClick = (collName: ConfigColl | 'Form') => {
+  const onClick = () => {
     let selected: IEntity<XEntity>[] = [];
     Modal.confirm({
       icon: <></>,
@@ -50,42 +50,49 @@ const NodeTools: React.FC<IProps> = ({ current, style }) => {
           current={current.directory.target as IBelong}
           onChange={(files) => (selected = files)}
           loadItems={async (current: IDirectory) => {
-            switch (collName) {
-              case 'Form':
-                return await current.loadForms();
-              default:
-                return await current.loadConfigs(collName);
-            }
+            const ans: IEntity<XEntity>[] = [...(await current.loadForms())];
+            await current.loadAllConfigs();
+            const needs: string[] = [
+              ConfigColl.Requests,
+              ConfigColl.Scripts,
+              ConfigColl.Mappings,
+              ConfigColl.Stores,
+              ConfigColl.Selections,
+            ];
+            current.configs.forEach((values, key) => {
+              if (needs.indexOf(key) != -1) {
+                ans.push(...values);
+              }
+            });
+            return ans;
           }}
-          treeNode={(directory) => {
-            const children: ReactNode[] = [];
-            switch (collName) {
-              case 'Form':
-                children.push(<Tag color="blue">表单</Tag>);
-                break;
-              default:
-                const name = CollMap[collName as ConfigColl];
-                children.push(<Tag color="blue">{name}</Tag>);
-                break;
-            }
+          add={(curDir: IDirectory) => {
             return (
-              <Space align="center">
-                {directory.name}
-                {children}
-              </Space>
+              <Dropdown
+                menu={{
+                  items: [
+                    { key: 'newRequest', label: '新增请求' },
+                    { key: 'newExecutable', label: '新增脚本' },
+                    { key: 'newMapping', label: '新增映射' },
+                    { key: 'newSelection', label: '新增选择' },
+                    { key: 'newWorkConfig', label: '新增事项配置' },
+                    { key: 'newThingConfig', label: '新增实体配置' },
+                  ],
+                  onClick: (info) => {
+                    linkCmd.emitter('entity', 'add', { curDir, cmd: info.key });
+                  },
+                }}
+                children={<Button style={{ marginTop: 10 }}>新增</Button>}
+              />
             );
           }}
-          add={(curDir: IDirectory) => (
-            <Button
-              style={{ marginTop: 10 }}
-              onClick={() => linkCmd.emitter('entity', 'add', { curDir, collName })}>
-              新增
-            </Button>
-          )}
           update={(entity: IEntity<XEntity>) => {
             return (
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                {entity.name}
+                <Space>
+                  <Tag color="blue">{entity.typeName}</Tag>
+                  {entity.name}
+                </Space>
                 <Space>
                   <Button
                     size="small"
@@ -97,7 +104,7 @@ const NodeTools: React.FC<IProps> = ({ current, style }) => {
                   <Button
                     size="small"
                     onClick={() => {
-                      linkCmd.emitter('entity', 'update', { entity, collName });
+                      linkCmd.emitter('entity', 'update', { entity });
                     }}>
                     更新
                   </Button>
@@ -114,11 +121,7 @@ const NodeTools: React.FC<IProps> = ({ current, style }) => {
   };
   return (
     <Space style={style}>
-      <Button onClick={() => onClick('Form')}>插入 Form</Button>
-      <Button onClick={() => onClick(ConfigColl.Requests)}>插入 Request</Button>
-      <Button onClick={() => onClick(ConfigColl.Scripts)}>插入 Script</Button>
-      <Button onClick={() => onClick(ConfigColl.Mappings)}>插入 Mapping</Button>
-      <Button onClick={() => onClick(ConfigColl.Selections)}>插入 Selection</Button>
+      <Button onClick={() => onClick()}>插入节点</Button>
       <Button onClick={() => linkCmd.emitter('graph', 'executing')}>执行</Button>
     </Space>
   );
@@ -135,45 +138,32 @@ const TransferEntity = (): ReactNode => {
         case 'entity':
           switch (cmd) {
             case 'add': {
-              const { curDir, collName } = args;
+              const { curDir, cmd } = args;
               setEntity(curDir);
-              switch (collName) {
-                case ConfigColl.Requests:
-                  setCmd('newRequest');
-                  break;
-                case ConfigColl.Scripts:
-                  setCmd('newExecutable');
-                  break;
-                case ConfigColl.Mappings:
-                  setCmd('newMapping');
-                  break;
-                case ConfigColl.Selections:
-                  setCmd('newSelection');
-                  break;
-                case 'Form':
-                  setCmd('newWorkConfig');
-                  break;
-              }
+              setCmd(cmd);
               break;
             }
             case 'update': {
-              const { entity, collName } = args;
+              const { entity } = args;
               setEntity(entity);
-              switch (collName) {
-                case ConfigColl.Requests:
+              switch (entity.typeName) {
+                case '请求':
                   setCmd('updateRequest');
                   break;
-                case ConfigColl.Scripts:
+                case '脚本':
                   setCmd('updateExecutable');
                   break;
-                case ConfigColl.Mappings:
+                case '映射':
                   setCmd('updateMapping');
                   break;
-                case ConfigColl.Selections:
+                case '选择':
                   setCmd('updateSelection');
                   break;
-                case 'Form':
+                case '事项配置':
                   setCmd('updateWorkConfig');
+                  break;
+                case '实体配置':
+                  setCmd('newThingConfig');
                   break;
               }
               break;

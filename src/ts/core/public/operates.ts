@@ -181,6 +181,12 @@ export const directoryOperates = {
     label: '新建映射配置',
     iconType: '映射配置',
   },
+  BatchMapping: {
+    sort: 12,
+    cmd: 'batchMapping',
+    label: '批量映射配置',
+    iconType: '批量映射配置',
+  },
   NewExecutable: {
     sort: 13,
     cmd: 'newExecutable',
@@ -227,10 +233,11 @@ export const transferNew = {
   label: '迁移配置',
   iconType: 'new',
   menus: [
+    directoryOperates.NewLink,
     directoryOperates.NewRequest,
     directoryOperates.BatchRequest,
-    directoryOperates.NewLink,
     directoryOperates.NewMapping,
+    directoryOperates.BatchMapping,
     directoryOperates.NewExecutable,
     directoryOperates.NewEnvironment,
     directoryOperates.NewSelection

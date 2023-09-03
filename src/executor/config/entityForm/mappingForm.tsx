@@ -5,16 +5,16 @@ import { IDirectory, IForm } from '@/ts/core';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React, { useRef, useState } from 'react';
 import { MenuItem, expand, loadFormsMenu } from '../transferModal';
-import { ConfigColl } from '@/ts/core/thing/config';
+import { ConfigColl, IMapping } from '@/ts/core/thing/config';
 
 interface IProps {
   current: IDirectory;
-  finished: () => void;
-  cancel: () => void;
+  finished: (mapping?: IMapping) => void;
 }
 
-const MappingForm: React.FC<IProps> = ({ current, finished, cancel }) => {
-  const [treeData, setTreeData] = useState<MenuItem[]>([loadFormsMenu(current)]);
+const MappingForm: React.FC<IProps> = ({ current, finished }) => {
+  const root = (dir: IDirectory) => dir.target.directory;
+  const [treeData, setTreeData] = useState<MenuItem[]>([loadFormsMenu(root(current))]);
   const source = useRef<IForm>();
   const target = useRef<IForm>();
   const formSelector = (
@@ -38,11 +38,10 @@ const MappingForm: React.FC<IProps> = ({ current, finished, cancel }) => {
         },
         showSearch: true,
         loadData: async (node: MenuItem): Promise<void> => {
-          console.log(node.isLeaf);
           if (!node.isLeaf) {
             let forms = await (node.item as IDirectory).loadForms();
             if (forms.length > 0) {
-              setTreeData([loadFormsMenu(current)]);
+              setTreeData([loadFormsMenu(root(current))]);
             }
           }
         },
@@ -79,7 +78,7 @@ const MappingForm: React.FC<IProps> = ({ current, finished, cancel }) => {
       layoutType="ModalForm"
       onOpenChange={(open: boolean) => {
         if (!open) {
-          cancel();
+          finished();
         }
       }}
       onFinish={async (values) => {
@@ -90,8 +89,8 @@ const MappingForm: React.FC<IProps> = ({ current, finished, cancel }) => {
         values.mappings = [];
         values.name = source.current?.name + '->' + target.current?.name;
         values.typeName = '映射';
-        await current.createConfig(ConfigColl.Mappings, values);
-        finished();
+        let mapping = await current.createConfig(ConfigColl.Mappings, values);
+        finished(mapping as IMapping);
         orgCtrl.changCallback();
       }}
     />

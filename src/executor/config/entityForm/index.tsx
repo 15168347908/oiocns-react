@@ -16,6 +16,7 @@ import ExecutableForm from './executableForm';
 import EnvironmentForm from './environmentForm';
 import RequestForm from './requestForm';
 import SelectionForm from './selectionForm';
+import MappingForm from './mappingForm';
 
 interface IProps {
   cmd: string;
@@ -101,6 +102,8 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
       return (
         <RequestForm formType={cmd} current={entity as any} finished={reloadFinish} />
       );
+    case 'newMapping':
+      return <MappingForm current={entity as any} finished={reloadFinish} />;
     case 'newLink':
     case 'updateLink':
       return <LinkForm formType={cmd} current={entity as any} finished={reloadFinish} />;

@@ -105,7 +105,7 @@ export const Selector = ({
     <>
       <div className={cls.layout}>
         <div className={cls.content}>
-          <div style={{ width: '33%' }} className={cls.left}>
+          <div style={{ width: '30%' }} className={cls.left}>
             <Input
               className={cls.leftInput}
               prefix={<AiOutlineSearch />}
@@ -128,7 +128,7 @@ export const Selector = ({
             </div>
           </div>
 
-          <div className={cls.center}>
+          <div style={{ width: '40%' }} className={cls.center}>
             <Input
               className={cls.centerInput}
               prefix={<AiOutlineSearch />}
@@ -156,7 +156,7 @@ export const Selector = ({
             </div>
           </div>
           {multiple && (
-            <div style={{ width: '33%' }} className={cls.right}>
+            <div style={{ width: '30%' }} className={cls.right}>
               <ShareShowComp departData={selected} deleteFuc={handelDel}></ShareShowComp>
             </div>
           )}

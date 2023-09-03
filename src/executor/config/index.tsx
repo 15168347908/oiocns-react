@@ -73,7 +73,7 @@ const ConfigExecutor: React.FC<IProps> = ({ cmd, args, finished }) => {
       break;
     case "batchRequest":
       return <RequestModal current={args[0]} finished={finished}></RequestModal>;
-    case 'newMapping':
+    case 'batchMapping':
       return <MappingModal current={args[0]} finished={finished}></MappingModal>;
     default:
       if (cmd === 'pull' || cmd.startsWith('join')) {
