@@ -404,8 +404,10 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
         style={{ visibility: visible ? 'visible' : 'hidden' }}
         className={`${cls['flex-row']} ${cls['plus-menu']}`}>
         <PlusCircleOutlined
-          size={24}
-          color={'#9498df'}
+          style={{
+            fontSize: 20,
+            color: '#9498df',
+          }}
           onClick={() => setVisibleOperate(!visibleOperate)}
         />
         <ul
