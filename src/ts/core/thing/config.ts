@@ -34,7 +34,7 @@ export const CollMap = {
   [ConfigColl.Environments]: '环境',
   [ConfigColl.Stores]: '存储',
   [ConfigColl.Selections]: '选择',
-  [ConfigColl.Unknown]: '选择',
+  [ConfigColl.Unknown]: '未知',
 };
 
 export interface IBaseFileInfo<T extends XFileInfo> extends IFileInfo<T> {

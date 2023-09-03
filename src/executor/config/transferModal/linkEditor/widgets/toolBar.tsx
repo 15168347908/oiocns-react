@@ -3,7 +3,7 @@ import EntityForm from '@/executor/config/entityForm';
 import OperateModal from '@/executor/config/operateModal';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity, XFileInfo, XSelection } from '@/ts/base/schema';
-import { IBelong, IDirectory, IEntity, IFileInfo, IForm } from '@/ts/core';
+import { IBelong, IDirectory, IEntity, IFileInfo, IForm, TargetType } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
 import { ConfigColl, ILink } from '@/ts/core/thing/config';
 import ProTable from '@ant-design/pro-table';
@@ -12,6 +12,7 @@ import React, { CSSProperties, ReactNode, useEffect, useRef, useState } from 're
 import Selector from '../../selector';
 import { Retention } from '../index';
 import { Environments } from './environments';
+import { CloseCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 
 interface ToolProps {
   current: ILink;
@@ -105,14 +106,18 @@ export const openSelector = (
           return (
             <Space style={{ padding: 2 }}>
               {node.name}
-              <Button
-                size="small"
+              <PlusCircleOutlined
                 onClick={(e) => {
                   linkCmd.emitter('entity', 'add', { curDir: node, cmd: 'newDir' });
                   e.stopPropagation();
-                }}>
-                创建
-              </Button>
+                }}
+              />
+              <CloseCircleOutlined
+                onClick={(e) => {
+                  linkCmd.emitter('entity', 'delete', { entity: node });
+                  e.stopPropagation();
+                }}
+              />
             </Space>
           );
         }}
@@ -241,7 +246,6 @@ const TransferEntity = (): ReactNode => {
             }
             case 'delete': {
               const { entity } = args;
-              console.log(entity);
               Modal.confirm({
                 title: '确认删除吗',
                 onOk: async () => {

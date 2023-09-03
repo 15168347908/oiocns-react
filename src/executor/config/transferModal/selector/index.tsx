@@ -61,10 +61,11 @@ export const Selector = ({
         case 'selector':
           switch (cmd) {
             case 'refresh':
-              console.log("refresh");
-              const items = await loadItems(curDir!);
               setLeftTree(buildWorkThingTree([current.directory]));
-              setCenterTreeData(items.map((item) => mapping(item)));
+              if (curDir) {
+                const items = await loadItems(curDir);
+                setCenterTreeData(items.map((item) => mapping(item)));
+              }
               break;
           }
           break;
@@ -122,12 +123,11 @@ export const Selector = ({
                 onSelect={onSelect}
                 treeData={leftTree}
                 defaultExpandAll={true}
-                titleRender={(directory) => {
-                  if (treeNode && ShareSet.has(directory.key as string)) {
-                    const select = ShareSet.get(directory.key as string)! as IDirectory;
-                    return treeNode(select, curDir);
+                titleRender={(node) => {
+                  if (treeNode) {
+                    return treeNode((node as any).item, curDir);
                   }
-                  return <>{directory.title}</>;
+                  return <>{node.title}</>;
                 }}
               />
             </div>
@@ -152,8 +152,8 @@ export const Selector = ({
                 onCheck={onCheck}
                 treeData={centerTreeData.filter((i: any) => i.title.includes(filter))}
                 titleRender={(entity) => {
-                  if (update && ShareSet.has(entity.key as string)) {
-                    return update(ShareSet.get(entity.key as string)!);
+                  if (update) {
+                    return update((entity as any).item);
                   }
                   return <>{entity.title}</>;
                 }}

@@ -12,11 +12,11 @@ import {
   LoadingOutlined,
   PauseCircleOutlined,
   StopOutlined,
+  PlusCircleOutlined,
 } from '@ant-design/icons';
 import { Cell, Graph, Model, Node } from '@antv/x6';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { AiFillPlusCircle } from 'react-icons/ai';
 import { MenuItemType } from 'typings/globelType';
 import cls from './../../../index.module.less';
 import { Persistence, Temping } from './graph';
@@ -235,10 +235,28 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   const [nodeStatus, setNodeStatus] = useState<ExecStatus>(ExecStatus.Stop);
   const [visible, setVisible] = useState<boolean>(false);
   const [visibleOperate, setVisibleOperate] = useState<boolean>(false);
-  const [visibleClosing, setVisibleClosing] = useState<boolean>(false);
+  const [visibleClosing, setVisibleClosing] = useState<boolean>(true);
   const entity = getShareEntity(node);
-  if (!entity) {
+
+  // 删除标记
+  const Remove: React.FC<{}> = () => {
+    if (visibleClosing) {
+      const style = { color: '#9498df', fontSize: 12 };
+      return (
+        <CloseCircleOutlined
+          style={style}
+          className={cls['remove']}
+          onClick={() => {
+            node.remove();
+          }}
+        />
+      );
+    }
     return <></>;
+  };
+
+  if (!entity) {
+    return <Remove></Remove>;
   }
 
   useEffect(() => {
@@ -385,7 +403,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
       <div
         style={{ visibility: visible ? 'visible' : 'hidden' }}
         className={`${cls['flex-row']} ${cls['plus-menu']}`}>
-        <AiFillPlusCircle
+        <PlusCircleOutlined
           size={24}
           color={'#9498df'}
           onClick={() => setVisibleOperate(!visibleOperate)}
@@ -453,23 +471,6 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
         </div>
       </div>
     );
-  };
-
-  // 删除标记
-  const Remove: React.FC<{}> = () => {
-    if (visibleClosing) {
-      const style = { color: '#9498df', fontSize: 12 };
-      return (
-        <CloseCircleOutlined
-          style={style}
-          className={cls['remove']}
-          onClick={() => {
-            node.remove();
-          }}
-        />
-      );
-    }
-    return <></>;
   };
 
   // 结构
