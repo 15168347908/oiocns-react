@@ -41,8 +41,7 @@ const LinkEditor: React.FC<IProps> = ({ current, retention }) => {
     } else {
       const graph = createGraph(ref, current);
       const id = linkCmd.subscribe((type: string, cmd: string, args: any) => {
-        if (type != 'main') return;
-        console.log(type, '接收到消息啦', linkCmd);
+        if (type != 'graph') return;
         handler(current, graph, cmd, args);
       });
       const update = () => {
@@ -82,7 +81,7 @@ const LinkEditor: React.FC<IProps> = ({ current, retention }) => {
  */
 const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
   switch (cmd) {
-    case 'insertEntity':
+    case 'insertNode':
       let entities: IEntity<XEntity>[] = args;
       let [x, y, offset] = [0, 0, 20];
       for (let request of entities) {
@@ -128,13 +127,11 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
     case 'executing':
       const nodes = graph.getNodes();
 
-      // 使用临时存储插件创建环境
       const temping = graph.getPlugin<Temping>(Persistence);
       temping?.createEnv();
-      linkCmd.emitter('clearStatus', 'nodes');
+      linkCmd.emitter('node', 'clearStatus');
       linkCmd.emitter('environments', 'refresh', graph);
 
-      // 遍历根节点
       for (const node of nodes) {
         const entity = getShareEntity(node);
         if (entity && graph.isRootNode(node)) {

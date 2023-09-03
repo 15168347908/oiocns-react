@@ -26,6 +26,17 @@ export enum ConfigColl {
   Unknown = 'unknown',
 }
 
+export const CollMap = {
+  [ConfigColl.Requests]: '请求',
+  [ConfigColl.RequestLinks]: '链接',
+  [ConfigColl.Scripts]: '脚本',
+  [ConfigColl.Mappings]: '映射',
+  [ConfigColl.Environments]: '环境',
+  [ConfigColl.Stores]: '存储',
+  [ConfigColl.Selections]: '选择',
+  [ConfigColl.Unknown]: '未知',
+};
+
 export interface IBaseFileInfo<T extends XFileInfo> extends IFileInfo<T> {
   refresh(data: T): void;
 }

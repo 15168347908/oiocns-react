@@ -3,13 +3,15 @@ import { linkCmd } from '@/ts/base/common/command';
 import { XEntity, XSelection } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity, IForm } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
-import { ConfigColl, ILink } from '@/ts/core/thing/config';
-import { Button, Modal, Space } from 'antd';
+import { CollMap, ConfigColl, ILink } from '@/ts/core/thing/config';
+import { Button, Modal, Space, Tag } from 'antd';
 import React, { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import Selector from '../../selector';
 import { Retention } from '../index';
 import { Environments } from './environments';
 import ProTable from '@ant-design/pro-table';
+import EntityForm from '@/executor/config/entityForm';
+import OperateModal from '@/executor/config/operateModal';
 
 interface ToolProps {
   current: ILink;
@@ -27,7 +29,8 @@ export const ToolBar: React.FC<ToolProps> = ({
     const style: CSSProperties = { position: 'absolute', left: 10, top: 10 };
     nodes.push(<NodeTools key={'nodeTools'} current={current} style={style} />);
   }
-  nodes.push(<OperateModal key={'operateModal'} />);
+  nodes.push(<Operate key={'operateModal'} />);
+  nodes.push(<TransferEntity></TransferEntity>);
   return <>{nodes}</>;
 };
 
@@ -37,11 +40,11 @@ interface IProps {
 }
 
 const NodeTools: React.FC<IProps> = ({ current, style }) => {
-  const onClick = (collName: string) => {
+  const onClick = (collName: ConfigColl | 'Form') => {
     let selected: IEntity<XEntity>[] = [];
     Modal.confirm({
       icon: <></>,
-      width: 800,
+      width: 1000,
       content: (
         <Selector
           current={current.directory.target as IBelong}
@@ -54,10 +57,58 @@ const NodeTools: React.FC<IProps> = ({ current, style }) => {
                 return await current.loadConfigs(collName);
             }
           }}
+          treeNode={(directory) => {
+            const children: ReactNode[] = [];
+            switch (collName) {
+              case 'Form':
+                children.push(<Tag color="blue">表单</Tag>);
+                break;
+              default:
+                const name = CollMap[collName as ConfigColl];
+                children.push(<Tag color="blue">{name}</Tag>);
+                break;
+            }
+            return (
+              <Space align="center">
+                {directory.name}
+                {children}
+              </Space>
+            );
+          }}
+          add={(curDir: IDirectory) => (
+            <Button
+              style={{ marginTop: 10 }}
+              onClick={() => linkCmd.emitter('entity', 'add', { curDir, collName })}>
+              新增
+            </Button>
+          )}
+          update={(entity: IEntity<XEntity>) => {
+            return (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                {entity.name}
+                <Space>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      linkCmd.emitter('entity', 'open', { entity });
+                    }}>
+                    编辑
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      linkCmd.emitter('entity', 'update', { entity, collName });
+                    }}>
+                    更新
+                  </Button>
+                </Space>
+              </div>
+            );
+          }}
         />
       ),
       onOk: () => {
-        linkCmd.emitter('main', 'insertEntity', selected);
+        linkCmd.emitter('graph', 'insertNode', selected);
       },
     });
   };
@@ -68,8 +119,93 @@ const NodeTools: React.FC<IProps> = ({ current, style }) => {
       <Button onClick={() => onClick(ConfigColl.Scripts)}>插入 Script</Button>
       <Button onClick={() => onClick(ConfigColl.Mappings)}>插入 Mapping</Button>
       <Button onClick={() => onClick(ConfigColl.Selections)}>插入 Selection</Button>
-      <Button onClick={() => linkCmd.emitter('main', 'executing')}>执行</Button>
+      <Button onClick={() => linkCmd.emitter('graph', 'executing')}>执行</Button>
     </Space>
+  );
+};
+
+const TransferEntity = (): ReactNode => {
+  const [entity, setEntity] = useState<IEntity<XEntity>>();
+  const [cmd, setCmd] = useState<string>('');
+  useEffect(() => {
+    const id = linkCmd.subscribe((type, cmd, args) => {
+      console.log(type, cmd, args);
+      if (type != 'entity') return;
+      switch (type) {
+        case 'entity':
+          switch (cmd) {
+            case 'add': {
+              const { curDir, collName } = args;
+              setEntity(curDir);
+              switch (collName) {
+                case ConfigColl.Requests:
+                  setCmd('newRequest');
+                  break;
+                case ConfigColl.Scripts:
+                  setCmd('newExecutable');
+                  break;
+                case ConfigColl.Mappings:
+                  setCmd('newMapping');
+                  break;
+                case ConfigColl.Selections:
+                  setCmd('newSelection');
+                  break;
+                case 'Form':
+                  setCmd('newWorkConfig');
+                  break;
+              }
+              break;
+            }
+            case 'update': {
+              const { entity, collName } = args;
+              setEntity(entity);
+              switch (collName) {
+                case ConfigColl.Requests:
+                  setCmd('updateRequest');
+                  break;
+                case ConfigColl.Scripts:
+                  setCmd('updateExecutable');
+                  break;
+                case ConfigColl.Mappings:
+                  setCmd('updateMapping');
+                  break;
+                case ConfigColl.Selections:
+                  setCmd('updateSelection');
+                  break;
+                case 'Form':
+                  setCmd('updateWorkConfig');
+                  break;
+              }
+              break;
+            }
+            case 'open': {
+              const { entity } = args;
+              setEntity(entity);
+              setCmd('open');
+              break;
+            }
+          }
+          break;
+      }
+    });
+    return () => {
+      linkCmd.unsubscribe(id);
+    };
+  });
+  const finished = () => {
+    linkCmd.emitter('selector', 'refresh');
+    setEntity(undefined);
+    setCmd('');
+  };
+  return (
+    <>
+      {entity && (cmd.startsWith('new') || cmd.startsWith('update')) && (
+        <EntityForm cmd={cmd} entity={entity} finished={finished} />
+      )}
+      {entity && cmd == 'open' && (
+        <OperateModal cmd={cmd} entity={entity} finished={finished} />
+      )}
+    </>
   );
 };
 
@@ -86,7 +222,7 @@ interface SelArgs {
 
 type Call = (type: string, data?: any, message?: string) => void;
 
-const OperateModal: React.FC<{}> = ({}) => {
+const Operate: React.FC<{}> = ({}) => {
   const [open, setOpen] = useState<boolean>();
   const [name, setName] = useState<string>();
   const [center, setCenter] = useState<ReactNode>(<></>);
@@ -105,7 +241,7 @@ const OperateModal: React.FC<{}> = ({}) => {
         return form;
       };
       switch (type) {
-        case 'form':
+        case 'input':
           switch (cmd) {
             case 'open':
               const openArgs = args as OpenArgs;
@@ -125,7 +261,6 @@ const OperateModal: React.FC<{}> = ({}) => {
               const dataSource = selArgs.data ?? [];
               const form = await loadForm(selArgs.selection.formId, selArgs.call);
               if (!form) return;
-              console.log(data);
               setCenter(
                 <Selection
                   key={'table'}

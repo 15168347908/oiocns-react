@@ -250,16 +250,21 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
     const id = linkCmd.subscribe(async (type, cmd, args) => {
       switch (type) {
         case 'node':
-          if (args.node.id == node.id) {
-            switch (cmd) {
-              case 'selected':
+          switch (cmd) {
+            case 'selected':
+              if (args.node.id == node.id) {
                 setVisible(true);
-                break;
-              case 'unselected':
+              }
+              break;
+            case 'unselected':
+              if (args.node.id == node.id) {
                 setVisible(false);
                 setVisibleOperate(false);
-                break;
-            }
+              }
+              break;
+            case 'clearStatus':
+              setNodeStatus(ExecStatus.Stop);
+              break;
           }
           break;
         case 'ergodic':
@@ -335,7 +340,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               }
               case '实体配置':
               case '事项配置': {
-                linkCmd.emitter('form', 'open', {
+                linkCmd.emitter('input', 'open', {
                   formId: entity.id,
                   call: formCall,
                 });
@@ -371,10 +376,6 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             setNodeStatus(ExecStatus.Error);
           }
           break;
-        case 'clearStatus': {
-          setNodeStatus(ExecStatus.Stop);
-          break;
-        }
       }
     });
     return () => {
@@ -408,7 +409,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                     case '脚本':
                     case '映射':
                     case '选择':
-                      linkCmd.emitter('main', 'openSelector', [node, item]);
+                      linkCmd.emitter('graph', 'openSelector', [node, item]);
                       break;
                   }
                 }}>
