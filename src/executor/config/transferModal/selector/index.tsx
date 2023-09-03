@@ -15,7 +15,7 @@ interface IExtends<X extends XEntity> {
   onChange: (files: IEntity<X>[]) => void;
   onOk?: () => void;
   loadItems: (current: IDirectory) => Promise<IEntity<XEntity>[]>;
-  treeNode?: (directory: IDirectory) => ReactNode;
+  treeNode?: (node: IDirectory, cur?: IDirectory) => ReactNode;
   add?: (directory: IDirectory) => ReactNode;
   update?: (entity: IEntity<XEntity>) => ReactNode;
 }
@@ -120,7 +120,8 @@ export const Selector = ({
                 defaultExpandAll={true}
                 titleRender={(directory) => {
                   if (treeNode && ShareSet.has(directory.key as string)) {
-                    return treeNode(ShareSet.get(directory.key as string)! as IDirectory);
+                    const select = ShareSet.get(directory.key as string)! as IDirectory;
+                    return treeNode(select, curDir);
                   }
                   return <>{directory.title}</>;
                 }}

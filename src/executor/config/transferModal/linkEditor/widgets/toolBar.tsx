@@ -30,7 +30,7 @@ export const ToolBar: React.FC<ToolProps> = ({
     nodes.push(<NodeTools key={'nodeTools'} current={current} style={style} />);
   }
   nodes.push(<Operate key={'operateModal'} />);
-  nodes.push(<TransferEntity key={'transfer'}/>);
+  nodes.push(<TransferEntity key={'transfer'} />);
   return <>{nodes}</>;
 };
 
@@ -65,6 +65,14 @@ const NodeTools: React.FC<IProps> = ({ current, style }) => {
               }
             });
             return ans;
+          }}
+          treeNode={(node, curDir) => {
+            return (
+              <Space>
+                {node.name}
+                {node.id == curDir?.id && <Tag color="blue">当前</Tag>}
+              </Space>
+            );
           }}
           add={(curDir: IDirectory) => {
             return (
