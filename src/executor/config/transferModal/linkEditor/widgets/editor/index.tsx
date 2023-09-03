@@ -2,7 +2,7 @@ import { sleep } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity } from '@/ts/core';
-import { ILink } from '@/ts/core/thing/config';
+import { ConfigColl, ILink } from '@/ts/core/thing/config';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Graph, Node } from '@antv/x6';
 import { Modal } from 'antd';
@@ -10,7 +10,7 @@ import React, { createRef, useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
 import { Retention } from '../..';
 import Selector from '../../../selector';
-import { ToolBar } from '../toolBar';
+import { ToolBar, openSelector } from '../toolBar';
 import cls from './../../index.module.less';
 import { Persistence, Temping, createGraph } from './widgets/graph';
 import { addNode, createDownstream, getShareEntity } from './widgets/node';
@@ -51,8 +51,28 @@ const LinkEditor: React.FC<IProps> = ({ current, retention }) => {
       graph.on('node:added', update);
       graph.on('node:moved', update);
       graph.on('node:removed', update);
+      graph.on('edge:added', update);
+      graph.on('edge:moved', update);
+      graph.on('edge:removed', update);
       graph.on('node:selected', (args) => linkCmd.emitter('node', 'selected', args));
       graph.on('node:unselected', (args) => linkCmd.emitter('node', 'unselected', args));
+      graph.on('edge:mouseenter', ({ cell }) => {
+        cell.addTools([
+          { name: 'vertices' },
+          {
+            name: 'button-remove',
+            args: { distance: 20 },
+          },
+        ]);
+      });
+      graph.on('edge:mouseleave', ({ cell }) => {
+        if (cell.hasTool('button-remove')) {
+          cell.removeTool('button-remove');
+        }
+        if (cell.hasTool('vertices')) {
+          cell.removeTool('vertices');
+        }
+      });
       return () => {
         graph.off();
         linkCmd.unsubscribe(id);
@@ -102,26 +122,17 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
       const menu = args[1] as MenuItemType;
       switch (menu.itemType) {
         default:
-          let selected: IEntity<XEntity>[] = [];
-          Modal.confirm({
-            icon: <></>,
-            width: 800,
-            content: (
-              <Selector
-                current={current.directory.target as IBelong}
-                onChange={(files) => (selected = files)}
-                loadItems={async (current: IDirectory) => {
-                  return await current.loadConfigs(menu.key);
-                }}
-              />
-            ),
-            onOk: () => {
+          const belong = current.directory.target as IBelong;
+          openSelector(
+            belong,
+            (selected) => {
               for (const select of selected) {
                 createDownstream(graph, node, select.id);
               }
               linkCmd.emitter('node', 'unselected', { node: node });
             },
-          });
+            menu.key as ConfigColl,
+          );
       }
       break;
     case 'executing':
@@ -138,6 +149,9 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
           linkCmd.emitter('ergodic', entity.typeName, { nodeId: node.id });
         }
       }
+      break;
+    case 'center':
+      graph.centerContent();
       break;
   }
 };

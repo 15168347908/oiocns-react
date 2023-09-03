@@ -21,6 +21,7 @@ import { MenuItemType } from 'typings/globelType';
 import cls from './../../../index.module.less';
 import { Persistence, Temping } from './graph';
 import { AxiosError } from 'axios';
+import { generateEdge } from './edge';
 
 export enum ExecStatus {
   Stop = 'stop',
@@ -114,7 +115,7 @@ export const addNode = (props: NodeOptions & DataNode): Node<Node.Properties> =>
  */
 export const createEdge = (source: string, target: string, graph: Graph) => {
   const edge = {
-    shape: 'data-processing-curve',
+    ...generateEdge(),
     source: {
       cell: source,
       port: `${source}-out`,
@@ -122,12 +123,6 @@ export const createEdge = (source: string, target: string, graph: Graph) => {
     target: {
       cell: target,
       port: `${target}-in`,
-    },
-    zIndex: -1,
-    attrs: {
-      line: {
-        strokeDasharray: '5 5',
-      },
     },
   };
   if (graph) {
@@ -482,7 +477,8 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
     <div
       className={`${cls['flex-row']} ${cls['container']} ${cls['border']}`}
       onMouseEnter={() => setVisibleClosing(true)}
-      onMouseLeave={() => setVisibleClosing(false)}>
+      onMouseLeave={() => setVisibleClosing(false)}
+      onDoubleClick={() => linkCmd.emitter('entity', 'update', { entity })}>
       <Remove></Remove>
       <Tag></Tag>
       <Status></Status>

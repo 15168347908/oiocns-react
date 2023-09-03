@@ -24,6 +24,11 @@ export function createProxy() {
       changeOrigin: true, // 是否允许跨域
       ws: true,
     },
+    '/jx': {
+      target: 'https://hzjx-gzzcy-saber-assetstore-ssl.zcyonline.hzjuxiu.com',
+      changeOrigin: true, // 是否允许跨域
+      rewrite: (path) => path.replace(/^\/jx/, ''),
+    }
   };
   return ProxyList;
 }

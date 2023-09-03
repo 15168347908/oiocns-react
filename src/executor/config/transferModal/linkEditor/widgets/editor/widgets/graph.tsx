@@ -1,11 +1,11 @@
+import { generateUuid } from '@/ts/base/common';
 import { ILink } from '@/ts/core/thing/config';
 import { Basecoat, Graph, Path, Platform } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
 import { register } from '@antv/x6-react-shape';
-import { edgeRegistering } from './edge';
-import { ProcessingNode } from './node';
 import React from 'react';
-import { generateUuid } from '@/ts/base/common';
+import { generateEdge } from './edge';
+import { ProcessingNode } from './node';
 
 /**
  * 创建画布
@@ -50,15 +50,7 @@ export const createGraph = (ref: React.RefObject<HTMLDivElement>, link: ILink): 
         },
       },
       createEdge() {
-        return graph.createEdge({
-          shape: 'data-processing-curve',
-          attrs: {
-            line: {
-              strokeDasharray: '5 5',
-            },
-          },
-          zIndex: -1,
-        });
+        return graph.createEdge(generateEdge());
       },
       validateConnection({ sourceMagnet, targetMagnet }) {
         if (sourceMagnet?.getAttribute('port-group') === 'in') {
@@ -84,7 +76,6 @@ export const createGraph = (ref: React.RefObject<HTMLDivElement>, link: ILink): 
  * 注册自定义组件
  */
 const registering = () => {
-  edgeRegistering();
   Graph.registerConnector(
     'curveConnector',
     (sourcePoint, targetPoint) => {
@@ -161,7 +152,9 @@ const using = (graph: Graph) => {
       rubberband: true,
       movable: true,
       showNodeSelectionBox: true,
+      showEdgeSelectionBox: true,
       pointerEvents: 'none',
+      modifiers: ['shift']
     }),
   );
   graph.use(new Temping());

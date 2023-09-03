@@ -8,7 +8,6 @@ import { AiOutlineSearch } from 'react-icons/ai';
 import cls from './index.module.css';
 import { ShareSet } from '@/ts/core/public/entity';
 import { linkCmd } from '@/ts/base/common/command';
-
 interface IExtends<X extends XEntity> {
   current: IBelong;
   multiple?: boolean;
@@ -29,11 +28,6 @@ export const Selector = ({
   add,
   update,
 }: IExtends<XEntity>) => {
-  const [filter, setFilter] = useState<string>('');
-  const [curDir, setCurDir] = useState<IDirectory>();
-  const [centerTreeData, setCenterTreeData] = useState<any>([]);
-  const [centerCheckedKeys, setCenterCheckedKeys] = useState<Key[]>([]);
-  const [selected, setSelected] = useState<IEntity<XEntity>[]>([]);
   const mapping = (item: any, children: any[] = []) => {
     return {
       key: item.id,
@@ -44,13 +38,32 @@ export const Selector = ({
     };
   };
 
+  const buildWorkThingTree = (directory: IDirectory[]): any[] => {
+    const result: any[] = [];
+    for (const item of directory) {
+      result.push(mapping(item, buildWorkThingTree(item.children)));
+    }
+    return result;
+  };
+
+  const [filter, setFilter] = useState<string>('');
+  const [curDir, setCurDir] = useState<IDirectory>();
+  const [leftTree, setLeftTree] = useState<any[]>(
+    buildWorkThingTree([current.directory]),
+  );
+  const [centerTreeData, setCenterTreeData] = useState<any>([]);
+  const [centerCheckedKeys, setCenterCheckedKeys] = useState<Key[]>([]);
+  const [selected, setSelected] = useState<IEntity<XEntity>[]>([]);
+
   useEffect(() => {
     const id = linkCmd.subscribe(async (type, cmd) => {
       switch (type) {
         case 'selector':
           switch (cmd) {
             case 'refresh':
+              console.log("refresh");
               const items = await loadItems(curDir!);
+              setLeftTree(buildWorkThingTree([current.directory]));
               setCenterTreeData(items.map((item) => mapping(item)));
               break;
           }
@@ -86,14 +99,6 @@ export const Selector = ({
     }
   };
 
-  const buildWorkThingTree = (directory: IDirectory[]): any[] => {
-    const result: any[] = [];
-    for (const item of directory) {
-      result.push(mapping(item, buildWorkThingTree(item.children)));
-    }
-    return result;
-  };
-
   const handelDel = (id: string) => {
     setCenterCheckedKeys(centerCheckedKeys.filter((data) => data != id));
     let ans = selected.filter((i) => i.id != id);
@@ -105,7 +110,7 @@ export const Selector = ({
     <>
       <div className={cls.layout}>
         <div className={cls.content}>
-          <div style={{ width: '30%' }} className={cls.left}>
+          <div style={{ width: '25%' }} className={cls.left}>
             <Input
               className={cls.leftInput}
               prefix={<AiOutlineSearch />}
@@ -113,10 +118,9 @@ export const Selector = ({
             />
             <div className={cls.leftContent}>
               <Tree
-                checkable={false}
                 autoExpandParent={true}
                 onSelect={onSelect}
-                treeData={buildWorkThingTree([current.directory])}
+                treeData={leftTree}
                 defaultExpandAll={true}
                 titleRender={(directory) => {
                   if (treeNode && ShareSet.has(directory.key as string)) {
@@ -129,7 +133,7 @@ export const Selector = ({
             </div>
           </div>
 
-          <div style={{ width: '40%' }} className={cls.center}>
+          <div style={{ width: '50%' }} className={cls.center}>
             <Input
               className={cls.centerInput}
               prefix={<AiOutlineSearch />}
@@ -157,7 +161,7 @@ export const Selector = ({
             </div>
           </div>
           {multiple && (
-            <div style={{ width: '30%' }} className={cls.right}>
+            <div style={{ width: '25%' }} className={cls.right}>
               <ShareShowComp departData={selected} deleteFuc={handelDel}></ShareShowComp>
             </div>
           )}

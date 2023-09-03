@@ -34,7 +34,7 @@ export const CollMap = {
   [ConfigColl.Environments]: '环境',
   [ConfigColl.Stores]: '存储',
   [ConfigColl.Selections]: '选择',
-  [ConfigColl.Unknown]: '未知',
+  [ConfigColl.Unknown]: '选择',
 };
 
 export interface IBaseFileInfo<T extends XFileInfo> extends IFileInfo<T> {
@@ -69,7 +69,7 @@ export class BaseFileInfo<T extends XFileInfo>
     });
     const coll = this.directory.configs.get(this.collName);
     if (res.success && coll) {
-      const index = coll.findIndex((item) => (item.key = this.key));
+      const index = coll.findIndex((item) => (item.key == this.key));
       coll.splice(index, 1);
     }
     return res.success;

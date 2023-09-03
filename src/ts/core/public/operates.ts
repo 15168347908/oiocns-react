@@ -170,7 +170,7 @@ export const directoryOperates = {
     iconType: '批量请求配置',
   },
   NewLink: {
-    sort: 11,
+    sort: 9,
     cmd: 'newLink',
     label: '新建链接配置',
     iconType: '链接配置',

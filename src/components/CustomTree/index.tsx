@@ -182,7 +182,7 @@ const CustomTree: React.FC<TreeType> = ({
       </div>
     );
   };
-
+  console.log(rest)
   return (
     <div className={cls.customTreeWrap}>
       {title && typeof title === 'string' ? (

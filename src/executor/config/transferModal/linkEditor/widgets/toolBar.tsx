@@ -2,8 +2,8 @@ import OioForm from '@/components/Common/FormDesign/OioFormNext';
 import EntityForm from '@/executor/config/entityForm';
 import OperateModal from '@/executor/config/operateModal';
 import { linkCmd } from '@/ts/base/common/command';
-import { XEntity, XSelection } from '@/ts/base/schema';
-import { IBelong, IDirectory, IEntity, IForm } from '@/ts/core';
+import { XEntity, XFileInfo, XSelection } from '@/ts/base/schema';
+import { IBelong, IDirectory, IEntity, IFileInfo, IForm } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
 import { ConfigColl, ILink } from '@/ts/core/thing/config';
 import ProTable from '@ant-design/pro-table';
@@ -40,99 +40,148 @@ interface IProps {
 }
 
 const NodeTools: React.FC<IProps> = ({ current, style }) => {
-  const onClick = () => {
-    let selected: IEntity<XEntity>[] = [];
-    Modal.confirm({
-      icon: <></>,
-      width: 1000,
-      content: (
-        <Selector
-          current={current.directory.target as IBelong}
-          onChange={(files) => (selected = files)}
-          loadItems={async (current: IDirectory) => {
-            const ans: IEntity<XEntity>[] = [...(await current.loadForms())];
-            await current.loadAllConfigs();
-            const needs: string[] = [
+  const belong = current.directory.target as IBelong;
+  return (
+    <Space style={style}>
+      <Button
+        onClick={() =>
+          openSelector(belong, (selected) => {
+            linkCmd.emitter('graph', 'insertNode', selected);
+          })
+        }>
+        插入节点
+      </Button>
+      <Button onClick={() => linkCmd.emitter('graph', 'center')}>中心</Button>
+      <Button onClick={() => linkCmd.emitter('graph', 'executing')}>执行</Button>
+    </Space>
+  );
+};
+
+export const openSelector = (
+  current: IBelong,
+  finished: (selected: IEntity<XEntity>[]) => void,
+  typeName?: ConfigColl | 'Form',
+) => {
+  let selected: IEntity<XEntity>[] = [];
+  Modal.confirm({
+    icon: <></>,
+    width: 1000,
+    content: (
+      <Selector
+        current={current}
+        onChange={(entities) => (selected = entities)}
+        loadItems={async (current: IDirectory) => {
+          const ans: IEntity<XEntity>[] = [];
+          const needs: string[] = [];
+          const forms = await current.loadForms();
+          await current.loadAllConfigs();
+          if (typeName) {
+            switch (typeName) {
+              case 'Form':
+                ans.push(...forms);
+                break;
+              default:
+                needs.push(typeName);
+                break;
+            }
+          } else {
+            ans.push(...forms);
+            needs.push(
               ConfigColl.Requests,
               ConfigColl.Scripts,
               ConfigColl.Mappings,
               ConfigColl.Stores,
               ConfigColl.Selections,
-            ];
-            current.configs.forEach((values, key) => {
-              if (needs.indexOf(key) != -1) {
-                ans.push(...values);
-              }
-            });
-            return ans;
-          }}
-          treeNode={(node, curDir) => {
-            return (
+            );
+          }
+          current.configs.forEach((values, key) => {
+            if (needs.indexOf(key) != -1) {
+              ans.push(...values);
+            }
+          });
+          return ans;
+        }}
+        treeNode={(node) => {
+          return (
+            <Space style={{ padding: 2 }}>
+              {node.name}
+              <Button
+                size="small"
+                onClick={(e) => {
+                  linkCmd.emitter('entity', 'add', { curDir: node, cmd: 'newDir' });
+                  e.stopPropagation();
+                }}>
+                创建
+              </Button>
+            </Space>
+          );
+        }}
+        add={(curDir: IDirectory) => {
+          return (
+            <Dropdown
+              menu={{
+                items: [
+                  { key: 'newRequest', label: '新增请求' },
+                  { key: 'newExecutable', label: '新增脚本' },
+                  { key: 'newMapping', label: '新增映射' },
+                  { key: 'newSelection', label: '新增选择' },
+                  { key: 'newWorkConfig', label: '新增事项配置' },
+                  { key: 'newThingConfig', label: '新增实体配置' },
+                ],
+                onClick: (info) => {
+                  linkCmd.emitter('entity', 'add', { curDir, cmd: info.key });
+                },
+              }}
+              children={<Button style={{ marginTop: 10 }}>新增</Button>}
+            />
+          );
+        }}
+        update={(entity: IEntity<XEntity>) => {
+          return (
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <Space>
-                {node.name}
-                {node.id == curDir?.id && <Tag color="blue">当前</Tag>}
+                <Tag color="blue">{entity.typeName}</Tag>
+                {entity.name}
               </Space>
-            );
-          }}
-          add={(curDir: IDirectory) => {
-            return (
-              <Dropdown
-                menu={{
-                  items: [
-                    { key: 'newRequest', label: '新增请求' },
-                    { key: 'newExecutable', label: '新增脚本' },
-                    { key: 'newMapping', label: '新增映射' },
-                    { key: 'newSelection', label: '新增选择' },
-                    { key: 'newWorkConfig', label: '新增事项配置' },
-                    { key: 'newThingConfig', label: '新增实体配置' },
-                  ],
-                  onClick: (info) => {
-                    linkCmd.emitter('entity', 'add', { curDir, cmd: info.key });
-                  },
-                }}
-                children={<Button style={{ marginTop: 10 }}>新增</Button>}
-              />
-            );
-          }}
-          update={(entity: IEntity<XEntity>) => {
-            return (
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Space>
-                  <Tag color="blue">{entity.typeName}</Tag>
-                  {entity.name}
-                </Space>
-                <Space>
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      linkCmd.emitter('entity', 'open', { entity });
-                    }}>
-                    编辑
-                  </Button>
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      linkCmd.emitter('entity', 'update', { entity });
-                    }}>
-                    更新
-                  </Button>
-                </Space>
-              </div>
-            );
-          }}
-        />
-      ),
-      onOk: () => {
-        linkCmd.emitter('graph', 'insertNode', selected);
-      },
-    });
-  };
-  return (
-    <Space style={style}>
-      <Button onClick={() => onClick()}>插入节点</Button>
-      <Button onClick={() => linkCmd.emitter('graph', 'executing')}>执行</Button>
-    </Space>
-  );
+              <Space>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    linkCmd.emitter('entity', 'open', { entity });
+                  }}>
+                  编辑
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    linkCmd.emitter('entity', 'copy', { entity });
+                  }}>
+                  复制
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    linkCmd.emitter('entity', 'update', { entity });
+                  }}>
+                  更新
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    linkCmd.emitter('entity', 'delete', { entity });
+                  }}>
+                  删除
+                </Button>
+              </Space>
+            </div>
+          );
+        }}
+      />
+    ),
+    onOk: () => {
+      finished(selected);
+    },
+  });
 };
 
 const TransferEntity = (): ReactNode => {
@@ -174,6 +223,33 @@ const TransferEntity = (): ReactNode => {
                   setCmd('newThingConfig');
                   break;
               }
+              break;
+            }
+            case 'copy': {
+              const { entity } = args;
+              Modal.confirm({
+                title: '确认复制吗',
+                onOk: async () => {
+                  const file = entity as IFileInfo<XFileInfo>;
+                  await file.directory.createConfig(file.metadata.collName, {
+                    ...file.metadata,
+                  });
+                  finished();
+                },
+              });
+              break;
+            }
+            case 'delete': {
+              const { entity } = args;
+              console.log(entity);
+              Modal.confirm({
+                title: '确认删除吗',
+                onOk: async () => {
+                  const file = entity as IFileInfo<XFileInfo>;
+                  await file.delete();
+                  finished();
+                },
+              });
               break;
             }
             case 'open': {
