@@ -27,7 +27,7 @@ export enum ConfigColl {
   Unknown = 'unknown',
 }
 
-export const CollMap = {
+export const CollMap: { [key: string]: string } = {
   [ConfigColl.Requests]: '请求',
   [ConfigColl.RequestLinks]: '链接',
   [ConfigColl.Scripts]: '脚本',

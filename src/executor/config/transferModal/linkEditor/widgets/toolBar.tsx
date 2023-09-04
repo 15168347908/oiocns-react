@@ -5,7 +5,7 @@ import { linkCmd } from '@/ts/base/common/command';
 import { XEntity, XFileInfo, XSelection } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity, IFileInfo, IForm } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
-import { ConfigColl, ILink } from '@/ts/core/thing/config';
+import { CollMap, ConfigColl, ILink } from '@/ts/core/thing/config';
 import { CloseCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import ProTable from '@ant-design/pro-table';
 import { Button, Dropdown, Modal, Space, Tag } from 'antd';
@@ -74,6 +74,7 @@ export const NewEntity: React.FC<EntityProps> = ({
   style,
 }): ReactNode => {
   types = types?.map((item) => '新增' + item);
+  console.log(types);
   return (
     <Dropdown
       menu={{
@@ -85,7 +86,9 @@ export const NewEntity: React.FC<EntityProps> = ({
           { key: 'newEnvironment', label: '新增环境' },
           { key: 'newWorkConfig', label: '新增事项配置' },
           { key: 'newThingConfig', label: '新增实体配置' },
-        ].filter((item) => !types || types.indexOf(item.label) != -1),
+        ].filter(
+          (item) => !types || types.length == 0 || types.indexOf(item.label) != -1,
+        ),
         onClick: (info) => {
           linkCmd.emitter('entity', 'add', { curDir, cmd: info.key });
         },
@@ -162,9 +165,16 @@ export const openSelector = (
             </Space>
           );
         }}
-        add={(curDir: IDirectory) => (
-          <NewEntity curDir={curDir} style={{ marginTop: 10 }} />
-        )}
+        add={(curDir: IDirectory) => {
+          console.log(typeName ? CollMap[typeName] : []);
+          return (
+            <NewEntity
+              curDir={curDir}
+              style={{ marginTop: 10 }}
+              types={typeName ? [CollMap[typeName]] : []}
+            />
+          );
+        }}
         update={(entity: IEntity<XEntity>) => {
           return (
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
