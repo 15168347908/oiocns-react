@@ -1,7 +1,10 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
+import { linkCmd } from '@/ts/base/common/command';
 import { XEntity } from '@/ts/base/schema';
 import { IDirectory, IEntity } from '@/ts/core';
 import { ConfigColl } from '@/ts/core/thing/config';
+import { EditOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { Space } from 'antd';
 import React, { ReactNode } from 'react';
 import { MenuItemType } from 'typings/globelType';
 
@@ -120,4 +123,42 @@ export const expand = (nodes: MenuItem[], targetTypes: string[]): string[] => {
     }
   }
   return ans;
+};
+
+/** 默认的生成图标 */
+export const defaultGenLabel = (entity: IEntity<XEntity>, type: string): ReactNode => {
+  return (
+    <Space>
+      {entity.name}
+      {entity.typeName == type && (
+        <EditOutlined
+          onClick={(e) => {
+            e.stopPropagation();
+            linkCmd.emitter('entity', 'update', { entity });
+          }}
+        />
+      )}
+      {entity.typeName == '目录' && (
+        <PlusCircleOutlined
+          onClick={(e) => {
+            e.stopPropagation();
+            let mapping: { [key: string]: string } = {
+              请求: 'newRequest',
+              脚本: 'newExecutable',
+              映射: 'newMapping',
+              选择: 'newSelection',
+              事项配置: 'newWorkConfig',
+              实体配置: 'newThingConfig',
+            };
+            if (mapping[type]) {
+              linkCmd.emitter('entity', 'add', {
+                curDir: entity,
+                cmd: mapping[type],
+              });
+            }
+          }}
+        />
+      )}
+    </Space>
+  );
 };

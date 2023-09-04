@@ -5,7 +5,7 @@ import { IDirectory } from '@/ts/core';
 import { ConfigColl, IRequest } from '@/ts/core/thing/config';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React from 'react';
-import { expand, loadScriptsMenu } from '../transferModal';
+import { defaultGenLabel, expand, loadScriptsMenu } from '../transferModal';
 
 interface IProps {
   formType: string;
@@ -19,6 +19,7 @@ const getTrees = (current: IDirectory | IRequest) => {
       current.typeName == '请求'
         ? (current as IRequest).directory.target.directory
         : (current as IDirectory).target.directory,
+      (entity) => defaultGenLabel(entity, '脚本'),
     ),
   ];
 };
@@ -46,7 +47,7 @@ const RequestForm: React.FC<IProps> = ({ formType, current, finished }) => {
       colProps: { span: 24 },
       fieldProps: {
         fieldNames: {
-          label: 'label',
+          label: 'node',
           value: 'key',
           children: 'children',
         },
@@ -54,6 +55,7 @@ const RequestForm: React.FC<IProps> = ({ formType, current, finished }) => {
         treeDefaultExpandedKeys: expand(treeData, ['脚本']),
         treeNodeFilterProp: 'label',
         treeData: treeData,
+        multiple: true,
       },
     },
     {
