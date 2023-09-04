@@ -13,6 +13,7 @@ import React, { CSSProperties, ReactNode, useEffect, useRef, useState } from 're
 import Selector from '../../selector';
 import { Retention } from '../index';
 import { Environments } from './environments';
+import { deepClone } from '@/ts/base/common';
 
 interface ToolProps {
   current: ILink;
@@ -235,9 +236,11 @@ const TransferEntity = (): ReactNode => {
               Modal.confirm({
                 title: '确认复制吗',
                 onOk: async () => {
-                  const info = entity as IFileInfo<XFileInfo>;
-                  const newInfo = JSON.parse(JSON.stringify(info.metadata));
-                  await info.directory.createConfig(info.metadata.collName, newInfo);
+                  const file = entity as IFileInfo<XFileInfo>;
+                  await file.directory.createConfig(
+                    file.metadata.collName,
+                    deepClone(file.metadata),
+                  );
                   finished();
                 },
                 okText: '确认',
