@@ -152,7 +152,7 @@ const using = (graph: Graph) => {
       rubberband: true,
       movable: true,
       pointerEvents: 'none',
-      modifiers: ['shift']
+      modifiers: ['shift'],
     }),
   );
   graph.use(new Temping());

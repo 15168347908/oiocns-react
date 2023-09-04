@@ -2,27 +2,36 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { XEntity } from '@/ts/base/schema';
 import { IDirectory, IEntity } from '@/ts/core';
 import { ConfigColl } from '@/ts/core/thing/config';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { MenuItemType } from 'typings/globelType';
 
+type GenLabel = (current: IEntity<XEntity>) => ReactNode;
+
 export type MenuItem = Omit<MenuItemType, 'Children'> & {
+  node: ReactNode;
   isLeaf?: boolean;
   selectable: boolean;
   children: MenuItem[];
 };
 
 /** 根据类型加载不同文件项 */
-const loadFiles = (current: IDirectory, typeNames: string[]) => {
+const loadFiles = (current: IDirectory, typeNames: string[], genLabel?: GenLabel) => {
   const items = [];
   for (const typeName of typeNames) {
     switch (typeName) {
       case '事项配置':
       case '实体配置':
         items.push(
-          ...current.forms.filter((item) => item.typeName == typeName).map(loadEntity),
+          ...current.forms
+            .filter((item) => item.typeName == typeName)
+            .map((entity) => loadEntity(entity, genLabel)),
         );
       default:
-        items.push(...(current.configs.get(typeName)?.map(loadEntity) ?? []));
+        items.push(
+          ...(current.configs
+            .get(typeName)
+            ?.map((entity) => loadEntity(entity, genLabel)) ?? []),
+        );
     }
   }
   return items;
@@ -39,7 +48,11 @@ export const loadMenu = (current: IDirectory, typeName: string): MenuItem => {
 };
 
 /** 多类型菜单 */
-export const loadMenus = (current: IDirectory, typeNames: string[]): MenuItem => {
+export const loadMenus = (
+  current: IDirectory,
+  typeNames: string[],
+  genLabel?: GenLabel,
+): MenuItem => {
   return {
     key: current.id,
     item: current,
@@ -47,11 +60,12 @@ export const loadMenus = (current: IDirectory, typeNames: string[]): MenuItem =>
     itemType: current.typeName,
     icon: <EntityIcon entityId={current.id} typeName={current.typeName} size={18} />,
     children: [
-      ...current.children.map((item) => loadMenus(item, typeNames)),
-      ...loadFiles(current, typeNames),
+      ...current.children.map((item) => loadMenus(item, typeNames, genLabel)),
+      ...loadFiles(current, typeNames, genLabel),
     ],
     isLeaf: false,
     selectable: false,
+    node: genLabel?.(current),
   };
 };
 
@@ -76,7 +90,7 @@ export const loadRequestsMenu = (current: IDirectory) => {
 };
 
 /** 文件项菜单 */
-export const loadEntity = (entity: IEntity<XEntity>): MenuItem => {
+export const loadEntity = (entity: IEntity<XEntity>, genLabel?: GenLabel): MenuItem => {
   return {
     key: entity.id,
     item: entity,
@@ -86,6 +100,7 @@ export const loadEntity = (entity: IEntity<XEntity>): MenuItem => {
     children: [],
     isLeaf: true,
     selectable: true,
+    node: genLabel?.(entity),
   };
 };
 

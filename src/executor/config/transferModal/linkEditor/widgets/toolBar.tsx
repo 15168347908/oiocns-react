@@ -3,16 +3,16 @@ import EntityForm from '@/executor/config/entityForm';
 import OperateModal from '@/executor/config/operateModal';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity, XFileInfo, XSelection } from '@/ts/base/schema';
-import { IBelong, IDirectory, IEntity, IFileInfo, IForm, TargetType } from '@/ts/core';
+import { IBelong, IDirectory, IEntity, IFileInfo, IForm } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
 import { ConfigColl, ILink } from '@/ts/core/thing/config';
+import { CloseCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import ProTable from '@ant-design/pro-table';
 import { Button, Dropdown, Modal, Space, Tag } from 'antd';
 import React, { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import Selector from '../../selector';
 import { Retention } from '../index';
 import { Environments } from './environments';
-import { CloseCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { deepClone } from '@/ts/base/common';
 
 interface ToolProps {
@@ -243,6 +243,8 @@ const TransferEntity = (): ReactNode => {
                   );
                   finished();
                 },
+                okText: '确认',
+                cancelText: '取消',
               });
               break;
             }
