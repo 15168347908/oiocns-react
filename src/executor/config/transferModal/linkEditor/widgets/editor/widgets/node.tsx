@@ -15,7 +15,7 @@ import {
   PlusCircleOutlined,
 } from '@ant-design/icons';
 import { Cell, Graph, Model, Node } from '@antv/x6';
-import { message } from 'antd';
+import { Dropdown, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
 import cls from './../../../index.module.less';
@@ -183,6 +183,18 @@ const menus: { [key: string]: MenuItemType } = {
     itemType: '选择',
     children: [],
   },
+  open: {
+    key: 'open',
+    label: '编辑',
+    itemType: '编辑',
+    children: [],
+  },
+  update: {
+    key: 'update',
+    label: '更新',
+    itemType: '更新',
+    children: [],
+  },
 };
 
 /** 拉出节点可以创建的下一步节点 */
@@ -236,6 +248,8 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   const [visible, setVisible] = useState<boolean>(false);
   const [visibleOperate, setVisibleOperate] = useState<boolean>(false);
   const [visibleClosing, setVisibleClosing] = useState<boolean>(true);
+  const [visibleMenu, setVisibleMenu] = useState<boolean>(false);
+  const [menuPosition, setMenuPosition] = useState<{ x: number; y: number }>();
   const entity = getShareEntity(node);
 
   // 删除标记
@@ -262,6 +276,15 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   useEffect(() => {
     const id = linkCmd.subscribe(async (type, cmd, args) => {
       switch (type) {
+        case 'blank': {
+          switch (cmd) {
+            case 'click':
+            case 'contextmenu':
+              setVisibleMenu(false);
+              break;
+          }
+          break;
+        }
         case 'node':
           switch (cmd) {
             case 'selected':
@@ -277,6 +300,13 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               break;
             case 'clearStatus':
               setNodeStatus(ExecStatus.Stop);
+              break;
+            case 'contextmenu':
+              if (args.node.id == node.id) {
+                const position = node.getPosition();
+                setVisibleMenu(true);
+                setMenuPosition({ x: args.x - position.x, y: args.y - position.y });
+              }
               break;
           }
           break;
@@ -322,7 +352,6 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               nextData: {},
               ...Encryption,
             };
-            console.log(runtime);
             Sandbox(coder)(runtime);
             linkCmd.emitter('environments', 'refresh', graph);
             return runtime.nextData;
@@ -372,7 +401,6 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             }
             setNodeStatus(ExecStatus.Completed);
           } catch (error) {
-            console.log(error);
             if (error instanceof AxiosError) {
               if (error.response) {
                 const data = error.response.data;
@@ -404,8 +432,10 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
         style={{ visibility: visible ? 'visible' : 'hidden' }}
         className={`${cls['flex-row']} ${cls['plus-menu']}`}>
         <PlusCircleOutlined
-          size={24}
-          color={'#9498df'}
+          style={{
+            fontSize: 20,
+            color: '#9498df',
+          }}
           onClick={() => setVisibleOperate(!visibleOperate)}
         />
         <ul
@@ -473,18 +503,54 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
     );
   };
 
+  // 右键菜单
+  const ContextMenu: React.FC<{}> = () => {
+    return (
+      <div
+        style={{
+          visibility: visibleMenu ? 'visible' : 'hidden',
+          left: menuPosition?.x,
+          top: menuPosition?.y,
+        }}
+        onContextMenu={(e) => e.stopPropagation()}
+        className={`${cls['context-menu']} ${cls.border}`}>
+        <ul className={`${cls['dropdown']}`}>
+          {[menus.open, menus.update].map((item) => {
+            return (
+              <li
+                key={item.key}
+                className={`${cls['item']}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  linkCmd.emitter('entity', item.key, { entity });
+                  setVisibleMenu(false);
+                }}>
+                {item.label}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
+  };
+
   // 结构
   return (
     <div
-      className={`${cls['flex-row']} ${cls['container']} ${cls['border']}`}
+      className={`
+        ${cls['flex-row']} 
+        ${cls['container']} 
+        ${cls['border']}
+        ${visible ? cls['selected'] : ''}`}
       onMouseEnter={() => setVisibleClosing(true)}
       onMouseLeave={() => setVisibleClosing(false)}
-      onDoubleClick={() => linkCmd.emitter('entity', 'update', { entity })}>
-      <Remove></Remove>
-      <Tag></Tag>
-      <Status></Status>
-      <PlusMenus></PlusMenus>
-      <Info></Info>
+      onDoubleClick={() => linkCmd.emitter('entity', 'open', { entity })}>
+      <Remove />
+      <Tag />
+      <Status />
+      <PlusMenus />
+      <Info />
+      <ContextMenu />
     </div>
   );
 };

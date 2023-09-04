@@ -151,8 +151,6 @@ const using = (graph: Graph) => {
       multiple: true,
       rubberband: true,
       movable: true,
-      showNodeSelectionBox: true,
-      showEdgeSelectionBox: true,
       pointerEvents: 'none',
       modifiers: ['shift']
     }),

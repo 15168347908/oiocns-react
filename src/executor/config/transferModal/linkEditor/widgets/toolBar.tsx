@@ -13,6 +13,7 @@ import Selector from '../../selector';
 import { Retention } from '../index';
 import { Environments } from './environments';
 import { CloseCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { deepClone } from '@/ts/base/common';
 
 interface ToolProps {
   current: ILink;
@@ -236,9 +237,10 @@ const TransferEntity = (): ReactNode => {
                 title: '确认复制吗',
                 onOk: async () => {
                   const file = entity as IFileInfo<XFileInfo>;
-                  await file.directory.createConfig(file.metadata.collName, {
-                    ...file.metadata,
-                  });
+                  await file.directory.createConfig(
+                    file.metadata.collName,
+                    deepClone(file.metadata),
+                  );
                   finished();
                 },
               });

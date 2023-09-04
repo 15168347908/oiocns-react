@@ -1,15 +1,12 @@
-import { sleep } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity } from '@/ts/core';
 import { ConfigColl, ILink } from '@/ts/core/thing/config';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Graph, Node } from '@antv/x6';
-import { Modal } from 'antd';
 import React, { createRef, useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
 import { Retention } from '../..';
-import Selector from '../../../selector';
 import { ToolBar, openSelector } from '../toolBar';
 import cls from './../../index.module.less';
 import { Persistence, Temping, createGraph } from './widgets/graph';
@@ -48,15 +45,7 @@ const LinkEditor: React.FC<IProps> = ({ current, retention }) => {
         current.metadata.data = graph.toJSON({ diff: true });
         current.refresh(current.metadata);
       };
-      graph.on('node:added', update);
-      graph.on('node:moved', update);
-      graph.on('node:removed', update);
-      graph.on('edge:added', update);
-      graph.on('edge:moved', update);
-      graph.on('edge:removed', update);
-      graph.on('node:selected', (args) => linkCmd.emitter('node', 'selected', args));
-      graph.on('node:unselected', (args) => linkCmd.emitter('node', 'unselected', args));
-      graph.on('edge:mouseenter', ({ cell }) => {
+      const addTools = ({ cell }: any) => {
         cell.addTools([
           { name: 'vertices' },
           {
@@ -64,15 +53,29 @@ const LinkEditor: React.FC<IProps> = ({ current, retention }) => {
             args: { distance: 20 },
           },
         ]);
-      });
-      graph.on('edge:mouseleave', ({ cell }) => {
+      };
+      const removeTools = ({ cell }: any) => {
         if (cell.hasTool('button-remove')) {
           cell.removeTool('button-remove');
         }
         if (cell.hasTool('vertices')) {
           cell.removeTool('vertices');
         }
-      });
+      };
+      graph.on('node:added', update);
+      graph.on('node:moved', update);
+      graph.on('node:removed', update);
+      graph.on('node:selected', (a) => linkCmd.emitter('node', 'selected', a));
+      graph.on('node:unselected', (a) => linkCmd.emitter('node', 'unselected', a));
+      graph.on('node:contextmenu', (a) => linkCmd.emitter('node', 'contextmenu', a));
+      graph.on('node:click', (a) => linkCmd.emitter('node', 'click', a));
+      graph.on('edge:added', update);
+      graph.on('edge:moved', update);
+      graph.on('edge:removed', update);
+      graph.on('edge:mouseenter', addTools);
+      graph.on('edge:mouseleave', removeTools);
+      graph.on('blank:click', (a) => linkCmd.emitter('blank', 'click', a));
+      graph.on('blank:contextmenu', (a) => linkCmd.emitter('blank', 'contextmenu', a));
       return () => {
         graph.off();
         linkCmd.unsubscribe(id);
