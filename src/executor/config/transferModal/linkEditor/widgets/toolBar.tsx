@@ -166,7 +166,6 @@ export const openSelector = (
           );
         }}
         add={(curDir: IDirectory) => {
-          console.log(typeName ? CollMap[typeName] : []);
           return (
             <NewEntity
               curDir={curDir}
