@@ -15,7 +15,7 @@ import {
   PlusCircleOutlined,
 } from '@ant-design/icons';
 import { Cell, Graph, Model, Node } from '@antv/x6';
-import { Dropdown, message } from 'antd';
+import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
 import cls from './../../../index.module.less';
@@ -538,8 +538,8 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   return (
     <div
       className={`
-        ${cls['flex-row']} 
-        ${cls['container']} 
+        ${cls['flex-row']}
+        ${cls['container']}
         ${cls['border']}
         ${visible ? cls['selected'] : ''}`}
       onMouseEnter={() => setVisibleClosing(true)}

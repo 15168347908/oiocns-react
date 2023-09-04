@@ -28,12 +28,12 @@ export function createProxy() {
       target: 'https://hzjx-gzzcy-saber-assetstore-ssl.zcyonline.hzjuxiu.com',
       changeOrigin: true, // 是否允许跨域
       rewrite: (path) => path.replace(/^\/jx/, ''),
-},
+    },
     '/cloud': {
       target: 'https://assetcloud.zj.gov.cn',
       changeOrigin: true, // 是否允许跨域
       rewrite: (path) => path.replace(/^\/jx/, ''),
-    }
+    },
   };
   return ProxyList;
 }
