@@ -41,8 +41,26 @@ const RequestForm: React.FC<IProps> = ({ formType, current, finished }) => {
       },
     },
     {
+      title: '前置脚本，解析当前请求 Environment',
+      dataIndex: 'prefixExecs',
+      valueType: 'treeSelect',
+      colProps: { span: 24 },
+      fieldProps: {
+        fieldNames: {
+          label: 'node',
+          value: 'key',
+          children: 'children',
+        },
+        showSearch: true,
+        treeDefaultExpandedKeys: expand(treeData, ['脚本']),
+        treeNodeFilterProp: 'label',
+        treeData: treeData,
+        multiple: true,
+      },
+    },
+    {
       title: '后置脚本, 解析 ResponseData',
-      dataIndex: 'suffixExec',
+      dataIndex: 'suffixExecs',
       valueType: 'treeSelect',
       colProps: { span: 24 },
       fieldProps: {

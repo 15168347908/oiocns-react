@@ -360,19 +360,34 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             return runtime.nextData;
           };
           try {
-            await sleep(1000);
+            await sleep(200);
             switch (cmd) {
               case '请求': {
                 const request = entity as IRequest;
-                const response = await request.exec({ ...curEnv, ...preData });
-                const execs = request.metadata.suffixExecs;
-                if (execs) {
-                  let next = {};
-                  for (const exec of execs) {
+                const environment = ShareIdSet.get(request.metadata.envId ?? '');
+                const preExecs = request.metadata.prefixExecs;
+                if (preExecs) {
+                  for (const exec of preExecs) {
                     const executable = ShareIdSet.get(exec) as XExecutable;
-                    next = { ...next, ...executing(response, executable.coder) };
+                    if (executable) {
+                      executing(
+                        { executable: executable, kvs: environment.kvs },
+                        executable.coder,
+                      );
+                    }
                   }
-                  ergodic({ ...next, ...response });
+                }
+                const response = await request.exec({ ...curEnv, ...preData });
+                const suffixExecs = request.metadata.suffixExecs;
+                if (suffixExecs) {
+                  let next = {};
+                  for (const exec of suffixExecs) {
+                    const executable = ShareIdSet.get(exec) as XExecutable;
+                    if (executable) {
+                      next = { ...next, ...executing(response, executable.coder) };
+                    }
+                  }
+                  ergodic({ ...next });
                   break;
                 }
                 ergodic(response);

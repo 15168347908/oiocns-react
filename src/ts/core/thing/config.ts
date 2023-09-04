@@ -13,6 +13,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { IDirectory } from './directory';
 import { FileInfo, IFileInfo } from './fileinfo';
 import { ShareSet } from '../public/entity';
+import { deepClone } from '@/ts/base/common';
 
 /** 配置集合名称 */
 export enum ConfigColl {
@@ -176,19 +177,23 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
   }
 
   async exec(kv?: Kv): Promise<any> {
-    let config = { ...this.axios };
+    console.log(kv);
+    let config = deepClone(this.axios);
     let envId = this.metadata.envId;
     let kvs: { [key: string]: string | undefined } = {};
     if (envId && ShareSet.has(envId)) {
       const env = ShareSet.get(envId) as IEnvironment;
       kvs = { ...env.metadata.kvs };
+      console.log(kvs);
     }
     if (kv) {
       kvs = { ...kvs, ...kv };
     }
+    console.log(kvs);
     config = this.replace(config, kvs);
     config = this.replaceClear(config);
     config.url = this.paramsEscape(config.url);
+    console.log(config);
     const res = await axios.request(config);
     console.log('返回结果', res);
     return res;

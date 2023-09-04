@@ -623,6 +623,7 @@ export type XRequest = {
   headers: readonly any[];
   curTab: string;
   envId?: string;
+  prefixExecs?: string[];
   suffixExecs?: string[];
 } & XFileInfo;
 
