@@ -623,7 +623,7 @@ export type XRequest = {
   headers: readonly any[];
   curTab: string;
   envId?: string;
-  suffixExec?: string;
+  suffixExecs?: string[];
 } & XFileInfo;
 
 // 链接定义

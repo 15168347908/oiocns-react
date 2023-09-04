@@ -4,6 +4,8 @@ import { Button, Input, Select, Space, TreeSelect } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Param } from './request/widgets/params';
 import { expand, loadEnvironmentsMenu } from '../..';
+import { EditOutlined } from '@ant-design/icons';
+import { linkCmd } from '@/ts/base/common/command';
 
 interface IProps {
   current: IRequest;
@@ -35,7 +37,23 @@ const InputBox: React.FC<IProps> = ({ current, send }) => {
   const [envId, setEnvId] = useState<string | undefined>(current.metadata.envId);
   const [url, setUrl] = useState<string | undefined>(current.axios.url);
   const [method, setMethod] = useState<string>(current.axios.method ?? 'GET');
-  const treeData = [loadEnvironmentsMenu(current.directory.target.directory)];
+  const treeData = [
+    loadEnvironmentsMenu(current.directory.target.directory, (entity) => {
+      return (
+        <Space style={{}}>
+          {entity.name}
+          {entity.typeName == '环境' && (
+            <EditOutlined
+              onClick={(e) => {
+                e.stopPropagation();
+                linkCmd.emitter('entity', 'update', { entity });
+              }}
+            />
+          )}
+        </Space>
+      );
+    }),
+  ];
   useEffect(() => {
     const id = current.subscribe(() => {
       setEnvId(current.metadata.envId);
@@ -77,7 +95,7 @@ const InputBox: React.FC<IProps> = ({ current, send }) => {
       <TreeSelect
         value={envId}
         fieldNames={{
-          label: 'label',
+          label: 'node',
           value: 'key',
           children: 'children',
         }}
@@ -90,9 +108,7 @@ const InputBox: React.FC<IProps> = ({ current, send }) => {
           current.refresh(current.metadata);
         }}
       />
-      <Button onClick={() => send()}>
-        Send
-      </Button>
+      <Button onClick={() => send()}>Send</Button>
     </Space.Compact>
   );
 };

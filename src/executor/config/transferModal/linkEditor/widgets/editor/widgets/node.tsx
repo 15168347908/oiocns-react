@@ -351,6 +351,9 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               preData: input,
               nextData: {},
               ...Encryption,
+              log: (...message: string[]) => {
+                console.log(message);
+              },
             };
             Sandbox(coder)(runtime);
             linkCmd.emitter('environments', 'refresh', graph);
@@ -362,10 +365,14 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               case '请求': {
                 const request = entity as IRequest;
                 const response = await request.exec({ ...curEnv, ...preData });
-                const exec = request.metadata.suffixExec;
-                if (exec) {
-                  const executable = ShareIdSet.get(exec) as XExecutable;
-                  ergodic(executing(response, executable.coder));
+                const execs = request.metadata.suffixExecs;
+                if (execs) {
+                  let next = {};
+                  for (const exec of execs) {
+                    const executable = ShareIdSet.get(exec) as XExecutable;
+                    next = { ...next, ...executing(response, executable.coder) };
+                  }
+                  ergodic({ ...next, ...response });
                   break;
                 }
                 ergodic(response);
@@ -513,7 +520,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
           top: menuPosition?.y,
         }}
         onContextMenu={(e) => e.stopPropagation()}
-        className={`${cls['context-menu']} ${cls.border}`}>
+        className={`${cls['context-menu']} ${cls['context-border']}`}>
         <ul className={`${cls['dropdown']}`}>
           {[menus.open, menus.update].map((item) => {
             return (
@@ -544,7 +551,16 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
         ${visible ? cls['selected'] : ''}`}
       onMouseEnter={() => setVisibleClosing(true)}
       onMouseLeave={() => setVisibleClosing(false)}
-      onDoubleClick={() => linkCmd.emitter('entity', 'open', { entity })}>
+      onDoubleClick={() => {
+        switch (entity.typeName) {
+          case '脚本':
+            linkCmd.emitter('entity', 'update', { entity });
+            break;
+          default:
+            linkCmd.emitter('entity', 'open', { entity });
+            break;
+        }
+      }}>
       <Remove />
       <Tag />
       <Status />

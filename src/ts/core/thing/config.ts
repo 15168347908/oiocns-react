@@ -69,7 +69,7 @@ export class BaseFileInfo<T extends XFileInfo>
     });
     const coll = this.directory.configs.get(this.collName);
     if (res.success && coll) {
-      const index = coll.findIndex((item) => (item.key == this.key));
+      const index = coll.findIndex((item) => item.key == this.key);
       coll.splice(index, 1);
     }
     return res.success;
@@ -178,13 +178,15 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
   async exec(kv?: Kv): Promise<any> {
     let config = { ...this.axios };
     let envId = this.metadata.envId;
+    let kvs: { [key: string]: string | undefined } = {};
     if (envId && ShareSet.has(envId)) {
       const env = ShareSet.get(envId) as IEnvironment;
-      config = this.replace(config, env.metadata.kvs);
+      kvs = { ...env.metadata.kvs };
     }
     if (kv) {
-      config = this.replace(config, kv);
+      kvs = { ...kvs, ...kv };
     }
+    config = this.replace(config, kvs);
     config = this.replaceClear(config);
     config.url = this.paramsEscape(config.url);
     const res = await axios.request(config);

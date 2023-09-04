@@ -222,6 +222,9 @@ const TransferEntity = (): ReactNode => {
                 case '选择':
                   setCmd('updateSelection');
                   break;
+                case '环境':
+                  setCmd('updateEnvironment');
+                  break;
                 case '事项配置':
                   setCmd('updateWorkConfig');
                   break;

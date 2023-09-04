@@ -70,23 +70,23 @@ export const loadMenus = (
 };
 
 /** 表单项 */
-export const loadFormsMenu = (current: IDirectory) => {
-  return loadMenus(current, ['事项配置', '实体配置']);
+export const loadFormsMenu = (current: IDirectory, genLabel?: GenLabel) => {
+  return loadMenus(current, ['事项配置', '实体配置'], genLabel);
 };
 
 /** 环境 */
-export const loadEnvironmentsMenu = (current: IDirectory) => {
-  return loadMenus(current, [ConfigColl.Environments]);
+export const loadEnvironmentsMenu = (current: IDirectory, genLabel?: GenLabel) => {
+  return loadMenus(current, [ConfigColl.Environments], genLabel);
 };
 
 /** 脚本 */
-export const loadScriptsMenu = (current: IDirectory) => {
-  return loadMenus(current, [ConfigColl.Scripts]);
+export const loadScriptsMenu = (current: IDirectory, genLabel?: GenLabel) => {
+  return loadMenus(current, [ConfigColl.Scripts], genLabel);
 };
 
 /** 请求 */
-export const loadRequestsMenu = (current: IDirectory) => {
-  return loadMenus(current, [ConfigColl.Requests]);
+export const loadRequestsMenu = (current: IDirectory, genLabel?: GenLabel) => {
+  return loadMenus(current, [ConfigColl.Requests], genLabel);
 };
 
 /** 文件项菜单 */

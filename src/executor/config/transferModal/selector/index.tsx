@@ -1,13 +1,12 @@
 import ShareShowComp from '@/components/Common/ShareShowComp';
 import CustomTree from '@/components/CustomTree';
+import { linkCmd } from '@/ts/base/common/command';
 import { XEntity } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity } from '@/ts/core';
 import { Input, Tree, TreeProps } from 'antd';
 import React, { Key, ReactNode, useEffect, useState } from 'react';
 import { AiOutlineSearch } from 'react-icons/ai';
 import cls from './index.module.css';
-import { ShareSet } from '@/ts/core/public/entity';
-import { linkCmd } from '@/ts/base/common/command';
 interface IExtends<X extends XEntity> {
   current: IBelong;
   multiple?: boolean;
