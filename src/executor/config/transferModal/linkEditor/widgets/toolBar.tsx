@@ -32,7 +32,8 @@ export const ToolBar: React.FC<ToolProps> = ({
     nodes.push(<NodeTools key={'nodeTools'} current={current} style={style} />);
   }
   nodes.push(<Operate key={'operateModal'} />);
-  nodes.push(<TransferEntity key={'transfer'} />);
+  nodes.push(<Transfer key={'transfer'} />);
+  nodes.push(<OpenOperate key={'openOperate'} />);
   return <>{nodes}</>;
 };
 
@@ -56,6 +57,45 @@ const NodeTools: React.FC<IProps> = ({ current, style }) => {
       <Button onClick={() => linkCmd.emitter('graph', 'center')}>中心</Button>
       <Button onClick={() => linkCmd.emitter('graph', 'executing')}>执行</Button>
     </Space>
+  );
+};
+
+interface EntityProps {
+  curDir: IDirectory;
+  types?: string[];
+  size?: 'small' | 'middle' | 'large';
+  style?: CSSProperties;
+}
+
+export const NewEntity: React.FC<EntityProps> = ({
+  curDir,
+  types,
+  size,
+  style,
+}): ReactNode => {
+  types = types?.map((item) => '新增' + item);
+  return (
+    <Dropdown
+      menu={{
+        items: [
+          { key: 'newRequest', label: '新增请求' },
+          { key: 'newExecutable', label: '新增脚本' },
+          { key: 'newMapping', label: '新增映射' },
+          { key: 'newSelection', label: '新增选择' },
+          { key: 'newEnvironment', label: '新增环境' },
+          { key: 'newWorkConfig', label: '新增事项配置' },
+          { key: 'newThingConfig', label: '新增实体配置' },
+        ].filter((item) => !types || types.indexOf(item.label) != -1),
+        onClick: (info) => {
+          linkCmd.emitter('entity', 'add', { curDir, cmd: info.key });
+        },
+      }}
+      children={
+        <Button size={size} style={style}>
+          新增
+        </Button>
+      }
+    />
   );
 };
 
@@ -122,26 +162,9 @@ export const openSelector = (
             </Space>
           );
         }}
-        add={(curDir: IDirectory) => {
-          return (
-            <Dropdown
-              menu={{
-                items: [
-                  { key: 'newRequest', label: '新增请求' },
-                  { key: 'newExecutable', label: '新增脚本' },
-                  { key: 'newMapping', label: '新增映射' },
-                  { key: 'newSelection', label: '新增选择' },
-                  { key: 'newWorkConfig', label: '新增事项配置' },
-                  { key: 'newThingConfig', label: '新增实体配置' },
-                ],
-                onClick: (info) => {
-                  linkCmd.emitter('entity', 'add', { curDir, cmd: info.key });
-                },
-              }}
-              children={<Button style={{ marginTop: 10 }}>新增</Button>}
-            />
-          );
-        }}
+        add={(curDir: IDirectory) => (
+          <NewEntity curDir={curDir} style={{ marginTop: 10 }} />
+        )}
         update={(entity: IEntity<XEntity>) => {
           return (
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -190,48 +213,34 @@ export const openSelector = (
   });
 };
 
-const TransferEntity = (): ReactNode => {
-  const [entity, setEntity] = useState<IEntity<XEntity>>();
-  const [cmd, setCmd] = useState<string>('');
+const Transfer = (): ReactNode => {
+  const [entities, setEntities] = useState<{ [key: string]: IEntity<XEntity> }>({});
+  const [commands, setCommands] = useState<{ [key: string]: string }>({});
   useEffect(() => {
     const id = linkCmd.subscribe((type, cmd, args) => {
-      console.log(type, cmd, args);
       if (type != 'entity') return;
       switch (type) {
         case 'entity':
           switch (cmd) {
             case 'add': {
               const { curDir, cmd } = args;
-              setEntity(curDir);
-              setCmd(cmd);
+              setEntities({ ...entities, [curDir.id]: curDir });
+              setCommands({ ...commands, [curDir.id]: cmd });
               break;
             }
             case 'update': {
               const { entity } = args;
-              setEntity(entity);
-              switch (entity.typeName) {
-                case '请求':
-                  setCmd('updateRequest');
-                  break;
-                case '脚本':
-                  setCmd('updateExecutable');
-                  break;
-                case '映射':
-                  setCmd('updateMapping');
-                  break;
-                case '选择':
-                  setCmd('updateSelection');
-                  break;
-                case '环境':
-                  setCmd('updateEnvironment');
-                  break;
-                case '事项配置':
-                  setCmd('updateWorkConfig');
-                  break;
-                case '实体配置':
-                  setCmd('newThingConfig');
-                  break;
-              }
+              setEntities({ ...entities, [entity.id]: entity });
+              let mapping: { [key: string]: string } = {
+                请求: 'updateRequest',
+                脚本: 'updateExecutable',
+                映射: 'updateMapping',
+                选择: 'updateSelection',
+                环境: 'updateEnvironment',
+                事项配置: 'updateWorkConfig',
+                实体配置: 'newThingConfig',
+              };
+              setCommands({ ...commands, [entity.id]: mapping[entity.typeName] });
               break;
             }
             case 'copy': {
@@ -263,6 +272,49 @@ const TransferEntity = (): ReactNode => {
               });
               break;
             }
+          }
+          break;
+      }
+    });
+    return () => {
+      linkCmd.unsubscribe(id);
+    };
+  });
+  const finished = (id?: string) => {
+    linkCmd.emitter('selector', 'refresh');
+    if (id) {
+      delete entities[id];
+      delete commands[id];
+      setEntities({ ...entities });
+      setCommands({ ...commands });
+    }
+  };
+  return (
+    <>
+      {Object.entries(entities).map((entry) => {
+        return (
+          <EntityForm
+            cmd={commands[entry[0]]}
+            entity={entry[1]}
+            finished={() => {
+              finished(entry[0]);
+            }}
+          />
+        );
+      })}
+    </>
+  );
+};
+
+const OpenOperate = (): ReactNode => {
+  const [entity, setEntity] = useState<IEntity<XEntity>>();
+  const [cmd, setCmd] = useState<string>('');
+  useEffect(() => {
+    const id = linkCmd.subscribe((type, cmd, args) => {
+      if (type != 'entity') return;
+      switch (type) {
+        case 'entity':
+          switch (cmd) {
             case 'open': {
               const { entity } = args;
               setEntity(entity);
@@ -278,20 +330,10 @@ const TransferEntity = (): ReactNode => {
     };
   });
   const finished = () => {
-    linkCmd.emitter('selector', 'refresh');
     setEntity(undefined);
     setCmd('');
   };
-  return (
-    <>
-      {entity && (cmd.startsWith('new') || cmd.startsWith('update')) && (
-        <EntityForm cmd={cmd} entity={entity} finished={finished} />
-      )}
-      {entity && cmd == 'open' && (
-        <OperateModal cmd={cmd} entity={entity} finished={finished} />
-      )}
-    </>
-  );
+  return <>{entity && <OperateModal cmd={cmd} entity={entity} finished={finished} />}</>;
 };
 
 interface OpenArgs {

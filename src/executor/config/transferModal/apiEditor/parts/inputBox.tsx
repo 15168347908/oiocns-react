@@ -37,7 +37,7 @@ const InputBox: React.FC<IProps> = ({ current, send }) => {
   const [method, setMethod] = useState<string>(current.axios.method ?? 'GET');
   const treeData = [
     loadEnvironmentsMenu(current.directory.target.directory, (entity) => {
-      return defaultGenLabel(entity, '环境');
+      return defaultGenLabel(entity, ['环境']);
     }),
   ];
   useEffect(() => {

@@ -4,7 +4,7 @@ import orgCtrl from '@/ts/controller';
 import { IDirectory, IForm } from '@/ts/core';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React, { useRef, useState } from 'react';
-import { MenuItem, expand, loadFormsMenu } from '../transferModal';
+import { MenuItem, defaultGenLabel, expand, loadFormsMenu } from '../transferModal';
 import { ConfigColl, IMapping } from '@/ts/core/thing/config';
 
 interface IProps {
@@ -14,7 +14,11 @@ interface IProps {
 
 const MappingForm: React.FC<IProps> = ({ current, finished }) => {
   const root = (dir: IDirectory) => dir.target.directory;
-  const [treeData, setTreeData] = useState<MenuItem[]>([loadFormsMenu(root(current))]);
+  const [treeData, setTreeData] = useState<MenuItem[]>([
+    loadFormsMenu(root(current), (entity) =>
+      defaultGenLabel(entity, ['实体配置', '事项配置']),
+    ),
+  ]);
   const source = useRef<IForm>();
   const target = useRef<IForm>();
   const formSelector = (
@@ -32,7 +36,7 @@ const MappingForm: React.FC<IProps> = ({ current, finished }) => {
       },
       fieldProps: {
         fieldNames: {
-          label: 'label',
+          label: 'node',
           value: 'key',
           children: 'children',
         },
@@ -41,7 +45,11 @@ const MappingForm: React.FC<IProps> = ({ current, finished }) => {
           if (!node.isLeaf) {
             let forms = await (node.item as IDirectory).loadForms();
             if (forms.length > 0) {
-              setTreeData([loadFormsMenu(root(current))]);
+              setTreeData([
+                loadFormsMenu(root(current), (entity) =>
+                  defaultGenLabel(entity, ['实体配置', '事项配置']),
+                ),
+              ]);
             }
           }
         },

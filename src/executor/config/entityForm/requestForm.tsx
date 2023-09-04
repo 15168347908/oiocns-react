@@ -19,7 +19,7 @@ const getTrees = (current: IDirectory | IRequest) => {
       current.typeName == '请求'
         ? (current as IRequest).directory.target.directory
         : (current as IDirectory).target.directory,
-      (entity) => defaultGenLabel(entity, '脚本'),
+      (entity) => defaultGenLabel(entity, ['脚本']),
     ),
   ];
 };
