@@ -21,6 +21,7 @@ const MappingTable: React.FC<IProps> = ({ current }) => {
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
   const [cmd, setCmd] = useState<string>('');
   const [data, setData] = useState<readonly IMapping[]>(getMappings(current));
+  const [param, setParam] = useState<IDirectory | IMapping>(current.target.directory);
   useEffect(() => {
     const id = current.subscribe(() => {
       setSelectedKeys([]);
@@ -46,6 +47,14 @@ const MappingTable: React.FC<IProps> = ({ current }) => {
           {
             title: '映射类型',
             dataIndex: 'type',
+            render: (_: any, record: IMapping) => {
+              switch (record.metadata.type) {
+                case 'fields':
+                  return <>字段映射</>;
+                case 'specieItems':
+                  return <>字典/分类映射</>;
+              }
+            },
           },
           {
             title: '源表单',
@@ -76,23 +85,32 @@ const MappingTable: React.FC<IProps> = ({ current }) => {
             dataIndex: 'action',
             render: (_, record: IMapping) => {
               return (
-                <Button
-                  type="primary"
-                  ghost
-                  onClick={() => {
-                    Modal.info({
-                      icon: <></>,
-                      title: '字段映射',
-                      okText: '关闭',
-                      width: 1200,
-                      onCancel: () => current.changCallback(),
-                      onOk: () => current.changCallback(),
-                      maskClosable: true,
-                      content: <Mapper current={record} />,
-                    });
-                  }}>
-                  配置字段
-                </Button>
+                <Space>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      setCmd('updateMapping');
+                      setParam(record);
+                    }}>
+                    修改
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      Modal.info({
+                        icon: <></>,
+                        title: '字段映射',
+                        okText: '关闭',
+                        width: 1200,
+                        onCancel: () => current.changCallback(),
+                        onOk: () => current.changCallback(),
+                        maskClosable: true,
+                        content: <Mapper current={record} />,
+                      });
+                    }}>
+                    配置字段
+                  </Button>
+                </Space>
               );
             },
           },
@@ -105,7 +123,6 @@ const MappingTable: React.FC<IProps> = ({ current }) => {
           return [
             <Space>
               <Button onClick={() => setCmd('newMapping')}>新增</Button>
-              <Button onClick={() => setCmd('updateMapping')}>修改</Button>
               <Button
                 onClick={() => {
                   Modal.confirm({
@@ -132,7 +149,7 @@ const MappingTable: React.FC<IProps> = ({ current }) => {
       />
       {cmd && (
         <MappingForm
-          current={current.target.directory}
+          current={param}
           finished={(mapping) => {
             if (mapping) {
               setData(getMappings(current));

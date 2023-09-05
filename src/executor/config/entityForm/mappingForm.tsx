@@ -36,6 +36,9 @@ const getType = (current: IDirectory | IMapping) => {
 };
 
 const getMenus = (current: IDirectory | IMapping, type?: string): MenuItem[] => {
+  if (current.metadata.typeName == '映射') {
+    type = (current as IMapping).metadata.type;
+  }
   if (type) {
     switch (type) {
       case 'fields':
@@ -150,8 +153,11 @@ const MappingForm: React.FC<IProps> = ({ formType, current, finished }) => {
       case 'fields':
         columns.push(selector('源表单', 'source'), selector('目标表单', 'target'));
         break;
-      case "specieItems":
-        columns.push(selector('源字典/分类', 'source'), selector('目标字典/分类', 'target'));
+      case 'specieItems':
+        columns.push(
+          selector('源字典/分类', 'source'),
+          selector('目标字典/分类', 'target'),
+        );
         break;
     }
   }

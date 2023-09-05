@@ -7,6 +7,7 @@ import { Button, Col, Modal, Row, Space, Tag, TreeSelect, message } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { defaultGenLabel, expand, loadMappingsMenu } from '../..';
 import cls from './../index.module.less';
+import { XSpeciesItem } from '@/ts/base/schema';
 interface IProps {
   current: IMapping;
 }
@@ -41,6 +42,11 @@ const Center: React.FC<IProps> = ({ current }) => {
   useEffect(() => {
     const id = current.subscribe(() => {
       if (current.source && current.target) {
+        const finished = (mapping: Mapping) => {
+          current.metadata.mappings.unshift(mapping);
+          current.clear();
+          current.refresh(current.metadata);
+        };
         if (current.metadata.type == 'fields') {
           const source = current.source.item as FieldModel;
           const target = current.target.item as FieldModel;
@@ -49,11 +55,6 @@ const Center: React.FC<IProps> = ({ current }) => {
             current.clear();
             return;
           }
-          const finished = (mapping: Mapping) => {
-            current.metadata.mappings.unshift(mapping);
-            current.clear();
-            current.refresh(current.metadata);
-          };
           if (['选择型', '分类型'].indexOf(source.valueType) != -1) {
             openSelector({
               current: current.directory.target.directory,
@@ -67,6 +68,13 @@ const Center: React.FC<IProps> = ({ current }) => {
             });
             return;
           }
+          finished({
+            source: source.id,
+            target: target.id,
+          });
+        } else {
+          const source = current.source.item as XSpeciesItem;
+          const target = current.target.item as XSpeciesItem;
           finished({
             source: source.id,
             target: target.id,
@@ -90,13 +98,18 @@ const Center: React.FC<IProps> = ({ current }) => {
           return (
             <Row style={{ width: '100%', height: 50 }} align={'middle'}>
               <Col flex={8} style={{ textAlign: 'right' }}>
-                {dataMap.current.get(item.source)?.name}
+                <Space>
+                  {dataMap.current.get(item.source)?.info}
+                  {dataMap.current.get(item.source)?.name}
+                </Space>
               </Col>
               <Col span={8} style={{ textAlign: 'center' }}>
                 <Space align={'center'}>
-                  <Tag color="processing">{`--${
-                    dataMap.current.get(item.source)?.valueType
-                  }->`}</Tag>
+                  {current.metadata.type == 'fields' && (
+                    <Tag color="processing">{`--${
+                      dataMap.current.get(item.source)?.valueType
+                    }->`}</Tag>
+                  )}
                   <Button
                     type="primary"
                     size="small"
@@ -109,7 +122,10 @@ const Center: React.FC<IProps> = ({ current }) => {
                 </Space>
               </Col>
               <Col span={8} style={{ textAlign: 'left' }}>
-                {dataMap.current.get(item.target)?.name}
+                <Space>
+                  {dataMap.current.get(item.target)?.info}
+                  {dataMap.current.get(item.target)?.name}
+                </Space>
               </Col>
             </Row>
           );
@@ -132,22 +148,26 @@ const openSelector = ({ current, finished }: SelectProps) => {
     }),
   ];
   const modal = Modal.confirm({
+    icon: <></>,
     okText: '确认',
     cancelText: '取消',
     title: '选择字典/分类映射',
     content: (
-      <TreeSelect
-        fieldNames={{
-          label: 'node',
-          value: 'key',
-          children: 'children',
-        }}
-        dropdownStyle={{ maxHeight: 400, overflow: 'auto', minWidth: 300 }}
-        treeData={treeData}
-        treeDefaultExpandedKeys={expand(treeData, ['映射'])}
-        placement="bottomRight"
-        onSelect={(value) => (mappingId = value)}
-      />
+      <div style={{ width: '100%' }}>
+        <TreeSelect
+          style={{ width: '100%' }}
+          fieldNames={{
+            label: 'node',
+            value: 'key',
+            children: 'children',
+          }}
+          dropdownStyle={{ maxHeight: 400, overflow: 'auto', minWidth: 300 }}
+          treeData={treeData}
+          treeDefaultExpandedKeys={expand(treeData, ['映射'])}
+          placement="bottomRight"
+          onSelect={(value) => (mappingId = value)}
+        />
+      </div>
     ),
     onOk: () => {
       finished(mappingId);

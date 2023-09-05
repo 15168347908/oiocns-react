@@ -91,8 +91,12 @@ const Fields: React.FC<IProps> = ({ current, target }) => {
                   onClick={() => {
                     current[target] = { index, item };
                     current.changCallback();
-                  }}
-                />
+                  }}>
+                  <Space>
+                    {item.info}
+                    {item.name}
+                  </Space>
+                </Radio>
               ))}
           </Space>
         </Radio.Group>
