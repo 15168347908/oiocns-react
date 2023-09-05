@@ -1,6 +1,6 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import MappingForm from '@/executor/config/entityForm/mappingForm';
-import orgCtrl, { Controller } from '@/ts/controller';
+import orgCtrl from '@/ts/controller';
 import { IDirectory } from '@/ts/core';
 import { ConfigColl, IMapping } from '@/ts/core/thing/config';
 import { ProTable } from '@ant-design/pro-components';
@@ -10,26 +10,25 @@ import Mapper from './mapper';
 
 interface IProps {
   current: IDirectory;
-  ctrl: Controller;
 }
 
 const getMappings = (current: IDirectory) => {
   return current.configs.get(ConfigColl.Mappings)?.map((item) => item as IMapping) ?? [];
 };
 
-const MappingTable: React.FC<IProps> = ({ current, ctrl }) => {
+const MappingTable: React.FC<IProps> = ({ current }) => {
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
   const [open, setOpen] = useState<boolean>(false);
   const [data, setData] = useState<readonly IMapping[]>(getMappings(current));
   useEffect(() => {
-    const id = ctrl.subscribe(() => {
+    const id = current.subscribe(() => {
       setSelectedKeys([]);
       setData(getMappings(current));
     });
     return () => {
-      ctrl.unsubscribe(id);
+      current.unsubscribe(id);
     };
-  }, [current, ctrl]);
+  }, [current]);
   return (
     <>
       <ProTable<IMapping>
@@ -81,8 +80,10 @@ const MappingTable: React.FC<IProps> = ({ current, ctrl }) => {
                       title: '字段映射',
                       okText: '关闭',
                       width: 1200,
+                      onCancel: () => current.changCallback(),
+                      onOk: () => current.changCallback(),
                       maskClosable: true,
-                      content: <Mapper current={record} ctrl={ctrl} />,
+                      content: <Mapper current={record} />,
                     });
                   }}>
                   配置字段
@@ -112,7 +113,7 @@ const MappingTable: React.FC<IProps> = ({ current, ctrl }) => {
                           }
                         }
                       }
-                      ctrl.changCallback();
+                      current.changCallback();
                       orgCtrl.changCallback();
                     },
                   });

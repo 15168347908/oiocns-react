@@ -1,22 +1,21 @@
+import MainLayout from '@/components/MainLayout';
 import FullScreenModal from '@/executor/tools/fullScreen';
 import useMenuUpdate from '@/hooks/useMenuUpdate';
-import { IDirectory } from '@/ts/core';
-import React, { useRef } from 'react';
-import { loadDirs, loadMenu } from '..';
-import MappingTable from './parts/table';
 import { Controller } from '@/ts/controller';
-import MainLayout from '@/components/MainLayout';
+import { IDirectory } from '@/ts/core';
+import React from 'react';
+import { loadDirs } from '..';
+import MappingTable from './parts/table';
 
 interface IProps {
   current: IDirectory;
   finished: () => void;
 }
 
-const MappingModal: React.FC<IProps> = ({ current, finished }) => {
-  const ctrl = useRef(new Controller(''));
+const MappingBatchModal: React.FC<IProps> = ({ current, finished }) => {
   const [_, root, selected, setSelected] = useMenuUpdate(
     () => loadDirs(current),
-    ctrl.current,
+    new Controller(''),
   );
 
   if (!root || !selected) return <></>;
@@ -33,14 +32,11 @@ const MappingModal: React.FC<IProps> = ({ current, finished }) => {
       <MainLayout
         siderMenuData={root}
         selectMenu={selected}
-        onSelect={(item) => {
-          setSelected(item);
-          ctrl.current.changCallback();
-        }}>
-        <MappingTable current={selected.item} ctrl={ctrl.current} />
+        onSelect={(item) => setSelected(item)}>
+        <MappingTable current={selected.item} />
       </MainLayout>
     </FullScreenModal>
   );
 };
 
-export default MappingModal;
+export default MappingBatchModal;

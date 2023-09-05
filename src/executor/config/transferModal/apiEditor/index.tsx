@@ -14,7 +14,7 @@ interface IProps {
   finished: () => void;
 }
 
-const RequestModal: React.FC<IProps> = ({ current: dir, finished }) => {
+const RequestsModal: React.FC<IProps> = ({ current: dir, finished }) => {
   const command = useRef(new Command());
   const ctrl = useRef(new Controller(''));
 
@@ -61,4 +61,4 @@ const RequestModal: React.FC<IProps> = ({ current: dir, finished }) => {
   );
 };
 
-export default RequestModal;
+export default RequestsModal;

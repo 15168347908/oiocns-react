@@ -10,6 +10,8 @@ import LabelsModal from './labelsModal';
 import ReportModal from './reportModal';
 import LinkModal from '../transferModal/linkEditor';
 import RequestModal from '../transferModal/apiEditor/layout/index';
+import MapperModal from '../transferModal/mapper/parts/modal';
+
 interface IProps {
   cmd: string;
   entity: IEntity<schema.XEntity>;
@@ -42,6 +44,8 @@ const OperateModal: React.FC<IProps> = ({ cmd, entity, finished }) => {
           return <LinkModal finished={finished} current={entity as any} />;
         case '请求':
           return <RequestModal finished={finished} current={entity as any} />;
+        case '映射':
+          return <MapperModal finished={finished} current={entity as any}/>
         default:
           return <></>;
       }

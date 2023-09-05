@@ -74,7 +74,6 @@ export const NewEntity: React.FC<EntityProps> = ({
   style,
 }): ReactNode => {
   types = types?.map((item) => '新增' + item);
-  console.log(types);
   return (
     <Dropdown
       menu={{

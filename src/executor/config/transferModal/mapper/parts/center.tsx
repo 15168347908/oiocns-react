@@ -4,13 +4,11 @@ import { IMapping } from '@/ts/core/thing/config';
 import { Button, Col, Row, Space, Tag, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';
-import { Controller } from '@/ts/controller';
 interface IProps {
   current: IMapping;
-  ctrl: Controller;
 }
 
-const Center: React.FC<IProps> = ({ current, ctrl }) => {
+const Center: React.FC<IProps> = ({ current }) => {
   const [mappings, setMappings] = useState<
     {
       sourceAttr: XAttribute;
@@ -37,7 +35,6 @@ const Center: React.FC<IProps> = ({ current, ctrl }) => {
         });
         current.clear();
         current.refresh(current.metadata);
-        ctrl.changCallback();
       }
       setMappings([...current.metadata.mappings]);
     });

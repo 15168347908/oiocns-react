@@ -4,14 +4,12 @@ import { Content } from 'antd/lib/layout/layout';
 import React from 'react';
 import Center from './center';
 import Fields from './fields';
-import { Controller } from '@/ts/controller';
 
 interface IProps {
   current: IMapping;
-  ctrl: Controller;
 }
 
-const Mapper: React.FC<IProps> = ({ current, ctrl }) => {
+const Mapper: React.FC<IProps> = ({ current }) => {
   return (
     <Layout>
       <Content>
@@ -33,7 +31,7 @@ const Mapper: React.FC<IProps> = ({ current, ctrl }) => {
             />
           </Col>
           <Col span={12}>
-            <Center current={current} ctrl={ctrl} />
+            <Center current={current} />
           </Col>
         </Row>
       </Content>

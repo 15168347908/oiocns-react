@@ -360,7 +360,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             return runtime.nextData;
           };
           try {
-            await sleep(200);
+            await sleep(500);
             switch (cmd) {
               case '请求': {
                 const request = entity as IRequest;
