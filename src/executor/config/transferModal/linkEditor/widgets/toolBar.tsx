@@ -1,19 +1,19 @@
 import OioForm from '@/components/Common/FormDesign/OioFormNext';
 import EntityForm from '@/executor/config/entityForm';
 import OperateModal from '@/executor/config/operateModal';
+import { deepClone } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity, XFileInfo, XSelection } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity, IFileInfo, IForm } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
 import { CollMap, ConfigColl, ILink } from '@/ts/core/thing/config';
-import { CloseCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { CloseCircleOutlined } from '@ant-design/icons';
 import ProTable from '@ant-design/pro-table';
 import { Button, Dropdown, Modal, Space, Tag } from 'antd';
 import React, { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import Selector from '../../selector';
 import { Retention } from '../index';
 import { Environments } from './environments';
-import { deepClone } from '@/ts/base/common';
 
 interface ToolProps {
   current: ILink;
@@ -78,6 +78,7 @@ export const NewEntity: React.FC<EntityProps> = ({
     <Dropdown
       menu={{
         items: [
+          { key: 'newDir', label: '新增目录' },
           { key: 'newRequest', label: '新增请求' },
           { key: 'newExecutable', label: '新增脚本' },
           { key: 'newMapping', label: '新增映射' },
@@ -145,16 +146,11 @@ export const openSelector = (
           });
           return ans;
         }}
-        treeNode={(node) => {
+        treeNode={(node, cur) => {
           return (
             <Space style={{ padding: 2 }}>
               {node.name}
-              <PlusCircleOutlined
-                onClick={(e) => {
-                  linkCmd.emitter('entity', 'add', { curDir: node, cmd: 'newDir' });
-                  e.stopPropagation();
-                }}
-              />
+              {node.id == cur?.id ? <Tag color="blue">当前</Tag> : ''}
               <CloseCircleOutlined
                 onClick={(e) => {
                   linkCmd.emitter('entity', 'delete', { entity: node });

@@ -103,7 +103,10 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
         <RequestForm formType={cmd} current={entity as any} finished={reloadFinish} />
       );
     case 'newMapping':
-      return <MappingForm current={entity as any} finished={reloadFinish} />;
+    case 'updateMapping':
+      return (
+        <MappingForm formType={cmd} current={entity as any} finished={reloadFinish} />
+      );
     case 'newLink':
     case 'updateLink':
       return <LinkForm formType={cmd} current={entity as any} finished={reloadFinish} />;

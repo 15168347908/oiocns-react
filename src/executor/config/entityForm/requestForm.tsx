@@ -125,10 +125,7 @@ const RequestForm: React.FC<IProps> = ({ formType, current, finished }) => {
           }
           case 'updateRequest': {
             let request = current as IRequest;
-            request.refresh({
-              ...initialValue,
-              ...values,
-            });
+            request.refresh({ ...initialValue, ...values });
             finished(request);
             break;
           }

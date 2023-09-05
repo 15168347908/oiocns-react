@@ -639,14 +639,13 @@ export type XEnvironment = {
 
 // 映射定义
 export type XMapping = {
-  sourceForm: XForm;
-  sourceAttrs: XAttribute[];
-  targetForm: XForm;
-  targetAttrs: XAttribute[];
+  type: string;
+  source: string;
+  target: string;
   mappings: {
-    sourceAttr: XAttribute;
-    targetAttr: XAttribute;
-    options?: { [key: string]: string };
+    source: string;
+    target: string;
+    mappingId?: string; // 字典/分类映射
   }[];
 } & XFileInfo;
 

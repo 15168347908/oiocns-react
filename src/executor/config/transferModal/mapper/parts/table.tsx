@@ -7,6 +7,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { Button, Modal, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 import Mapper from './mapper';
+import { ShareIdSet } from '@/ts/core/public/entity';
 
 interface IProps {
   current: IDirectory;
@@ -18,7 +19,7 @@ const getMappings = (current: IDirectory) => {
 
 const MappingTable: React.FC<IProps> = ({ current }) => {
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
-  const [open, setOpen] = useState<boolean>(false);
+  const [cmd, setCmd] = useState<string>('');
   const [data, setData] = useState<readonly IMapping[]>(getMappings(current));
   useEffect(() => {
     const id = current.subscribe(() => {
@@ -43,23 +44,27 @@ const MappingTable: React.FC<IProps> = ({ current }) => {
             valueType: 'index',
           },
           {
+            title: '映射类型',
+            dataIndex: 'type',
+          },
+          {
             title: '源表单',
             dataIndex: 'sourceName',
             render: (_: any, record: IMapping) => (
-              <EntityIcon entity={record.metadata.sourceForm} showName />
+              <EntityIcon entity={ShareIdSet.get(record.metadata.source)} showName />
             ),
           },
           {
             title: '目标表单',
             dataIndex: 'targetName',
             render: (_, record: IMapping) => (
-              <EntityIcon entity={record.metadata.targetForm} showName />
+              <EntityIcon entity={ShareIdSet.get(record.metadata.target)} showName />
             ),
           },
           {
             title: '映射字段',
             render: (_, entity) => {
-              return <span>已映射 {entity.metadata.mappings?.length ?? 0} 个字段</span>;
+              return <span>已映射 {entity.metadata.mappings.length} 个字段</span>;
             },
           },
           {
@@ -99,7 +104,8 @@ const MappingTable: React.FC<IProps> = ({ current }) => {
         toolBarRender={() => {
           return [
             <Space>
-              <Button onClick={() => setOpen(true)}>新增</Button>
+              <Button onClick={() => setCmd('newMapping')}>新增</Button>
+              <Button onClick={() => setCmd('updateMapping')}>修改</Button>
               <Button
                 onClick={() => {
                   Modal.confirm({
@@ -124,15 +130,16 @@ const MappingTable: React.FC<IProps> = ({ current }) => {
           ];
         }}
       />
-      {open && (
+      {cmd && (
         <MappingForm
           current={current.target.directory}
           finished={(mapping) => {
             if (mapping) {
               setData(getMappings(current));
             }
-            setOpen(false);
+            setCmd('');
           }}
+          formType={cmd}
         />
       )}
     </>

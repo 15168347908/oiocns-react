@@ -8,12 +8,14 @@ import {
   XMapping,
   XRequest,
   XSelection,
+  XSpeciesItem,
 } from '@/ts/base/schema';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { IDirectory } from './directory';
 import { FileInfo, IFileInfo } from './fileinfo';
 import { ShareSet } from '../public/entity';
 import { deepClone } from '@/ts/base/common';
+import { FieldModel } from '@/ts/base/model';
 
 /** 配置集合名称 */
 export enum ConfigColl {
@@ -224,14 +226,14 @@ export class Executable extends BaseFileInfo<XExecutable> implements IExecutable
 
 /** 实体映射 */
 export interface IMapping extends IBaseFileInfo<XMapping> {
-  source?: { index: number; attr: XAttribute };
-  target?: { index: number; attr: XAttribute };
+  source?: { index: number; item: FieldModel | XSpeciesItem };
+  target?: { index: number; item: FieldModel | XSpeciesItem };
   clear(): void;
 }
 
 export class Mapping extends BaseFileInfo<XMapping> implements IMapping {
-  source?: { index: number; attr: XAttribute };
-  target?: { index: number; attr: XAttribute };
+  source?: { index: number; item: FieldModel | XSpeciesItem };
+  target?: { index: number; item: FieldModel | XSpeciesItem };
 
   constructor(mapping: XMapping, dir: IDirectory) {
     super(ConfigColl.Mappings, mapping, dir);

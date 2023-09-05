@@ -1,30 +1,41 @@
 import SchemaForm from '@/components/SchemaForm';
 import { XMapping } from '@/ts/base/schema';
 import orgCtrl from '@/ts/controller';
-import { IDirectory, IForm } from '@/ts/core';
-import { ProFormColumnsType } from '@ant-design/pro-components';
-import React, { useRef, useState } from 'react';
-import { MenuItem, defaultGenLabel, expand, loadFormsMenu } from '../transferModal';
+import { IDirectory } from '@/ts/core';
 import { ConfigColl, IMapping } from '@/ts/core/thing/config';
+import { ProFormColumnsType } from '@ant-design/pro-components';
+import React, { useState } from 'react';
+import { MenuItem, defaultGenLabel, expand, loadFormsMenu } from '../transferModal';
 
 interface IProps {
-  current: IDirectory;
+  formType: string;
+  current: IDirectory | IMapping;
   finished: (mapping?: IMapping) => void;
 }
 
-const MappingForm: React.FC<IProps> = ({ current, finished }) => {
-  const root = (dir: IDirectory) => dir.target.directory;
+const root = (current: IDirectory | IMapping) => {
+  if (current.typeName == '目录') {
+    return (current as IDirectory).target.directory;
+  } else {
+    return (current as IMapping).directory.target.directory;
+  }
+};
+
+const MappingForm: React.FC<IProps> = ({ formType, current, finished }) => {
+  let initialValue = {};
+  switch (formType) {
+    case 'updateMapping':
+      initialValue = current.metadata;
+      break;
+  }
   const [treeData, setTreeData] = useState<MenuItem[]>([
     loadFormsMenu(root(current), (entity) =>
       defaultGenLabel(entity, ['实体配置', '事项配置']),
     ),
   ]);
-  const source = useRef<IForm>();
-  const target = useRef<IForm>();
   const formSelector = (
     title: string,
     dataIndex: string,
-    onSelect: (node: MenuItem) => void,
   ): ProFormColumnsType<XMapping> => {
     return {
       title: title,
@@ -56,17 +67,35 @@ const MappingForm: React.FC<IProps> = ({ current, finished }) => {
         treeNodeFilterProp: 'label',
         treeDefaultExpandedKeys: expand(treeData, ['事项配置', '表单配置']),
         treeData: treeData,
-        onSelect: (_: string, node: MenuItem) => onSelect(node),
       },
     };
   };
   const columns: ProFormColumnsType<XMapping>[] = [
-    formSelector('源表单', 'sourceForm', async (node) => {
-      source.current = node.item as IForm;
-    }),
-    formSelector('目标表单', 'targetForm', async (node) => {
-      target.current = node.item as IForm;
-    }),
+    {
+      title: '名称',
+      dataIndex: 'name',
+      colProps: { span: 12 },
+      formItemProps: {
+        rules: [{ required: true, message: '名称为必填项' }],
+      },
+    },
+    {
+      title: '映射类型',
+      dataIndex: 'type',
+      valueType: 'select',
+      colProps: { span: 12 },
+      formItemProps: {
+        rules: [{ required: true, message: '名称为必填项' }],
+      },
+      fieldProps: {
+        options: [
+          { label: '字段映射', value: 'fields' },
+          { label: '字典/分类映射', value: 'specieItems' },
+        ],
+      },
+    },
+    formSelector('源表单', 'sourceForm'),
+    formSelector('目标表单', 'targetForm'),
     {
       title: '备注',
       dataIndex: 'remark',
@@ -80,6 +109,7 @@ const MappingForm: React.FC<IProps> = ({ current, finished }) => {
       title="映射配置"
       width={640}
       columns={columns}
+      initialValues={initialValue}
       rowProps={{
         gutter: [24, 0],
       }}
@@ -90,16 +120,25 @@ const MappingForm: React.FC<IProps> = ({ current, finished }) => {
         }
       }}
       onFinish={async (values) => {
-        values.sourceForm = source.current!.metadata;
-        values.targetForm = target.current!.metadata;
-        values.sourceAttrs = [...(await source.current!.loadAttributes())];
-        values.targetAttrs = [...(await target.current!.loadAttributes())];
         values.mappings = [];
-        values.name = source.current?.name + '->' + target.current?.name;
         values.typeName = '映射';
-        let mapping = await current.createConfig(ConfigColl.Mappings, values);
-        finished(mapping as IMapping);
-        orgCtrl.changCallback();
+        switch (formType) {
+          case 'newMapping': {
+            let mapping = await (current as IDirectory).createConfig(
+              ConfigColl.Mappings,
+              values,
+            );
+            finished(mapping as IMapping);
+            orgCtrl.changCallback();
+            break;
+          }
+          case 'updateMapping': {
+            let mapping = current as IMapping;
+            mapping.refresh({ ...initialValue, ...values });
+            finished(mapping);
+            break;
+          }
+        }
       }}
     />
   );

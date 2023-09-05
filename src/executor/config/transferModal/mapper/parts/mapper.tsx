@@ -15,20 +15,10 @@ const Mapper: React.FC<IProps> = ({ current }) => {
       <Content>
         <Row>
           <Col span={6}>
-            <Fields
-              current={current}
-              targetForm={'sourceForm'}
-              targetAttrs={'sourceAttrs'}
-              targetAttr={'source'}
-            />
+            <Fields current={current} target={'source'} />
           </Col>
           <Col span={6}>
-            <Fields
-              current={current}
-              targetForm={'targetForm'}
-              targetAttrs={'targetAttrs'}
-              targetAttr={'target'}
-            />
+            <Fields current={current} target={'target'} />
           </Col>
           <Col span={12}>
             <Center current={current} />

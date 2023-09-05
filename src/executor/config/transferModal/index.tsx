@@ -3,7 +3,7 @@ import { linkCmd } from '@/ts/base/common/command';
 import { XEntity } from '@/ts/base/schema';
 import { IDirectory, IEntity } from '@/ts/core';
 import { ConfigColl } from '@/ts/core/thing/config';
-import { EditOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { EditOutlined } from '@ant-design/icons';
 import { Space } from 'antd';
 import React, { ReactNode } from 'react';
 import { MenuItemType } from 'typings/globelType';
@@ -93,6 +93,11 @@ export const loadRequestsMenu = (current: IDirectory, genLabel?: GenLabel) => {
   return loadMenus(current, [ConfigColl.Requests], genLabel);
 };
 
+/** 映射 */
+export const loadMappingsMenu = (current: IDirectory, genLabel?: GenLabel) => {
+  return loadMenus(current, [ConfigColl.Mappings], genLabel);
+};
+
 /** 文件项菜单 */
 export const loadEntity = (entity: IEntity<XEntity>, genLabel?: GenLabel): MenuItem => {
   return {
@@ -140,7 +145,11 @@ export const defaultGenLabel = (entity: IEntity<XEntity>, types: string[]): Reac
         />
       )}
       {entity.typeName == '目录' && (
-        <NewEntity curDir={entity as IDirectory} types={types} size="small" />
+        <NewEntity
+          curDir={entity as IDirectory}
+          types={[...types, '目录']}
+          size="small"
+        />
       )}
     </Space>
   );
