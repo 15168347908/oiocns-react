@@ -8,6 +8,7 @@ import { IDirectory } from '../../../../ts/core';
 import FullScreenModal from '../../../tools/fullScreen';
 import { loadMenu } from './../index';
 import Top from './layout/top';
+import { ConfigColl } from '@/ts/core/thing/config';
 
 interface IProps {
   current: IDirectory;
@@ -39,7 +40,7 @@ const RequestsModal: React.FC<IProps> = ({ current: dir, finished }) => {
   }, [command, ctrl]);
 
   const [_, root, selected, setSelected] = useMenuUpdate(
-    () => loadMenu(dir, '请求'),
+    () => loadMenu(dir, ConfigColl.Requests),
     ctrl.current,
   );
 
