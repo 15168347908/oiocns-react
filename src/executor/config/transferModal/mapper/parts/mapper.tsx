@@ -11,7 +11,7 @@ interface IProps {
 
 const Mapper: React.FC<IProps> = ({ current }) => {
   return (
-    <Layout>
+    <Layout style={{ marginTop: 10 }}>
       <Content>
         <Row>
           <Col span={6}>

@@ -30,7 +30,7 @@ const Fields: React.FC<IProps> = ({ current, target }) => {
             const form = ShareSet.get(id) as IForm;
             if (initial) {
               form.loadContent().then(() => {
-                setFields(form.fields);
+                setFields(form.fields.filter((field) => !used.has(field.id)));
                 setInitial(false);
               });
             } else {
@@ -43,10 +43,11 @@ const Fields: React.FC<IProps> = ({ current, target }) => {
             const species = ShareSet.get(id) as ISpecies;
             if (initial) {
               species.loadContent().then(() => {
-                setItems(species.items);
+                setItems(species.items.filter((item) => !used.has(item.id)));
                 setInitial(false);
               });
             } else {
+              setItems(species.items.filter((item) => !used.has(item.id)));
             }
           }
           break;

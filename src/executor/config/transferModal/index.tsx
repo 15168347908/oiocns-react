@@ -30,12 +30,22 @@ const loadFiles = (current: IDirectory, typeNames: string[], genLabel?: GenLabel
             .filter((item) => item.typeName == typeName)
             .map((entity) => loadEntity(entity, genLabel)),
         );
+        break;
+      case '字典':
+      case '分类':
+        items.push(
+          ...current.specieses
+            .filter((item) => item.typeName == typeName)
+            .map((entity) => loadEntity(entity, genLabel)),
+        );
+        break;
       default:
         items.push(
           ...(current.configs
             .get(typeName)
             ?.map((entity) => loadEntity(entity, genLabel)) ?? []),
         );
+        break;
     }
   }
   return items;
@@ -98,6 +108,11 @@ export const loadMappingsMenu = (current: IDirectory, genLabel?: GenLabel) => {
   return loadMenus(current, [ConfigColl.Mappings], genLabel);
 };
 
+/** 分类 */
+export const loadSpeciesMenu = (current: IDirectory, genLabel?: GenLabel) => {
+  return loadMenus(current, ['分类', '字典'], genLabel);
+};
+
 /** 文件项菜单 */
 export const loadEntity = (entity: IEntity<XEntity>, genLabel?: GenLabel): MenuItem => {
   return {
@@ -123,6 +138,9 @@ export const expand = (nodes: MenuItem[], targetTypes: string[]): string[] => {
         ans.push(node.key);
         ans.push(...children);
       }
+    }
+    if (node.itemType == '事项配置' || node.itemType == '实体配置') {
+      console.log(targetTypes, targetTypes.indexOf(node.itemType), node);
     }
     if (targetTypes.indexOf(node.itemType) != -1) {
       ans.push(node.key);

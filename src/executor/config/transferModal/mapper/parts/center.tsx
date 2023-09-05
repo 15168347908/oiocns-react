@@ -1,9 +1,10 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { FieldModel } from '@/ts/base/model';
-import { IDirectory } from '@/ts/core';
+import { IDirectory, IForm, ISpecies } from '@/ts/core';
+import { ShareSet } from '@/ts/core/public/entity';
 import { IMapping } from '@/ts/core/thing/config';
 import { Button, Col, Modal, Row, Space, Tag, TreeSelect, message } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { defaultGenLabel, expand, loadMappingsMenu } from '../..';
 import cls from './../index.module.less';
 interface IProps {
@@ -18,10 +19,29 @@ interface Mapping {
 
 const Center: React.FC<IProps> = ({ current }) => {
   const [mappings, setMappings] = useState<Mapping[]>(current.metadata.mappings);
+  const dataMap = useRef<Map<string, any>>(new Map());
+  const setDataMap = (target: 'source' | 'target') => {
+    if (ShareSet.has(current.metadata[target])) {
+      switch (current.metadata.type) {
+        case 'fields': {
+          const form = ShareSet.get(current.metadata[target]) as IForm;
+          form.fields.forEach((item) => dataMap.current.set(item.id, item));
+          break;
+        }
+        case 'specieItems': {
+          const species = ShareSet.get(current.metadata[target]) as ISpecies;
+          species.items.forEach((item) => dataMap.current.set(item.id, item));
+          break;
+        }
+      }
+    }
+  };
+  setDataMap('source');
+  setDataMap('target');
   useEffect(() => {
     const id = current.subscribe(() => {
       if (current.source && current.target) {
-        if (current.typeName == 'fields') {
+        if (current.metadata.type == 'fields') {
           const source = current.source.item as FieldModel;
           const target = current.target.item as FieldModel;
           if (source.valueType != target.valueType) {
@@ -66,32 +86,34 @@ const Center: React.FC<IProps> = ({ current }) => {
         <EntityIcon entityId={'映射关系'} showName />
       </div>
       <div className={cls['center']}>
-        {mappings.map((item, index) => (
-          <Row style={{ width: '100%', height: 50 }} align={'middle'}>
-            <Col flex={8} style={{ textAlign: 'right' }}>
-              {item.sourceAttr.name}
-            </Col>
-            <Col span={8} style={{ textAlign: 'center' }}>
-              <Space align={'center'}>
-                <Tag color="processing">{`--${item.targetAttr.property?.valueType}->`}</Tag>
-                <Button
-                  type="primary"
-                  size="small"
-                  onClick={() => {
-                    current.metadata.sourceAttrs.unshift(item.sourceAttr);
-                    current.metadata.targetAttrs.unshift(item.targetAttr);
-                    current.metadata.mappings.splice(index, 1);
-                    current.changCallback();
-                  }}>
-                  删除
-                </Button>
-              </Space>
-            </Col>
-            <Col span={8} style={{ textAlign: 'left' }}>
-              {item.targetAttr.name}
-            </Col>
-          </Row>
-        ))}
+        {mappings.map((item, index) => {
+          return (
+            <Row style={{ width: '100%', height: 50 }} align={'middle'}>
+              <Col flex={8} style={{ textAlign: 'right' }}>
+                {dataMap.current.get(item.source)?.name}
+              </Col>
+              <Col span={8} style={{ textAlign: 'center' }}>
+                <Space align={'center'}>
+                  <Tag color="processing">{`--${
+                    dataMap.current.get(item.source)?.valueType
+                  }->`}</Tag>
+                  <Button
+                    type="primary"
+                    size="small"
+                    onClick={() => {
+                      current.metadata.mappings.splice(index, 1);
+                      current.changCallback();
+                    }}>
+                    删除
+                  </Button>
+                </Space>
+              </Col>
+              <Col span={8} style={{ textAlign: 'left' }}>
+                {dataMap.current.get(item.target)?.name}
+              </Col>
+            </Row>
+          );
+        })}
       </div>
     </div>
   );
