@@ -48,17 +48,17 @@ export class BaseFileInfo<T extends schema.XFileInfo>
 
   refresh(data: T): void {
     this.setMetadata(data);
-    kernel.anystore
-      .remove(this.belongId, this.collName, {
+    kernel
+      .collectionRemove(this.belongId, this.collName, {
         id: this.metadata.id,
       })
       .then(() => {
-        kernel.anystore.insert(this.belongId, this.collName, this.metadata);
+        kernel.collectionInsert(this.belongId, this.collName, this.metadata);
       });
   }
 
   async delete(): Promise<boolean> {
-    const res = await kernel.anystore.remove(this.belongId, this.collName, {
+    const res = await kernel.collectionRemove(this.belongId, this.collName, {
       id: this.metadata.id,
     });
     const coll = this.directory.configs.get(this.collName);
@@ -70,7 +70,7 @@ export class BaseFileInfo<T extends schema.XFileInfo>
   }
 
   async rename(name: string): Promise<boolean> {
-    let res = await kernel.anystore.update(this.belongId, this.collName, {
+    let res = await kernel.collectionUpdate(this.belongId, this.collName, {
       match: {
         id: this.metadata.id,
       },
@@ -87,7 +87,7 @@ export class BaseFileInfo<T extends schema.XFileInfo>
   }
 
   async move(destination: IDirectory): Promise<boolean> {
-    let res = await kernel.anystore.update(this.belongId, this.collName, {
+    let res = await kernel.collectionAggregate(this.belongId, this.collName, {
       match: {
         id: this.metadata.id,
       },

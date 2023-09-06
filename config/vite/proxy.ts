@@ -19,20 +19,9 @@ type ProxyTargetList = Record<
 export function createProxy() {
   const ProxyList: ProxyTargetList = {
     '/orginone': {
-      target: 'http://orginone.cn', // 后台接口
-      // target: 'http://localhost:7000', // 后台接口
+      target: 'https://asset.orginone.cn', // 后台接口
       changeOrigin: true, // 是否允许跨域
       ws: true,
-    },
-    '/jx': {
-      target: 'https://hzjx-gzzcy-saber-assetstore-ssl.zcyonline.hzjuxiu.com',
-      changeOrigin: true, // 是否允许跨域
-      rewrite: (path) => path.replace(/^\/jx/, ''),
-    },
-    '/cloud': {
-      target: 'https://assetcloud.zj.gov.cn',
-      changeOrigin: true, // 是否允许跨域
-      rewrite: (path) => path.replace(/^\/jx/, ''),
     },
   };
   return ProxyList;
