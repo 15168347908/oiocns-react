@@ -8,8 +8,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { defaultGenLabel, expand, loadMappingsMenu } from '../..';
 import cls from './../index.module.less';
 import { XSpeciesItem } from '@/ts/base/schema';
+import { Command } from '@/ts/base';
 interface IProps {
   current: IMapping;
+  cmd: Command;
 }
 
 interface Mapping {
@@ -18,7 +20,7 @@ interface Mapping {
   mappingId?: string; // 字典/分类映射
 }
 
-const Center: React.FC<IProps> = ({ current }) => {
+const Center: React.FC<IProps> = ({ current, cmd }) => {
   const [mappings, setMappings] = useState<Mapping[]>(current.metadata.mappings);
   const dataMap = useRef<Map<string, any>>(new Map());
   const setDataMap = (target: 'source' | 'target') => {
@@ -83,7 +85,17 @@ const Center: React.FC<IProps> = ({ current }) => {
       }
       setMappings([...current.metadata.mappings]);
     });
+    const cmdId = cmd.subscribe((type, cmd) => {
+      if (type == 'fields') {
+        switch (cmd) {
+          case 'refresh':
+            setMappings([...current.metadata.mappings]);
+            break;
+        }
+      }
+    });
     return () => {
+      cmd.unsubscribe(cmdId);
       current.clear();
       current.unsubscribe(id);
     };
@@ -107,7 +119,7 @@ const Center: React.FC<IProps> = ({ current }) => {
                 <Space align={'center'}>
                   {current.metadata.type == 'fields' && (
                     <Tag color="processing">{`--${
-                      dataMap.current.get(item.source)?.valueType
+                      dataMap.current.get(item.source)?.valueType ?? ''
                     }->`}</Tag>
                   )}
                   <Button

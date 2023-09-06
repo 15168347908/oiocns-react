@@ -1,29 +1,29 @@
+import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
+import { FieldModel } from '@/ts/base/model';
+import { XSpeciesItem } from '@/ts/base/schema';
+import { IForm, ISpecies } from '@/ts/core';
+import { ShareIdSet, ShareSet } from '@/ts/core/public/entity';
+import { IMapping } from '@/ts/core/thing/config';
+import { Radio, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';
-import { IMapping } from '@/ts/core/thing/config';
-import { XAttribute, XSpeciesItem } from '@/ts/base/schema';
-import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
-import { Radio, Space, Tag } from 'antd';
-import { ShareIdSet, ShareSet } from '@/ts/core/public/entity';
-import { IForm, ISpecies } from '@/ts/core';
-import { FieldModel } from '@/ts/base/model';
+import { Command } from '@/ts/base';
 
 interface IProps {
   current: IMapping;
   target: 'source' | 'target';
+  cmd: Command;
 }
 
-const Fields: React.FC<IProps> = ({ current, target }) => {
+const Fields: React.FC<IProps> = ({ current, target, cmd }) => {
   const id = current.metadata[target];
   const type = current.metadata.type;
-  const [selected, setSelected] = useState<XAttribute>();
   const [fields, setFields] = useState<FieldModel[]>([]);
   const [items, setItems] = useState<XSpeciesItem[]>([]);
   const [initial, setInitial] = useState<boolean>(true);
   useEffect(() => {
     const subscribeId = current.subscribe(() => {
       const used = new Set(current.metadata.mappings.map((item) => item[target]));
-      setSelected(undefined);
       switch (type) {
         case 'fields':
           if (ShareSet.has(id)) {
@@ -32,6 +32,7 @@ const Fields: React.FC<IProps> = ({ current, target }) => {
               form.loadContent().then(() => {
                 setFields(form.fields.filter((field) => !used.has(field.id)));
                 setInitial(false);
+                cmd.emitter('fields', 'refresh');
               });
             } else {
               setFields(form.fields.filter((field) => !used.has(field.id)));
@@ -63,10 +64,7 @@ const Fields: React.FC<IProps> = ({ current, target }) => {
         <EntityIcon entity={ShareIdSet.get(id)} showName />
       </div>
       <div className={cls['fields']}>
-        <Radio.Group
-          value={selected}
-          buttonStyle="outline"
-          onChange={(e) => setSelected(e.target.value)}>
+        <Radio.Group buttonStyle="outline">
           <Space direction="vertical">
             {type == 'fields' &&
               fields.map((item, index) => (
