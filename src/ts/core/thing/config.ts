@@ -4,7 +4,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { IDirectory } from './directory';
 import { FileInfo, IFileInfo } from './fileinfo';
 import { ShareSet } from '../public/entity';
-import { deepClone } from '@/ts/base/common';
+import { deepClone, generateUuid } from '@/ts/base/common';
 import { FieldModel } from '@/ts/base/model';
 import { IForm } from './form';
 
@@ -259,7 +259,7 @@ export class Mapping extends BaseFileInfo<schema.XMapping> implements IMapping {
           });
           for (let item of data) {
             let oldItem: { [key: string]: any } = {};
-            let newItem: { [key: string]: any } = {};
+            let newItem: { [key: string]: any } = { Id: generateUuid() };
             Object.keys(item).forEach((key) => {
               if (sourceAttrMap.has(key)) {
                 const attr = sourceAttrMap.get(key)!;

@@ -435,6 +435,7 @@ const Operate: React.FC<{}> = ({}) => {
                     selectAllMode: 'page',
                     showCheckBoxesMode: 'always',
                   }}
+                  dataIndex='attribute'
                   dataSource={
                     new CustomStore({
                       key: 'Id',
