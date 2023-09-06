@@ -409,7 +409,10 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 const mapping = entity as IMapping;
                 switch (mapping.metadata.type) {
                   case 'fields':
-                    ergodic({ array: await mapping.mapping(preData.array) });
+                    ergodic({
+                      array: await mapping.mapping(preData.array),
+                      formId: mapping.metadata.target,
+                    });
                     break;
                   case 'specieItems':
                     break;
@@ -435,8 +438,12 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 break;
               }
               case '存储': {
-                console.log(preData.array);
                 isArray(preData.array);
+                linkCmd.emitter('store', 'open', {
+                  formId: preData.formId,
+                  data: preData.array,
+                  call: formCall,
+                });
                 break;
               }
             }

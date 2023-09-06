@@ -1,8 +1,8 @@
 import SchemaForm from '@/components/SchemaForm';
-import { XMapping } from '@/ts/base/schema';
+import { XStore } from '@/ts/base/schema';
 import orgCtrl from '@/ts/controller';
 import { IDirectory } from '@/ts/core';
-import { ConfigColl, IMapping as IStore } from '@/ts/core/thing/config';
+import { ConfigColl, IStore } from '@/ts/core/thing/config';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import React, { useRef, useState } from 'react';
 import { MenuItem, loadDirs } from '../transferModal';
@@ -34,7 +34,7 @@ const StoreForm: React.FC<IProps> = ({ formType, current, finished }) => {
   }
   const formRef = useRef<ProFormInstance>();
   const [treeData, setTreeData] = useState<MenuItem[]>(getTrees(current));
-  const columns: ProFormColumnsType<XMapping>[] = [
+  const columns: ProFormColumnsType<XStore>[] = [
     {
       title: '名称',
       dataIndex: 'name',
@@ -75,7 +75,7 @@ const StoreForm: React.FC<IProps> = ({ formType, current, finished }) => {
     },
   ];
   return (
-    <SchemaForm<XMapping>
+    <SchemaForm<XStore>
       ref={formRef}
       open
       title="映射配置"
@@ -94,20 +94,19 @@ const StoreForm: React.FC<IProps> = ({ formType, current, finished }) => {
       onFinish={async (values) => {
         switch (formType) {
           case 'newStore': {
-            values.mappings = [];
             values.typeName = '存储';
-            let mapping = await (current as IDirectory).createConfig(
+            let store = await (current as IDirectory).createConfig(
               ConfigColl.Stores,
               values,
             );
-            finished(mapping as IStore);
+            finished(store as IStore);
             orgCtrl.changCallback();
             break;
           }
           case 'updateStore': {
-            let mapping = current as IStore;
-            mapping.refresh({ ...initialValue, ...values });
-            finished(mapping);
+            let store = current as IStore;
+            store.refresh({ ...initialValue, ...values });
+            finished(store);
             break;
           }
         }

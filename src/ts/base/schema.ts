@@ -664,6 +664,7 @@ export type XSelection = {
 // 数据存储
 export type XStore = {
   formId: string;
+  idField: string;
   uploadDir: string;
   path: string;
 } & XFileInfo;

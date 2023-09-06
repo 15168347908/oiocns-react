@@ -14,6 +14,8 @@ import React, { CSSProperties, ReactNode, useEffect, useRef, useState } from 're
 import Selector from '../../selector';
 import { Retention } from '../index';
 import { Environments } from './environments';
+import GenerateThingTable from '@/executor/tools/generate/thingTable';
+import CustomStore from 'devextreme/data/custom_store';
 
 interface ToolProps {
   current: ILink;
@@ -353,6 +355,12 @@ interface SelArgs {
   call: Call;
 }
 
+interface StoreArgs {
+  formId: string;
+  data: any[];
+  call: Call;
+}
+
 type Call = (type: string, data?: any, message?: string) => void;
 
 const Operate: React.FC<{}> = ({}) => {
@@ -406,6 +414,43 @@ const Operate: React.FC<{}> = ({}) => {
               setName(selArgs.selection.name);
               setOpen(true);
               call.current = selArgs.call;
+              break;
+          }
+        case 'store':
+          switch (cmd) {
+            case 'open':
+              const storeArgs = args as StoreArgs;
+              const formId = storeArgs.formId;
+              if (!ShareSet.has(formId)) return;
+              const form = ShareSet.get(formId) as IForm;
+              await form.loadContent();
+              setCenter(
+                <GenerateThingTable
+                  fields={form.fields}
+                  height={'70vh'}
+                  toolbar={{ visible: false }}
+                  selection={{
+                    mode: 'multiple',
+                    allowSelectAll: true,
+                    selectAllMode: 'page',
+                    showCheckBoxesMode: 'always',
+                  }}
+                  dataSource={
+                    new CustomStore({
+                      key: 'Id',
+                      async load(_) {
+                        return {
+                          data: storeArgs.data,
+                          totalCount: storeArgs.data.length,
+                        };
+                      },
+                    })
+                  }
+                  remoteOperations={true}
+                />,
+              );
+              setName('数据');
+              setOpen(true);
               break;
           }
       }

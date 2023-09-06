@@ -253,7 +253,6 @@ export class Mapping extends BaseFileInfo<schema.XMapping> implements IMapping {
           source.attributes.forEach((attr) => {
             if (attr.property?.info) sourceAttrMap.set(attr.property.info, attr);
           });
-          console.log(sourceAttrMap);
           let targetAttrMap: Map<string, schema.XAttribute> = new Map();
           target.attributes.forEach((attr) => {
             if (attr.property?.info) targetAttrMap.set(attr.property.info, attr);
