@@ -203,8 +203,14 @@ export const directoryOperates = {
     sort: 15,
     cmd: 'newSelection',
     label: '新建选择配置',
-    iconType: '选择配置'
-  }
+    iconType: '选择配置',
+  },
+  NewStore: {
+    sort: 15,
+    cmd: 'newStore',
+    label: '新建存储配置',
+    iconType: '存储配置',
+  },
 };
 
 /** 目录下新增 */
@@ -240,7 +246,8 @@ export const transferNew = {
     directoryOperates.BatchMapping,
     directoryOperates.NewExecutable,
     directoryOperates.NewEnvironment,
-    directoryOperates.NewSelection
+    directoryOperates.NewSelection,
+    directoryOperates.NewStore,
   ],
 };
 

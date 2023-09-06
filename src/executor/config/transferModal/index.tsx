@@ -52,8 +52,11 @@ const loadFiles = (current: IDirectory, typeNames: string[], genLabel?: GenLabel
 };
 
 /** 加载目录 */
-export const loadDirs = (current: IDirectory): MenuItemType => {
-  return loadMenus(current, []);
+export const loadDirs = (
+  current: IDirectory,
+  operate?: (item: MenuItem) => void,
+): MenuItem => {
+  return loadMenus(current, [], undefined, operate);
 };
 
 /** 单一类型菜单 */
@@ -66,21 +69,24 @@ export const loadMenus = (
   current: IDirectory,
   typeNames: string[],
   genLabel?: GenLabel,
+  operate?: (item: MenuItem) => void,
 ): MenuItem => {
-  return {
+  let item = {
     key: current.id,
     item: current,
     label: current.name,
     itemType: current.typeName,
     icon: <EntityIcon entityId={current.id} typeName={current.typeName} size={18} />,
     children: [
-      ...current.children.map((item) => loadMenus(item, typeNames, genLabel)),
+      ...current.children.map((item) => loadMenus(item, typeNames, genLabel, operate)),
       ...loadFiles(current, typeNames, genLabel),
     ],
     isLeaf: false,
     selectable: false,
     node: genLabel?.(current),
   };
+  operate?.(item);
+  return item;
 };
 
 /** 表单项 */

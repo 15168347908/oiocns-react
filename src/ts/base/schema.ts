@@ -660,3 +660,10 @@ export type XSelection = {
   key: string;
   formId: string;
 } & XFileInfo;
+
+// 数据存储
+export type XStore = {
+  formId: string;
+  uploadDir: string;
+  path: string;
+} & XFileInfo;

@@ -42,7 +42,7 @@ export const Environments: React.FC<IProps> = ({ style }) => {
       render: (value) => {
         return (
           <div style={{ width: 200 }} className={cls['text-overflow']}>
-            {value}
+            {JSON.stringify(value)}
           </div>
         );
       },

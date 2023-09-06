@@ -108,7 +108,7 @@ const Center: React.FC<IProps> = ({ current, cmd }) => {
       <div className={cls['center']}>
         {mappings.map((item, index) => {
           return (
-            <Row style={{ width: '100%', height: 50 }} align={'middle'}>
+            <Row key={item.source + item.target} style={{ width: '100%', height: 50 }} align={'middle'}>
               <Col flex={8} style={{ textAlign: 'right' }}>
                 <Space>
                   {dataMap.current.get(item.source)?.info}

@@ -1,21 +1,12 @@
 import { kernel } from '@/ts/base';
-import {
-  XAttribute,
-  XEnvironment,
-  XExecutable,
-  XFileInfo,
-  XLink,
-  XMapping,
-  XRequest,
-  XSelection,
-  XSpeciesItem,
-} from '@/ts/base/schema';
+import * as schema from '@/ts/base/schema';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { IDirectory } from './directory';
 import { FileInfo, IFileInfo } from './fileinfo';
 import { ShareSet } from '../public/entity';
 import { deepClone } from '@/ts/base/common';
 import { FieldModel } from '@/ts/base/model';
+import { IForm } from './form';
 
 /** 配置集合名称 */
 export enum ConfigColl {
@@ -40,11 +31,11 @@ export const CollMap: { [key: string]: string } = {
   [ConfigColl.Unknown]: '未知',
 };
 
-export interface IBaseFileInfo<T extends XFileInfo> extends IFileInfo<T> {
+export interface IBaseFileInfo<T extends schema.XFileInfo> extends IFileInfo<T> {
   refresh(data: T): void;
 }
 
-export class BaseFileInfo<T extends XFileInfo>
+export class BaseFileInfo<T extends schema.XFileInfo>
   extends FileInfo<T>
   implements IBaseFileInfo<T>
 {
@@ -109,15 +100,18 @@ export class BaseFileInfo<T extends XFileInfo>
 }
 
 /** 未知的文件类型  */
-export type IUnknown = IBaseFileInfo<XFileInfo>;
+export type IUnknown = IBaseFileInfo<schema.XFileInfo>;
 
-export class Unknown extends BaseFileInfo<XFileInfo> implements IUnknown {}
+export class Unknown extends BaseFileInfo<schema.XFileInfo> implements IUnknown {}
 
 /** 环境配置 */
-export type IEnvironment = IBaseFileInfo<XEnvironment>;
+export type IEnvironment = IBaseFileInfo<schema.XEnvironment>;
 
-export class Environment extends BaseFileInfo<XEnvironment> implements IEnvironment {
-  constructor(environment: XEnvironment, dir: IDirectory) {
+export class Environment
+  extends BaseFileInfo<schema.XEnvironment>
+  implements IEnvironment
+{
+  constructor(environment: schema.XEnvironment, dir: IDirectory) {
     super(ConfigColl.Environments, environment, dir);
   }
 }
@@ -125,7 +119,7 @@ export class Environment extends BaseFileInfo<XEnvironment> implements IEnvironm
 type Kv = { [key: string]: string | undefined };
 
 /** 请求配置，需要持久化 */
-export interface IRequest extends IBaseFileInfo<XRequest> {
+export interface IRequest extends IBaseFileInfo<schema.XRequest> {
   /** 配置文件 */
   axios: AxiosRequestConfig;
   /** 临时存储 */
@@ -135,8 +129,8 @@ export interface IRequest extends IBaseFileInfo<XRequest> {
   exec(kv?: Kv): Promise<any>;
 }
 
-export class Request extends BaseFileInfo<XRequest> implements IRequest {
-  constructor(request: XRequest, dir: IDirectory) {
+export class Request extends BaseFileInfo<schema.XRequest> implements IRequest {
+  constructor(request: schema.XRequest, dir: IDirectory) {
     super(ConfigColl.Requests, request, dir);
   }
 
@@ -203,39 +197,41 @@ export class Request extends BaseFileInfo<XRequest> implements IRequest {
 }
 
 /** 请求链接 */
-export interface ILink extends IBaseFileInfo<XLink> {
+export interface ILink extends IBaseFileInfo<schema.XLink> {
   environment?: { [key: string]: string };
 }
 
-export class Link extends BaseFileInfo<XLink> implements ILink {
+export class Link extends BaseFileInfo<schema.XLink> implements ILink {
   environment?: { [key: string]: string };
 
-  constructor(link: XLink, dir: IDirectory) {
+  constructor(link: schema.XLink, dir: IDirectory) {
     super(ConfigColl.RequestLinks, link, dir);
   }
 }
 
 /** 脚本嵌入 */
-export interface IExecutable extends IBaseFileInfo<XExecutable> {}
+export interface IExecutable extends IBaseFileInfo<schema.XExecutable> {}
 
-export class Executable extends BaseFileInfo<XExecutable> implements IExecutable {
-  constructor(executable: XExecutable, dir: IDirectory) {
+export class Executable extends BaseFileInfo<schema.XExecutable> implements IExecutable {
+  constructor(executable: schema.XExecutable, dir: IDirectory) {
     super(ConfigColl.Scripts, executable, dir);
   }
 }
 
 /** 实体映射 */
-export interface IMapping extends IBaseFileInfo<XMapping> {
-  source?: { index: number; item: FieldModel | XSpeciesItem };
-  target?: { index: number; item: FieldModel | XSpeciesItem };
+export interface IMapping extends IBaseFileInfo<schema.XMapping> {
+  source?: { index: number; item: FieldModel | schema.XSpeciesItem };
+  target?: { index: number; item: FieldModel | schema.XSpeciesItem };
   clear(): void;
+
+  mapping(data: any[]): Promise<any[]>;
 }
 
-export class Mapping extends BaseFileInfo<XMapping> implements IMapping {
-  source?: { index: number; item: FieldModel | XSpeciesItem };
-  target?: { index: number; item: FieldModel | XSpeciesItem };
+export class Mapping extends BaseFileInfo<schema.XMapping> implements IMapping {
+  source?: { index: number; item: FieldModel | schema.XSpeciesItem };
+  target?: { index: number; item: FieldModel | schema.XSpeciesItem };
 
-  constructor(mapping: XMapping, dir: IDirectory) {
+  constructor(mapping: schema.XMapping, dir: IDirectory) {
     super(ConfigColl.Mappings, mapping, dir);
   }
 
@@ -243,12 +239,65 @@ export class Mapping extends BaseFileInfo<XMapping> implements IMapping {
     this.source = undefined;
     this.target = undefined;
   }
+
+  async mapping(data: any[]): Promise<any[]> {
+    const ans: any[] = [];
+    switch (this.metadata.type) {
+      case 'fields':
+        if (ShareSet.has(this.metadata.source) && ShareSet.has(this.metadata.target)) {
+          const source = ShareSet.get(this.metadata.source) as IForm;
+          const target = ShareSet.get(this.metadata.target) as IForm;
+          await source.loadContent();
+          await target.loadContent();
+          let sourceAttrMap: Map<string, schema.XAttribute> = new Map();
+          source.attributes.forEach((attr) => {
+            if (attr.property?.info) sourceAttrMap.set(attr.property.info, attr);
+          });
+          console.log(sourceAttrMap);
+          let targetAttrMap: Map<string, schema.XAttribute> = new Map();
+          target.attributes.forEach((attr) => {
+            if (attr.property?.info) targetAttrMap.set(attr.property.info, attr);
+          });
+          for (let item of data) {
+            let oldItem: { [key: string]: any } = {};
+            let newItem: { [key: string]: any } = {};
+            Object.keys(item).forEach((key) => {
+              if (sourceAttrMap.has(key)) {
+                const attr = sourceAttrMap.get(key)!;
+                oldItem[attr.id] = item[key];
+              }
+            });
+            for (const mapping of this.metadata.mappings) {
+              if (mapping.source in oldItem) {
+                newItem[mapping.target] = oldItem[mapping.source];
+              }
+            }
+            ans.push(newItem);
+          }
+          return ans;
+        }
+        break;
+      case 'specieItems':
+        break;
+    }
+    return ans;
+  }
 }
 
 /** 选择 */
-export interface ISelection extends IBaseFileInfo<XSelection> {}
-export class Selection extends BaseFileInfo<XSelection> implements ISelection {
-  constructor(selection: XSelection, dir: IDirectory) {
+export interface ISelection extends IBaseFileInfo<schema.XSelection> {}
+
+export class Selection extends BaseFileInfo<schema.XSelection> implements ISelection {
+  constructor(selection: schema.XSelection, dir: IDirectory) {
     super(ConfigColl.Selections, selection, dir);
+  }
+}
+
+/** 存储 */
+export interface IStore extends IBaseFileInfo<schema.XStore> {}
+
+export class Store extends BaseFileInfo<schema.XStore> implements IStore {
+  constructor(store: schema.XStore, dir: IDirectory) {
+    super(ConfigColl.Stores, store, dir);
   }
 }

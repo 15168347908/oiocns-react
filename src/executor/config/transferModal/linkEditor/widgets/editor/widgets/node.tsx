@@ -3,7 +3,13 @@ import { generateUuid, sleep } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity, XExecutable } from '@/ts/base/schema';
 import { IEntity, ShareIdSet, ShareSet } from '@/ts/core/public/entity';
-import { ConfigColl, IExecutable, IRequest, ISelection } from '@/ts/core/thing/config';
+import {
+  ConfigColl,
+  IExecutable,
+  IMapping,
+  IRequest,
+  ISelection,
+} from '@/ts/core/thing/config';
 import Encryption from '@/utils/encryption';
 import { Sandbox } from '@/utils/sandbox';
 import {
@@ -167,8 +173,8 @@ const menus: { [key: string]: MenuItemType } = {
   },
   store: {
     key: ConfigColl.Stores,
-    label: '数据',
-    itemType: '数据',
+    label: '存储',
+    itemType: '存储',
     children: [],
   },
   form: {
@@ -400,6 +406,14 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               }
               case '映射': {
                 isArray(preData.array);
+                const mapping = entity as IMapping;
+                switch (mapping.metadata.type) {
+                  case 'fields':
+                    ergodic({ array: await mapping.mapping(preData.array) });
+                    break;
+                  case 'specieItems':
+                    break;
+                }
                 break;
               }
               case '实体配置':
@@ -418,6 +432,11 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                   data: preData.array,
                   call: formCall,
                 });
+                break;
+              }
+              case '存储': {
+                console.log(preData.array);
+                isArray(preData.array);
                 break;
               }
             }
@@ -474,6 +493,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                     case '脚本':
                     case '映射':
                     case '选择':
+                    case '存储':
                       linkCmd.emitter('graph', 'openSelector', [node, item]);
                       break;
                   }

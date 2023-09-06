@@ -84,6 +84,7 @@ export const NewEntity: React.FC<EntityProps> = ({
           { key: 'newMapping', label: '新增映射' },
           { key: 'newSelection', label: '新增选择' },
           { key: 'newEnvironment', label: '新增环境' },
+          { key: 'newStore', label: '新增存储' },
           { key: 'newWorkConfig', label: '新增事项配置' },
           { key: 'newThingConfig', label: '新增实体配置' },
         ].filter(
@@ -241,8 +242,9 @@ const Transfer = (): ReactNode => {
                 映射: 'updateMapping',
                 选择: 'updateSelection',
                 环境: 'updateEnvironment',
+                存储: 'updateStore',
                 事项配置: 'updateWorkConfig',
-                实体配置: 'newThingConfig',
+                实体配置: 'updateThingConfig',
               };
               setCommands({ ...commands, [entity.id]: mapping[entity.typeName] });
               break;

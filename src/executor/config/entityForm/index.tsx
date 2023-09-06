@@ -17,6 +17,7 @@ import EnvironmentForm from './environmentForm';
 import RequestForm from './requestForm';
 import SelectionForm from './selectionForm';
 import MappingForm from './mappingForm';
+import StoreForm from './storeForm';
 
 interface IProps {
   cmd: string;
@@ -124,6 +125,11 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
     case 'updateSelection':
       return (
         <SelectionForm formType={cmd} current={entity as any} finished={reloadFinish} />
+      );
+    case 'newStore':
+    case 'updateStore':
+      return (
+        <StoreForm formType={cmd} current={entity as any} finished={reloadFinish} />
       );
     case 'newProperty':
     case 'updateProperty':
