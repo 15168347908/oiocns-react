@@ -1,21 +1,23 @@
 import OioForm from '@/components/Common/FormDesign/OioFormNext';
 import EntityForm from '@/executor/config/entityForm';
 import OperateModal from '@/executor/config/operateModal';
+import GenerateThingTable from '@/executor/tools/generate/thingTable';
+import { kernel } from '@/ts/base';
 import { deepClone } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
-import { XEntity, XFileInfo, XSelection } from '@/ts/base/schema';
+import { XEntity, XFileInfo, XSelection, XStore } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity, IFileInfo, IForm } from '@/ts/core';
-import { ShareSet } from '@/ts/core/public/entity';
+import { ShareIdSet, ShareSet } from '@/ts/core/public/entity';
 import { CollMap, ConfigColl, ILink } from '@/ts/core/thing/transfer/config';
 import { CloseCircleOutlined } from '@ant-design/icons';
 import ProTable from '@ant-design/pro-table';
-import { Button, Dropdown, Modal, Space, Tag } from 'antd';
+import { Button, Dropdown, Modal, Space, Tag, message } from 'antd';
+import { Item, Toolbar } from 'devextreme-react/data-grid';
+import CustomStore from 'devextreme/data/custom_store';
 import React, { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import Selector from '../../selector';
 import { Retention } from '../index';
 import { Environments } from './environments';
-import GenerateThingTable from '@/executor/tools/generate/thingTable';
-import CustomStore from 'devextreme/data/custom_store';
 
 interface ToolProps {
   current: ILink;
@@ -358,6 +360,7 @@ interface SelArgs {
 }
 
 interface StoreArgs {
+  storeId: string;
   formId: string;
   data: any[];
   call: Call;
@@ -430,14 +433,57 @@ const Operate: React.FC<{}> = ({}) => {
                 <GenerateThingTable
                   fields={form.fields}
                   height={'70vh'}
-                  toolbar={{ visible: false }}
+                  customToolBar={() => {
+                    const [saving, setSaving] = useState<boolean>(false);
+                    return (
+                      <Toolbar>
+                        <Item location="after">
+                          <Button
+                            loading={saving}
+                            onClick={async () => {
+                              if (ShareIdSet.has(storeArgs.storeId)) {
+                                const store = ShareIdSet.get(storeArgs.storeId) as XStore;
+                                if (ShareSet.has(store.uploadDir)) {
+                                  const json = JSON.stringify(storeArgs.data);
+                                  const file = new File([json], '资产卡片.json');
+                                  const dir = ShareSet.get(store.uploadDir) as IDirectory;
+                                  setSaving(true);
+                                  dir.createFile(file, (progress) => {
+                                    if (progress >= 100) {
+                                      setSaving(false);
+                                      message.success("转储成功！");
+                                    }
+                                  });
+                                }
+                              }
+                            }}>
+                            转储至目录
+                          </Button>
+                        </Item>
+                        <Item location="after">
+                          <Button
+                            loading={saving}
+                            onClick={async () => {
+                              if (ShareIdSet.has(storeArgs.storeId)) {
+                                const store = ShareIdSet.get(storeArgs.storeId) as XStore;
+                                if (ShareSet.has(store.uploadDir)) {
+                                  const dir = ShareSet.get(store.uploadDir) as IDirectory;
+                                }
+                              }
+                            }}>
+                            存储至实体库
+                          </Button>
+                        </Item>
+                      </Toolbar>
+                    );
+                  }}
                   selection={{
                     mode: 'multiple',
                     allowSelectAll: true,
                     selectAllMode: 'page',
                     showCheckBoxesMode: 'always',
                   }}
-                  dataIndex='attribute'
+                  dataIndex="attribute"
                   dataSource={
                     new CustomStore({
                       key: 'Id',
@@ -478,7 +524,7 @@ const Operate: React.FC<{}> = ({}) => {
           }}
           destroyOnClose={true}
           cancelText={'关闭'}
-          width={1000}>
+          width={1200}>
           {center}
         </Modal>
       )}

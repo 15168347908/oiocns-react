@@ -30,6 +30,13 @@ const ExecutableForm: React.FC<IProps> = ({ formType, current, finished }) => {
       },
     },
     {
+      title: '编码',
+      dataIndex: 'code',
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+    },
+    {
       title: '脚本',
       dataIndex: 'coder',
       colProps: { span: 24 },

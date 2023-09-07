@@ -440,6 +440,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               case '存储': {
                 isArray(preData.array);
                 linkCmd.emitter('store', 'open', {
+                  storeId: entity.id,
                   formId: preData.formId,
                   data: preData.array,
                   call: formCall,
