@@ -542,6 +542,8 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
         return new config.Environment(data as schema.XEnvironment, this);
       case '选择':
         return new config.Selection(data as schema.XSelection, this);
+      case '存储':
+        return new config.Store(data as schema.XStore, this);
       default:
         return new config.Unknown(config.ConfigColl.Unknown, data, this);
     }

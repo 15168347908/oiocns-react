@@ -1,5 +1,6 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
-import { FieldModel } from '@/ts/base/model';
+import { Command } from '@/ts/base';
+import { XAttribute, XSpeciesItem } from '@/ts/base/schema';
 import { IDirectory, IForm, ISpecies } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
 import { IMapping } from '@/ts/core/thing/transfer/config';
@@ -7,8 +8,6 @@ import { Button, Col, Modal, Row, Space, Tag, TreeSelect, message } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { defaultGenLabel, expand, loadMappingsMenu } from '../..';
 import cls from './../index.module.less';
-import { XSpeciesItem } from '@/ts/base/schema';
-import { Command } from '@/ts/base';
 interface IProps {
   current: IMapping;
   cmd: Command;
@@ -50,14 +49,14 @@ const Center: React.FC<IProps> = ({ current, cmd }) => {
           current.refresh(current.metadata);
         };
         if (current.metadata.type == 'fields') {
-          const source = current.source.item as FieldModel;
-          const target = current.target.item as FieldModel;
-          if (source.valueType != target.valueType) {
+          const source = current.source.item as XAttribute;
+          const target = current.target.item as XAttribute;
+          if (source.property?.valueType != target.property?.valueType) {
             message.warning('字段类型必须相同！');
             current.clear();
             return;
           }
-          if (['选择型', '分类型'].indexOf(source.valueType) != -1) {
+          if (['选择型', '分类型'].indexOf(source.property?.valueType ?? '') != -1) {
             openSelector({
               current: current.directory.target.directory,
               finished: (mappingId) => {
@@ -108,7 +107,10 @@ const Center: React.FC<IProps> = ({ current, cmd }) => {
       <div className={cls['center']}>
         {mappings.map((item, index) => {
           return (
-            <Row key={item.source + item.target} style={{ width: '100%', height: 50 }} align={'middle'}>
+            <Row
+              key={item.source + item.target}
+              style={{ width: '100%', height: 50 }}
+              align={'middle'}>
               <Col flex={8} style={{ textAlign: 'right' }}>
                 <Space>
                   {dataMap.current.get(item.source)?.info}

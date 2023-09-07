@@ -1,11 +1,10 @@
 import { kernel } from '@/ts/base';
+import { deepClone, generateUuid } from '@/ts/base/common';
 import * as schema from '@/ts/base/schema';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { ShareSet } from '../../public/entity';
 import { IDirectory } from '../directory';
 import { FileInfo, IFileInfo } from '../fileinfo';
-import { ShareSet } from '../../public/entity';
-import { deepClone, generateUuid } from '@/ts/base/common';
-import { FieldModel } from '@/ts/base/model';
 import { IForm } from '../form';
 
 /** 配置集合名称 */
@@ -63,17 +62,17 @@ export class BaseFileInfo<T extends schema.XFileInfo>
       },
     });
     const coll = this.directory.configs.get(this.collName);
-    if (res.success && coll) {
+    if (res.data?.MatchedCount > 0 && coll) {
       const index = coll.findIndex((item) => item.key == this.key);
       coll.splice(index, 1);
     }
-    return res.success;
+    return res.data?.MatchedCount > 0;
   }
 
   async rename(name: string): Promise<boolean> {
     let res = await kernel.collectionUpdate(this.belongId, this.collName, {
       match: {
-        _id: this.metadata.id,
+        _id: this.id,
       },
       update: {
         _set_: {
@@ -81,6 +80,7 @@ export class BaseFileInfo<T extends schema.XFileInfo>
         },
       },
     });
+    console.log(this.metadata, res);
     this.setMetadata({ ...this.metadata, name });
     return res.success;
   }
@@ -179,23 +179,19 @@ export class Request extends BaseFileInfo<schema.XRequest> implements IRequest {
   }
 
   async exec(kv?: Kv): Promise<any> {
-    console.log(kv);
     let config = deepClone(this.axios);
     let envId = this.metadata.envId;
     let kvs: { [key: string]: string | undefined } = {};
     if (envId && ShareSet.has(envId)) {
       const env = ShareSet.get(envId) as IEnvironment;
       kvs = { ...env.metadata.kvs };
-      console.log(kvs);
     }
     if (kv) {
       kvs = { ...kvs, ...kv };
     }
-    console.log(kvs);
     config = this.replace(config, kvs);
     config = this.replaceClear(config);
     config.url = this.paramsEscape(config.url);
-    console.log(config);
     const res = await axios.request(config);
     console.log('返回结果', res);
     return res;
@@ -226,16 +222,16 @@ export class Executable extends BaseFileInfo<schema.XExecutable> implements IExe
 
 /** 实体映射 */
 export interface IMapping extends IBaseFileInfo<schema.XMapping> {
-  source?: { index: number; item: FieldModel | schema.XSpeciesItem };
-  target?: { index: number; item: FieldModel | schema.XSpeciesItem };
+  source?: { index: number; item: schema.XAttribute | schema.XSpeciesItem };
+  target?: { index: number; item: schema.XAttribute | schema.XSpeciesItem };
   clear(): void;
 
   mapping(data: any[]): Promise<any[]>;
 }
 
 export class Mapping extends BaseFileInfo<schema.XMapping> implements IMapping {
-  source?: { index: number; item: FieldModel | schema.XSpeciesItem };
-  target?: { index: number; item: FieldModel | schema.XSpeciesItem };
+  source?: { index: number; item: schema.XAttribute | schema.XSpeciesItem };
+  target?: { index: number; item: schema.XAttribute | schema.XSpeciesItem };
 
   constructor(mapping: schema.XMapping, dir: IDirectory) {
     super(ConfigColl.Mappings, mapping, dir);

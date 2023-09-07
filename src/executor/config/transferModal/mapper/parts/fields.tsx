@@ -1,6 +1,6 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { FieldModel } from '@/ts/base/model';
-import { XSpeciesItem } from '@/ts/base/schema';
+import { XAttribute, XSpeciesItem } from '@/ts/base/schema';
 import { IForm, ISpecies } from '@/ts/core';
 import { ShareIdSet, ShareSet } from '@/ts/core/public/entity';
 import { IMapping } from '@/ts/core/thing/transfer/config';
@@ -18,7 +18,7 @@ interface IProps {
 const Fields: React.FC<IProps> = ({ current, target, cmd }) => {
   const id = current.metadata[target];
   const type = current.metadata.type;
-  const [fields, setFields] = useState<FieldModel[]>([]);
+  const [attrs, setAttrs] = useState<XAttribute[]>([]);
   const [items, setItems] = useState<XSpeciesItem[]>([]);
   const [initial, setInitial] = useState<boolean>(true);
   useEffect(() => {
@@ -30,12 +30,12 @@ const Fields: React.FC<IProps> = ({ current, target, cmd }) => {
             const form = ShareSet.get(id) as IForm;
             if (initial) {
               form.loadContent().then(() => {
-                setFields(form.fields.filter((field) => !used.has(field.id)));
+                setAttrs(form.attributes.filter((field) => !used.has(field.id)));
                 setInitial(false);
                 cmd.emitter('fields', 'refresh');
               });
             } else {
-              setFields(form.fields.filter((field) => !used.has(field.id)));
+              setAttrs(form.attributes.filter((field) => !used.has(field.id)));
             }
           }
           break;
@@ -67,35 +67,43 @@ const Fields: React.FC<IProps> = ({ current, target, cmd }) => {
         <Radio.Group buttonStyle="outline">
           <Space direction="vertical">
             {type == 'fields' &&
-              fields.map((item, index) => (
-                <Radio
-                  className={cls['field']}
-                  value={item}
-                  onClick={() => {
-                    current[target] = { index, item };
-                    current.changCallback();
-                  }}>
-                  <Space>
-                    <Tag color="cyan">{item.valueType}</Tag>
-                    {item.name}
-                  </Space>
-                </Radio>
-              ))}
+              attrs
+                .sort(
+                  (f, s) => f.property?.info.localeCompare(s.property?.info ?? '') ?? 0,
+                )
+                .map((item, index) => (
+                  <Radio
+                    className={cls['field']}
+                    value={item}
+                    onClick={() => {
+                      current[target] = { index, item };
+                      current.changCallback();
+                    }}>
+                    <Space>
+                      <Tag color="cyan">{item.property?.valueType}</Tag>
+                      {item.name + ' ' + item.property?.info}
+                    </Space>
+                  </Radio>
+                ))}
             {type == 'specieItems' &&
-              items.map((item, index) => (
-                <Radio
-                  className={cls['field']}
-                  value={item}
-                  onClick={() => {
-                    current[target] = { index, item };
-                    current.changCallback();
-                  }}>
-                  <Space>
-                    {item.info}
-                    {item.name}
-                  </Space>
-                </Radio>
-              ))}
+              items
+                .sort(
+                  (f, s) => f.info?.localeCompare(s.info) ?? 0,
+                )
+                .map((item, index) => (
+                  <Radio
+                    className={cls['field']}
+                    value={item}
+                    onClick={() => {
+                      current[target] = { index, item };
+                      current.changCallback();
+                    }}>
+                    <Space>
+                      {item.info}
+                      {item.name}
+                    </Space>
+                  </Radio>
+                ))}
           </Space>
         </Radio.Group>
       </div>

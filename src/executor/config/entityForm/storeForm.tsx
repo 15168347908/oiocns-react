@@ -44,6 +44,14 @@ const StoreForm: React.FC<IProps> = ({ formType, current, finished }) => {
       },
     },
     {
+      title: '编码',
+      dataIndex: 'code',
+      colProps: { span: 12 },
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+    },
+    {
       title: '数据目录',
       dataIndex: 'uploadDir',
       valueType: 'treeSelect',
@@ -78,7 +86,7 @@ const StoreForm: React.FC<IProps> = ({ formType, current, finished }) => {
     <SchemaForm<XStore>
       ref={formRef}
       open
-      title="映射配置"
+      title="存储配置"
       width={640}
       columns={columns}
       initialValues={initialValue}

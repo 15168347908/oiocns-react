@@ -133,10 +133,18 @@ const MappingForm: React.FC<IProps> = ({ formType, current, finished }) => {
       },
     },
     {
+      title: '编码',
+      dataIndex: 'code',
+      colProps: { span: 12 },
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+    },
+    {
       title: '映射类型',
       dataIndex: 'type',
       valueType: 'select',
-      colProps: { span: 12 },
+      colProps: { span: 24 },
       formItemProps: {
         rules: [{ required: true, message: '名称为必填项' }],
       },
