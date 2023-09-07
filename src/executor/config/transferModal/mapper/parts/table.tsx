@@ -2,7 +2,7 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import MappingForm from '@/executor/config/entityForm/mappingForm';
 import orgCtrl from '@/ts/controller';
 import { IDirectory } from '@/ts/core';
-import { ConfigColl, IMapping } from '@/ts/core/thing/config';
+import { ConfigColl, IMapping } from '@/ts/core/thing/transfer/config';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Modal, Space } from 'antd';
 import React, { useEffect, useState } from 'react';

@@ -2,7 +2,7 @@ import SchemaForm from '@/components/SchemaForm';
 import { XEnvironment } from '@/ts/base/schema';
 import { IDirectory } from '@/ts/core';
 import {} from '@/ts/core/';
-import { ConfigColl, IEnvironment } from '@/ts/core/thing/config';
+import { ConfigColl, IEnvironment } from '@/ts/core/thing/transfer/config';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React, { useState } from 'react';
 import EditableTable from '../transferModal/apiEditor/parts/request/widgets/editable';
@@ -48,6 +48,13 @@ const EnvironmentForm: React.FC<IProps> = ({ formType, current, finished }) => {
       dataIndex: 'name',
       formItemProps: {
         rules: [{ required: true, message: '名称为必填项' }],
+      },
+    },
+    {
+      title: '编码',
+      dataIndex: 'code',
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
       },
     },
     {

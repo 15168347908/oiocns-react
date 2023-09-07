@@ -3,7 +3,7 @@ import { Col, Layout, Row, message } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import { AxiosError } from 'axios';
 import React, { useRef } from 'react';
-import { IRequest } from '../../../../../ts/core/thing/config';
+import { IRequest } from '../../../../../ts/core/thing/transfer/config';
 import InputBox from '../parts/inputBox';
 import RequestPart from '../parts/request';
 import ResponsePart from '../parts/response/responsePart';

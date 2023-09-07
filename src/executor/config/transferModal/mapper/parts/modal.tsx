@@ -1,5 +1,5 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
-import { IMapping } from '@/ts/core/thing/config';
+import { IMapping } from '@/ts/core/thing/transfer/config';
 import React from 'react';
 import Mapper from './mapper';
 

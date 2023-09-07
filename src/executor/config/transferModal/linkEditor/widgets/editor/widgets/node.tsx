@@ -9,7 +9,7 @@ import {
   IMapping,
   IRequest,
   ISelection,
-} from '@/ts/core/thing/config';
+} from '@/ts/core/thing/transfer/config';
 import Encryption from '@/utils/encryption';
 import { Sandbox } from '@/utils/sandbox';
 import {

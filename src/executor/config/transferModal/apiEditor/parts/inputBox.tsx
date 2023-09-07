@@ -1,5 +1,5 @@
 import { generateUuid } from '@/ts/base/common';
-import { IRequest } from '@/ts/core/thing/config';
+import { IRequest } from '@/ts/core/thing/transfer/config';
 import { Button, Input, Select, Space, TreeSelect } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { defaultGenLabel, expand, loadEnvironmentsMenu } from '../..';

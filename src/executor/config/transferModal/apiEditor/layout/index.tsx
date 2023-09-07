@@ -1,5 +1,5 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
-import { IRequest } from '@/ts/core/thing/config';
+import { IRequest } from '@/ts/core/thing/transfer/config';
 import React from 'react';
 import RequestLayout from './main';
 

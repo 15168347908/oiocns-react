@@ -2,7 +2,7 @@ import SchemaForm from '@/components/SchemaForm';
 import { generateUuid } from '@/ts/base/common';
 import { XRequest } from '@/ts/base/schema';
 import { IDirectory } from '@/ts/core';
-import { ConfigColl, IRequest } from '@/ts/core/thing/config';
+import { ConfigColl, IRequest } from '@/ts/core/thing/transfer/config';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React from 'react';
 import { defaultGenLabel, expand, loadScriptsMenu } from '../transferModal';
@@ -38,6 +38,13 @@ const RequestForm: React.FC<IProps> = ({ formType, current, finished }) => {
       dataIndex: 'name',
       formItemProps: {
         rules: [{ required: true, message: '名称为必填项' }],
+      },
+    },
+    {
+      title: '编码',
+      dataIndex: 'code',
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
       },
     },
     {

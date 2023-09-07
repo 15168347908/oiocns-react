@@ -1,5 +1,5 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
-import { ILink } from '@/ts/core/thing/config';
+import { ILink } from '@/ts/core/thing/transfer/config';
 import React from 'react';
 import LinkEditor from './widgets/editor';
 

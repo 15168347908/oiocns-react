@@ -1,4 +1,4 @@
-import { IMapping } from '@/ts/core/thing/config';
+import { IMapping } from '@/ts/core/thing/transfer/config';
 import { Col, Layout, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import React, { useRef } from 'react';

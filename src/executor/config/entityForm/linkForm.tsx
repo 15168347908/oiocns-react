@@ -1,7 +1,7 @@
 import SchemaForm from '@/components/SchemaForm';
 import { XLink } from '@/ts/base/schema';
 import { IDirectory } from '@/ts/core';
-import { ConfigColl, ILink } from '@/ts/core/thing/config';
+import { ConfigColl, ILink } from '@/ts/core/thing/transfer/config';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React from 'react';
 
@@ -24,6 +24,13 @@ const LinkModal: React.FC<IProps> = ({ formType, current, finished }) => {
       dataIndex: 'name',
       formItemProps: {
         rules: [{ required: true, message: '名称为必填项' }],
+      },
+    },
+    {
+      title: '编码',
+      dataIndex: 'code',
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
       },
     },
     {

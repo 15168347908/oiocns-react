@@ -6,7 +6,7 @@ import { linkCmd } from '@/ts/base/common/command';
 import { XEntity, XFileInfo, XSelection } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity, IFileInfo, IForm } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
-import { CollMap, ConfigColl, ILink } from '@/ts/core/thing/config';
+import { CollMap, ConfigColl, ILink } from '@/ts/core/thing/transfer/config';
 import { CloseCircleOutlined } from '@ant-design/icons';
 import ProTable from '@ant-design/pro-table';
 import { Button, Dropdown, Modal, Space, Tag } from 'antd';
@@ -277,6 +277,8 @@ const Transfer = (): ReactNode => {
                   await file.delete();
                   finished();
                 },
+                okText: '确认',
+                cancelText: '取消',
               });
               break;
             }

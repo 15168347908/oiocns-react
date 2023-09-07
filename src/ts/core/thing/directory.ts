@@ -4,24 +4,25 @@ import {
   TargetType,
   directoryNew,
   directoryOperates,
-  transferNew,
   fileOperates,
   memberOperates,
   teamOperates,
+  transferNew,
 } from '../public';
 import { ITarget } from '../target/base/target';
+import { FileInfo, IFileInfo, ISysFileInfo, SysFileInfo } from './fileinfo';
 import { Form, IForm } from './form';
-import { Report, IReport } from './report';
-import { SysFileInfo, ISysFileInfo, IFileInfo, FileInfo } from './fileinfo';
+import { IReport, Report } from './report';
 
-import { Species, ISpecies } from './species';
-import { Member } from './member';
-import { Property, IProperty } from './property';
-import { Application, IApplication } from './application';
+import { encodeKey } from '@/ts/base/common';
 import { BucketOpreates, DirectoryModel } from '@/ts/base/model';
-import { encodeKey, generateUuid } from '@/ts/base/common';
-import { formatDate } from '@/utils';
-import * as config from '@/ts/core/thing/config';
+import * as config from '@/ts/core/thing/transfer/config';
+import { Application, IApplication } from './application';
+import { Collection } from './collection';
+import { Member } from './member';
+import { IProperty, Property } from './property';
+import { ISpecies, Species } from './species';
+import { XFileInfo } from '@/ts/base/schema';
 /** 可为空的进度回调 */
 export type OnProgress = (p: number) => void;
 
@@ -477,25 +478,21 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       return report;
     }
   }
-  defaultEntity(collName: string, data: schema.XFileInfo) {
-    const key = generateUuid();
-    data.id = key;
-    data.code = key;
-    data.belongId = this.belongId;
-    let current = formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss.S');
-    data.createTime = current;
-    data.updateTime = current;
-    data.collName = collName;
-    data.directoryId = this.id;
-  }
   async createConfig(
     collName: config.ConfigColl,
     data: schema.XFileInfo,
   ): Promise<IFileInfo<schema.XFileInfo> | undefined> {
-    this.defaultEntity(collName, data);
-    let res = await kernel.collectionInsert(this.belongId, collName, data);
-    if (res.success) {
-      let config = this.converting(data);
+    data.id = "snowId()";
+    data.belongId = this.belongId;
+    data.directoryId = this.id;
+    const coll = new Collection<schema.XFileInfo>(
+      this.belongId,
+      this.metadata.shareId,
+      collName,
+    );
+    let res = await coll.insert(data);
+    if (res) {
+      let config = this.converting(res);
       if (!this.configs.has(collName)) {
         this.configs.set(collName, []);
       }
@@ -509,14 +506,14 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
   ): Promise<IFileInfo<schema.XFileInfo>[]> {
     if (collName == config.ConfigColl.Unknown) return [];
     if (!this.configs.has(collName) || reload) {
-      const res = await kernel.collectionAggregate(this.belongId, collName, {
-        match: {
-          directoryId: this.id,
-        },
-        limit: 65536,
-      });
-      if (res.success && res.data.length > 0) {
-        let configs = (res.data as []).map((item) => this.converting(item));
+      const coll = new Collection<schema.XFileInfo>(
+        this.belongId,
+        this.metadata.shareId,
+        collName,
+      );
+      const res = await coll.load({ options: { match: { directoryId: this.id } } });
+      if (res.length > 0) {
+        let configs = (res as []).map((item) => this.converting(item));
         this.configs.set(collName, configs);
       } else {
         this.configs.set(collName, []);

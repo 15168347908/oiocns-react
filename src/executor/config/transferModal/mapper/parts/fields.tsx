@@ -3,7 +3,7 @@ import { FieldModel } from '@/ts/base/model';
 import { XSpeciesItem } from '@/ts/base/schema';
 import { IForm, ISpecies } from '@/ts/core';
 import { ShareIdSet, ShareSet } from '@/ts/core/public/entity';
-import { IMapping } from '@/ts/core/thing/config';
+import { IMapping } from '@/ts/core/thing/transfer/config';
 import { Radio, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';

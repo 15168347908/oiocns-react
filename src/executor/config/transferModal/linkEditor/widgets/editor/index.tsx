@@ -1,7 +1,7 @@
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity } from '@/ts/base/schema';
 import { IBelong, IDirectory, IEntity } from '@/ts/core';
-import { ConfigColl, ILink } from '@/ts/core/thing/config';
+import { ConfigColl, ILink } from '@/ts/core/thing/transfer/config';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Graph, Node } from '@antv/x6';
 import React, { createRef, useEffect, useState } from 'react';

@@ -2,7 +2,7 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity } from '@/ts/base/schema';
 import { IDirectory, IEntity } from '@/ts/core';
-import { ConfigColl } from '@/ts/core/thing/config';
+import { ConfigColl } from '@/ts/core/thing/transfer/config';
 import { EditOutlined } from '@ant-design/icons';
 import { Space } from 'antd';
 import React, { ReactNode } from 'react';

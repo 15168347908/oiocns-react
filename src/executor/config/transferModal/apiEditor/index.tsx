@@ -8,7 +8,7 @@ import { IDirectory } from '../../../../ts/core';
 import FullScreenModal from '../../../tools/fullScreen';
 import { loadMenu } from './../index';
 import Top from './layout/top';
-import { ConfigColl } from '@/ts/core/thing/config';
+import { ConfigColl } from '@/ts/core/thing/transfer/config';
 
 interface IProps {
   current: IDirectory;

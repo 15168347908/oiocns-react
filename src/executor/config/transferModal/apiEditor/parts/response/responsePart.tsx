@@ -1,7 +1,7 @@
 import { Command } from '@/ts/base';
 import React from 'react';
 import MonacoEditor, { toJsonString } from '../monacor';
-import { IRequest } from '@/ts/core/thing/config';
+import { IRequest } from '@/ts/core/thing/transfer/config';
 
 interface IProps {
   current: IRequest;

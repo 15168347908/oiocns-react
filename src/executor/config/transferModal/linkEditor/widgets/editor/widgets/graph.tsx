@@ -1,5 +1,5 @@
 import { generateUuid } from '@/ts/base/common';
-import { ILink } from '@/ts/core/thing/config';
+import { ILink } from '@/ts/core/thing/transfer/config';
 import { Basecoat, Graph, Path, Platform } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
 import { register } from '@antv/x6-react-shape';

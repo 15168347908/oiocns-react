@@ -2,7 +2,7 @@ import SchemaForm from '@/components/SchemaForm';
 import { XExecutable } from '@/ts/base/schema';
 import { IDirectory } from '@/ts/core';
 import {} from '@/ts/core/';
-import { ConfigColl, IExecutable } from '@/ts/core/thing/config';
+import { ConfigColl, IExecutable } from '@/ts/core/thing/transfer/config';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React from 'react';
 import MonacoEditor from '../transferModal/apiEditor/parts/monacor';

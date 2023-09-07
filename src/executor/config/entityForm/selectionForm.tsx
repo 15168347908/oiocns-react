@@ -1,7 +1,7 @@
 import SchemaForm from '@/components/SchemaForm';
 import { XAttribute, XSelection } from '@/ts/base/schema';
 import { IDirectory, IForm } from '@/ts/core';
-import { ConfigColl, ISelection } from '@/ts/core/thing/config';
+import { ConfigColl, ISelection } from '@/ts/core/thing/transfer/config';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import React, { useEffect, useRef, useState } from 'react';
 import { MenuItem, expand, loadFormsMenu } from '../transferModal';

@@ -1,12 +1,12 @@
 import { kernel } from '@/ts/base';
 import * as schema from '@/ts/base/schema';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { IDirectory } from './directory';
-import { FileInfo, IFileInfo } from './fileinfo';
-import { ShareSet } from '../public/entity';
+import { IDirectory } from '../directory';
+import { FileInfo, IFileInfo } from '../fileinfo';
+import { ShareSet } from '../../public/entity';
 import { deepClone, generateUuid } from '@/ts/base/common';
 import { FieldModel } from '@/ts/base/model';
-import { IForm } from './form';
+import { IForm } from '../form';
 
 /** 配置集合名称 */
 export enum ConfigColl {
@@ -48,20 +48,19 @@ export class BaseFileInfo<T extends schema.XFileInfo>
 
   refresh(data: T): void {
     this.setMetadata(data);
-    console.log(data);
-    kernel.collectionUpdate(this.belongId, this.collName, {
-      match: {
-        id: data.id,
-      },
-      update: {
-        ...data,
-      },
-    });
+    kernel.collectionReplace(this.belongId, this.collName, this.metadata);
   }
 
   async delete(): Promise<boolean> {
-    const res = await kernel.collectionRemove(this.belongId, this.collName, {
-      id: this.metadata.id,
+    const res = await kernel.collectionUpdate(this.belongId, this.collName, {
+      match: {
+        _id: this.id,
+      },
+      update: {
+        _set_: {
+          isDeleted: true,
+        },
+      },
     });
     const coll = this.directory.configs.get(this.collName);
     if (res.success && coll) {
@@ -74,12 +73,15 @@ export class BaseFileInfo<T extends schema.XFileInfo>
   async rename(name: string): Promise<boolean> {
     let res = await kernel.collectionUpdate(this.belongId, this.collName, {
       match: {
-        id: this.metadata.id,
+        _id: this.metadata.id,
       },
       update: {
-        name: name,
+        _set_: {
+          name: name,
+        },
       },
     });
+    this.setMetadata({ ...this.metadata, name });
     return res.success;
   }
 
@@ -89,12 +91,14 @@ export class BaseFileInfo<T extends schema.XFileInfo>
   }
 
   async move(destination: IDirectory): Promise<boolean> {
-    let res = await kernel.collectionAggregate(this.belongId, this.collName, {
+    let res = await kernel.collectionUpdate(this.belongId, this.collName, {
       match: {
         id: this.metadata.id,
       },
       update: {
-        directoryId: destination.id,
+        _set_: {
+          directoryId: destination.id,
+        },
       },
     });
     return res.success;

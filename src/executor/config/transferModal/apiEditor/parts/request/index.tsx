@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Body from './widgets/body';
 import Headers from './widgets/headers';
 import Params from './widgets/params';
-import { IRequest } from '@/ts/core/thing/config';
+import { IRequest } from '@/ts/core/thing/transfer/config';
 
 interface IProps {
   current: IRequest;

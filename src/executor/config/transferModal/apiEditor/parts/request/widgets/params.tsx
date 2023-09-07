@@ -1,4 +1,4 @@
-import { IRequest } from '@/ts/core/thing/config';
+import { IRequest } from '@/ts/core/thing/transfer/config';
 import React, { useEffect, useState } from 'react';
 import EditableTable from './editable';
 

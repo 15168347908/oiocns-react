@@ -2,7 +2,7 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { FieldModel } from '@/ts/base/model';
 import { IDirectory, IForm, ISpecies } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
-import { IMapping } from '@/ts/core/thing/config';
+import { IMapping } from '@/ts/core/thing/transfer/config';
 import { Button, Col, Modal, Row, Space, Tag, TreeSelect, message } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { defaultGenLabel, expand, loadMappingsMenu } from '../..';

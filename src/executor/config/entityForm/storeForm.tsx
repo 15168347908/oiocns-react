@@ -2,7 +2,7 @@ import SchemaForm from '@/components/SchemaForm';
 import { XStore } from '@/ts/base/schema';
 import orgCtrl from '@/ts/controller';
 import { IDirectory } from '@/ts/core';
-import { ConfigColl, IStore } from '@/ts/core/thing/config';
+import { ConfigColl, IStore } from '@/ts/core/thing/transfer/config';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import React, { useRef, useState } from 'react';
 import { MenuItem, loadDirs } from '../transferModal';

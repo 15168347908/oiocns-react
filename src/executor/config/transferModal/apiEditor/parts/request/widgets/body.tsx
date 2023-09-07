@@ -1,6 +1,6 @@
 import React from 'react';
 import MonacoEditor from './../../monacor';
-import { IRequest } from '@/ts/core/thing/config';
+import { IRequest } from '@/ts/core/thing/transfer/config';
 
 export interface IProps {
   current: IRequest;
