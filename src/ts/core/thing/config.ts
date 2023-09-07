@@ -48,13 +48,15 @@ export class BaseFileInfo<T extends schema.XFileInfo>
 
   refresh(data: T): void {
     this.setMetadata(data);
-    kernel
-      .collectionRemove(this.belongId, this.collName, {
-        id: this.metadata.id,
-      })
-      .then(() => {
-        kernel.collectionInsert(this.belongId, this.collName, this.metadata);
-      });
+    console.log(data);
+    kernel.collectionUpdate(this.belongId, this.collName, {
+      match: {
+        id: data.id,
+      },
+      update: {
+        ...data,
+      },
+    });
   }
 
   async delete(): Promise<boolean> {

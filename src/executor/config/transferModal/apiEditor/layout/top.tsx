@@ -22,15 +22,20 @@ const Top: React.FC<IProps> = ({ cmd, dir }) => {
 
   // 监听
   useEffect(() => {
-    const id = cmd.subscribe((_type: string, cmd: string, args: any) => {
-      if (cmd == 'onSelect') {
-        const menu = args as MenuItemType;
-        if (menu.itemType == '请求') {
-          setCurTab(menu);
-          updateTabs(menu);
-        } else {
-          setCurDir(menu.item);
-        }
+    const id = cmd.subscribe((type: string, cmd: string, args: any) => {
+      switch (type) {
+        case 'top':
+          switch (cmd) {
+            case 'onSelect':
+              const menu = args as MenuItemType;
+              if (menu.itemType == '请求') {
+                setCurTab(menu);
+                updateTabs(menu);
+              } else {
+                setCurDir(menu.item);
+              }
+              break;
+          }
       }
     });
     return () => {
@@ -105,7 +110,7 @@ const Top: React.FC<IProps> = ({ cmd, dir }) => {
           finished={(request) => {
             setOpen(false);
             if (request) {
-              cmd.emitter('', 'onAdd', loadEntity(request));
+              cmd.emitter('main', 'onAdd', loadEntity(request));
             }
           }}
         />

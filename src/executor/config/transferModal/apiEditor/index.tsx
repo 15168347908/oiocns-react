@@ -19,19 +19,29 @@ const RequestsModal: React.FC<IProps> = ({ current: dir, finished }) => {
   const command = useRef(new Command());
   const ctrl = useRef(new Controller(''));
 
-  const onSelect = (menu: MenuItemType) => {
+  const onSelect = async (menu: MenuItemType) => {
+    if (menu.itemType == '目录') {
+      await (menu.item as IDirectory).loadAllConfigs();
+    }
     setSelected(menu as MenuItemType);
-    command.current.emitter('', 'onSelect', menu as MenuItemType);
+    command.current.emitter('top', 'onSelect', menu as MenuItemType);
   };
 
   useEffect(() => {
-    const id = command.current.subscribe((_: string, cmd: string, args: any) => {
-      if (cmd == 'onAdd') {
-        orgCtrl.changCallback();
-        ctrl.current.changCallback();
-        onSelect(args as MenuItemType);
-      } else if (cmd == 'onTabSelected') {
-        onSelect(args as MenuItemType);
+    const id = command.current.subscribe((type: string, cmd: string, args: any) => {
+      switch (type) {
+        case 'main': {
+          switch (cmd) {
+            case 'onAdd':
+              orgCtrl.changCallback();
+              ctrl.current.changCallback();
+              onSelect(args as MenuItemType);
+              break;
+            case 'onTabSelected':
+              onSelect(args as MenuItemType);
+              break;
+          }
+        }
       }
     });
     return () => {
