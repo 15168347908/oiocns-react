@@ -257,6 +257,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   const [visibleMenu, setVisibleMenu] = useState<boolean>(false);
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number }>();
   const entity = getShareEntity(node);
+  const temping = graph.getPlugin<Temping>(Persistence);
 
   // 删除标记
   const Remove: React.FC<{}> = () => {
@@ -276,6 +277,9 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   };
 
   if (!entity) {
+    if (temping?.retention == 'runtime') {
+      return <></>;
+    }
     return <Remove></Remove>;
   }
 
@@ -349,7 +353,6 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               throw new Error('输入必须是一个数组！');
             }
           };
-          const temping = graph.getPlugin<Temping>(Persistence);
           const curEnv = temping?.curEnv();
           const executing = (input: any, coder: string): any => {
             const runtime = {
@@ -604,12 +607,16 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
             break;
         }
       }}>
-      <Remove />
       <Tag />
       <Status />
-      <PlusMenus />
       <Info />
-      <ContextMenu />
+      {temping?.retention == 'configuration' && (
+        <>
+          <Remove />
+          <PlusMenus />
+          <ContextMenu />
+        </>
+      )}
     </div>
   );
 };

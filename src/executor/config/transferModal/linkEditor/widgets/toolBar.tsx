@@ -2,7 +2,6 @@ import OioForm from '@/components/Common/FormDesign/OioFormNext';
 import EntityForm from '@/executor/config/entityForm';
 import OperateModal from '@/executor/config/operateModal';
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
-import { kernel } from '@/ts/base';
 import { deepClone } from '@/ts/base/common';
 import { linkCmd } from '@/ts/base/common/command';
 import { XEntity, XFileInfo, XSelection, XStore } from '@/ts/base/schema';
@@ -16,50 +15,44 @@ import { Item, Toolbar } from 'devextreme-react/data-grid';
 import CustomStore from 'devextreme/data/custom_store';
 import React, { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 import Selector from '../../selector';
-import { Retention } from '../index';
 import { Environments } from './environments';
 
 interface ToolProps {
   current: ILink;
-  retention: Retention;
+  retention: 'runtime' | 'configuration';
 }
 
 export const ToolBar: React.FC<ToolProps> = ({
   current,
-  retention = Retention.Configuration,
+  retention = 'configuration',
 }) => {
-  const nodes: ReactNode[] = [];
-  const style: CSSProperties = { position: 'absolute', right: 20, top: 64 };
-  nodes.push(<Environments key={'environments'} style={style} />);
-  if (retention == Retention.Configuration) {
-    const style: CSSProperties = { position: 'absolute', left: 20, top: 64 };
-    nodes.push(<NodeTools key={'nodeTools'} current={current} style={style} />);
-  }
-  nodes.push(<Operate key={'operateModal'} />);
-  nodes.push(<Transfer key={'transfer'} />);
-  nodes.push(<OpenOperate key={'openOperate'} />);
-  return <>{nodes}</>;
+  return (
+    <>
+      <Environments key={'environments'} />
+      <NodeTools key={'nodeTools'} current={current} retention={retention} />
+      <Operate key={'operateModal'} />
+      <Transfer key={'transfer'} />
+      <OpenOperate key={'openOperate'} />
+    </>
+  );
 };
 
-interface IProps {
-  current: ILink;
-  style?: CSSProperties;
-}
-
-const NodeTools: React.FC<IProps> = ({ current, style }) => {
+const NodeTools: React.FC<ToolProps> = ({ current, retention }) => {
   const belong = current.directory.target as IBelong;
   return (
-    <Space style={style}>
-      <Button
-        onClick={() =>
-          openSelector(belong, (selected) => {
-            linkCmd.emitter('graph', 'insertNode', selected);
-          })
-        }>
-        插入节点
-      </Button>
-      <Button onClick={() => linkCmd.emitter('graph', 'center')}>中心</Button>
-      <Button onClick={() => linkCmd.emitter('graph', 'executing')}>执行</Button>
+    <Space style={{ position: 'absolute', left: 20, top: 64 }}>
+      {retention == 'configuration' && (
+        <Button
+          onClick={() =>
+            openSelector(belong, (selected) => {
+              linkCmd.emitter('graph', 'insertNode', selected);
+            })
+          }>
+          插入节点
+        </Button>
+      )}
+      <Button onClick={() => linkCmd.emitter('graph', 'executing')}>运行</Button>
+      <Button onClick={() => linkCmd.emitter('graph', 'center')}>定位至内容中心</Button>
     </Space>
   );
 };
@@ -451,7 +444,7 @@ const Operate: React.FC<{}> = ({}) => {
                                   dir.createFile(file, (progress) => {
                                     if (progress >= 100) {
                                       setSaving(false);
-                                      message.success("转储成功！");
+                                      message.success('转储成功！');
                                     }
                                   });
                                 }

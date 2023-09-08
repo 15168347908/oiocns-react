@@ -55,8 +55,9 @@ const loadFiles = (current: IDirectory, typeNames: string[], genLabel?: GenLabel
 export const loadDirs = (
   current: IDirectory,
   operate?: (item: MenuItem) => void,
+  genLabel?: GenLabel,
 ): MenuItem => {
-  return loadMenus(current, [], undefined, operate);
+  return loadMenus(current, [], genLabel, operate);
 };
 
 /** 单一类型菜单 */

@@ -80,7 +80,6 @@ export class BaseFileInfo<T extends schema.XFileInfo>
         },
       },
     });
-    console.log(this.metadata, res);
     this.setMetadata({ ...this.metadata, name });
     return res.success;
   }

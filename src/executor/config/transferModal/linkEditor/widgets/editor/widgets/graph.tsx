@@ -1,11 +1,11 @@
 import { generateUuid } from '@/ts/base/common';
-import { ILink } from '@/ts/core/thing/transfer/config';
 import { Basecoat, Graph, Path, Platform } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
 import { register } from '@antv/x6-react-shape';
 import React from 'react';
 import { generateEdge } from './edge';
 import { ProcessingNode } from './node';
+import { Retention } from '../../..';
 
 /**
  * 创建画布
@@ -13,7 +13,10 @@ import { ProcessingNode } from './node';
  * @param link 链接数据
  * @returns
  */
-export const createGraph = (ref: React.RefObject<HTMLDivElement>, link: ILink): Graph => {
+export const createGraph = (
+  ref: React.RefObject<HTMLDivElement>,
+  retention: Retention,
+): Graph => {
   const graph: Graph = new Graph({
     container: ref.current!,
     grid: true,
@@ -63,11 +66,8 @@ export const createGraph = (ref: React.RefObject<HTMLDivElement>, link: ILink): 
       color: '#F2F7FA',
     },
   });
-  using(graph);
+  using(graph, retention);
   registering();
-  if (link.metadata.data) {
-    graph.fromJSON(link.metadata.data);
-  }
   graph.centerContent();
   return graph;
 };
@@ -144,7 +144,7 @@ const registering = () => {
  * 使用插件
  * @param graph 画布
  */
-const using = (graph: Graph) => {
+const using = (graph: Graph, retention: Retention) => {
   graph.use(
     new Selection({
       enabled: true,
@@ -155,7 +155,7 @@ const using = (graph: Graph) => {
       modifiers: ['shift'],
     }),
   );
-  graph.use(new Temping());
+  graph.use(new Temping(retention));
 };
 
 export const Persistence = 'Persistence';
@@ -165,11 +165,13 @@ export class Temping extends Basecoat<{}> implements Graph.Plugin {
   name: string;
   params: { [key: string]: { [key: string]: string } };
   current?: string;
+  retention: Retention;
 
-  constructor() {
+  constructor(retention: Retention) {
     super();
     this.name = Persistence;
     this.params = {};
+    this.retention = retention;
   }
 
   init(_graph: Graph, ..._: any[]) {}

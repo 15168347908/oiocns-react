@@ -3,22 +3,15 @@ import { ILink } from '@/ts/core/thing/transfer/config';
 import React from 'react';
 import LinkEditor from './widgets/editor';
 
-// 运行状态
-export enum Retention {
-  Runtime,
-  Configuration,
-}
+export type Retention = 'runtime' | 'configuration';
+
 interface IProps {
   current: ILink;
   finished: () => void;
   retention?: Retention;
 }
 
-const LinkModal: React.FC<IProps> = ({
-  current,
-  finished,
-  retention = Retention.Configuration,
-}) => {
+const LinkModal: React.FC<IProps> = ({ current, finished, retention = 'configuration' }) => {
   return (
     <FullScreenModal
       open

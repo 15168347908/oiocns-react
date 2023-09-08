@@ -5,7 +5,7 @@ import { IDirectory } from '@/ts/core';
 import { ConfigColl, IStore } from '@/ts/core/thing/transfer/config';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import React, { useRef, useState } from 'react';
-import { MenuItem, loadDirs } from '../transferModal';
+import { MenuItem, defaultGenLabel, loadDirs } from '../transferModal';
 
 interface IProps {
   formType: string;
@@ -20,6 +20,9 @@ const getTrees = (current: IDirectory | IStore): MenuItem[] => {
         ? (current as IStore).directory.target.directory
         : (current as IDirectory).target.directory,
       (item) => (item.selectable = true),
+      (entity) => {
+        return defaultGenLabel(entity, []);
+      },
     ),
   ];
   return tree;
@@ -58,7 +61,7 @@ const StoreForm: React.FC<IProps> = ({ formType, current, finished }) => {
       colProps: { span: 24 },
       fieldProps: {
         fieldNames: {
-          label: 'label',
+          label: 'node',
           value: 'key',
           children: 'children',
         },

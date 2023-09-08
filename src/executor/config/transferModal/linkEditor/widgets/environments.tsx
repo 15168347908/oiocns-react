@@ -1,14 +1,12 @@
 import { linkCmd } from '@/ts/base/common/command';
+import { Graph } from '@antv/x6';
 import { Table } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
-import React, { CSSProperties, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';
-import { Graph } from '@antv/x6';
 import { Persistence, Temping } from './editor/widgets/graph';
 
-interface IProps {
-  style?: CSSProperties;
-}
+interface IProps {}
 
 interface Kv {
   k: string;
@@ -27,7 +25,7 @@ export const getKvs = (graph: Graph): Kv[] => {
   return kvs;
 };
 
-export const Environments: React.FC<IProps> = ({ style }) => {
+export const Environments: React.FC<IProps> = ({}) => {
   const [kvs, setKvs] = useState<Kv[]>([]);
   const columns: ColumnsType<Kv> = [
     {
@@ -66,7 +64,7 @@ export const Environments: React.FC<IProps> = ({ style }) => {
     return <></>;
   }
   return (
-    <div style={style}>
+    <div style={{ position: 'absolute', right: 20, top: 64 }}>
       <Table key={'key'} columns={columns} dataSource={kvs} />;
     </div>
   );
