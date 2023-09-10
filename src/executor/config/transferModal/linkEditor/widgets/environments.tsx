@@ -16,7 +16,7 @@ interface Kv {
 export const getKvs = (current: ILink): Kv[] => {
   const kvs: Kv[] = [];
   const metadata = current.metadata;
-  if (metadata.curEnv <= metadata.envs.length - 1) {
+  if (metadata.curEnv >= 0 && metadata.curEnv <= metadata.envs.length - 1) {
     const curEnv = metadata.envs[metadata.curEnv];
     for (const k in curEnv.params) {
       kvs.push({ k: k, v: curEnv.params[k] });

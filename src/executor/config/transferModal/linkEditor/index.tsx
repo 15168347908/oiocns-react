@@ -1,7 +1,7 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
 import { ILink } from '@/ts/core/thing/link';
 import React from 'react';
-import LinkEditor from './widgets/editor';
+import LinkEditor from './graph';
 
 export type Retention = 'runtime' | 'configuration';
 

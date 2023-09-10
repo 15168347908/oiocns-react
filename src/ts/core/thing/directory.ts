@@ -125,6 +125,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
   applications: IApplication[] = [];
   reports: IReport[] = [];
   links: ILink[] = [];
+  private _linkLoaded: boolean = false;
   private _contentLoaded: boolean = false;
   get id(): string {
     if (!this.parent) {
@@ -489,7 +490,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     }
   }
   async loadAllLink(reload: boolean = false): Promise<ILink[]> {
-    if (this.links.length < 1 || reload) {
+    if (!this._linkLoaded || reload) {
       const coll = new Collection<model.Link>(
         this.belongId,
         this.metadata.shareId,
@@ -499,6 +500,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       if (res.length > 0) {
         this.links = res.map((item) => new Link(item, this));
       }
+      this._linkLoaded = true;
     }
     return this.links;
   }

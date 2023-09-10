@@ -24,7 +24,7 @@ export interface ILink extends IFileInfo<model.Link> {
   curVisited?: Set<string>;
   /** 前置链接 */
   curPreLink?: ILink;
-  /** 运行状态 */
+  /** 图状态 */
   status: model.GraphStatus;
   /** 状态转移 */
   machine(event: model.Event): void;
@@ -88,8 +88,6 @@ export class Link extends FileInfo<model.Link> implements ILink {
     this.taskList = [];
     this.preStatus = 'Editable';
     this.status = 'Editable';
-    this.curTask = metadata.envs[metadata.curEnv];
-    this.curVisited = new Set();
     this.command.subscribe((type, cmd, args) => {
       switch (type) {
         case 'main':

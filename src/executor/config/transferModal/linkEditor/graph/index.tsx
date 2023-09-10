@@ -3,7 +3,7 @@ import { ILink } from '@/ts/core/thing/link';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Graph } from '@antv/x6';
 import React, { createRef, useEffect, useState } from 'react';
-import { ToolBar } from '../toolBar';
+import { ToolBar } from '../widgets/toolBar';
 import cls from './../../index.module.less';
 import { LinkStore, createGraph } from './widgets/graph';
 import { addNode } from './widgets/node';
@@ -32,7 +32,9 @@ const LinkEditor: React.FC<IProps> = ({ current }) => {
       loadProps(root).then(() => setInitializing(false));
     } else {
       const graph = createGraph(ref);
-      graph.fromJSON(current.metadata.graph);
+      if (current.metadata.graph) {
+        graph.fromJSON(current.metadata.graph);
+      }
       graph.use(new LinkStore(current));
       current.binding(() => graph.toJSON());
       const id = current.command.subscribe((type: string, cmd: string, args: any) => {
