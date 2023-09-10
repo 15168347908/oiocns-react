@@ -79,7 +79,7 @@ const ExecutorOpen: React.FC<IOpenProps> = (props: IOpenProps) => {
           />
         );
       case "链接":
-        return <LinkModal retention={'runtime'} current={props.entity as any} finished={props.finished}></LinkModal>
+        return <LinkModal current={props.entity as any} finished={props.finished}></LinkModal>
       case '目录':
         if (props.cmd === 'openFolderWithEditor') {
           return (

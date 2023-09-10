@@ -1,11 +1,10 @@
-import { generateUuid } from '@/ts/base/common';
+import { ILink } from '@/ts/core/thing/link';
 import { Basecoat, Graph, Path, Platform } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
 import { register } from '@antv/x6-react-shape';
 import React from 'react';
 import { generateEdge } from './edge';
 import { ProcessingNode } from './node';
-import { Retention } from '../../..';
 
 /**
  * 创建画布
@@ -13,10 +12,7 @@ import { Retention } from '../../..';
  * @param link 链接数据
  * @returns
  */
-export const createGraph = (
-  ref: React.RefObject<HTMLDivElement>,
-  retention: Retention,
-): Graph => {
+export const createGraph = (ref: React.RefObject<HTMLDivElement>): Graph => {
   const graph: Graph = new Graph({
     container: ref.current!,
     grid: true,
@@ -66,9 +62,8 @@ export const createGraph = (
       color: '#F2F7FA',
     },
   });
-  using(graph, retention);
+  using(graph);
   registering();
-  graph.centerContent();
   return graph;
 };
 
@@ -144,7 +139,7 @@ const registering = () => {
  * 使用插件
  * @param graph 画布
  */
-const using = (graph: Graph, retention: Retention) => {
+const using = (graph: Graph) => {
   graph.use(
     new Selection({
       enabled: true,
@@ -155,52 +150,18 @@ const using = (graph: Graph, retention: Retention) => {
       modifiers: ['shift'],
     }),
   );
-  graph.use(new Temping(retention));
 };
 
-export const Persistence = 'Persistence';
-
 /** 临时存储插件 */
-export class Temping extends Basecoat<{}> implements Graph.Plugin {
+export class LinkStore extends Basecoat<{}> implements Graph.Plugin {
   name: string;
-  params: { [key: string]: { [key: string]: string } };
-  current?: string;
-  retention: Retention;
+  link: ILink;
 
-  constructor(retention: Retention) {
+  constructor(link: ILink) {
     super();
-    this.name = Persistence;
-    this.params = {};
-    this.retention = retention;
+    this.name = 'LinkStore';
+    this.link = link;
   }
 
   init(_graph: Graph, ..._: any[]) {}
-
-  createEnv() {
-    let id = generateUuid();
-    this.params[id] = {};
-    this.current = id;
-  }
-
-  curEnv(): { [key: string]: string } | undefined {
-    if (this.current) {
-      return this.params[this.current];
-    }
-  }
-
-  add(k: string, v: string) {
-    if (this.current) {
-      this.params[this.current][k] = v;
-    }
-  }
-
-  addAll(kvs: { [key: string]: string }) {
-    for (const k in kvs) {
-      this.add(k, kvs[k]);
-    }
-  }
-
-  dispose(): void {
-    this.params = {};
-  }
 }

@@ -6,23 +6,21 @@ import {
   directoryOperates,
   fileOperates,
   memberOperates,
+  storeCollName,
   teamOperates,
-  transferNew,
 } from '../public';
 import { ITarget } from '../target/base/target';
 import { FileInfo, IFileInfo, ISysFileInfo, SysFileInfo } from './fileinfo';
 import { Form, IForm } from './form';
 import { IReport, Report } from './report';
-
 import { encodeKey } from '@/ts/base/common';
 import { BucketOpreates, DirectoryModel } from '@/ts/base/model';
-import * as config from '@/ts/core/thing/transfer/config';
 import { Application, IApplication } from './application';
 import { Collection } from './collection';
+import { ILink, Link } from './link';
 import { Member } from './member';
 import { IProperty, Property } from './property';
 import { ISpecies, Species } from './species';
-import { XFileInfo } from '@/ts/base/schema';
 /** 可为空的进度回调 */
 export type OnProgress = (p: number) => void;
 
@@ -88,17 +86,12 @@ export interface IDirectory extends IFileInfo<schema.XDirectory> {
   loadAllApplication(reload?: boolean): Promise<IApplication[]>;
   /** 加载目录树 */
   loadSubDirectory(): void;
-  /** 目录下的所有配置项 */
-  configs: Map<string, IFileInfo<schema.XFileInfo>[]>;
-  /** 新建请求配置 */
-  createConfig(
-    coll: string,
-    data: schema.XFileInfo,
-  ): Promise<IFileInfo<schema.XFileInfo> | undefined>;
-  /** 加载请求配置 */
-  loadConfigs(collName: string, reload?: boolean): Promise<IFileInfo<schema.XFileInfo>[]>;
-  /** 加载所有配置 */
-  loadAllConfigs(reload?: boolean): Promise<void>;
+  /** 目录下的链接 */
+  links: ILink[];
+  /** 新建链接配置 */
+  createLink(data: model.Link): Promise<ILink | undefined>;
+  /** 加载链接配置 */
+  loadAllLink(reload?: boolean): Promise<ILink[]>;
 }
 
 /** 目录实现类 */
@@ -131,7 +124,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
   propertys: IProperty[] = [];
   applications: IApplication[] = [];
   reports: IReport[] = [];
-  configs: Map<string, IFileInfo<schema.XFileInfo>[]> = new Map();
+  links: ILink[] = [];
   private _contentLoaded: boolean = false;
   get id(): string {
     if (!this.parent) {
@@ -150,8 +143,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     if (this.typeName === '成员目录') {
       cnt.push(...this.target.members.map((i) => new Member(i, this)));
     } else {
-      cnt.push(...this.forms, ...this.applications, ...this.files);
-      this.configs.forEach((values) => cnt.push(...values));
+      cnt.push(...this.forms, ...this.applications, ...this.files, ...this.links);
       if (mode != 1) {
         cnt.push(...this.propertys);
         cnt.push(...this.specieses);
@@ -165,7 +157,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
   }
   async loadContent(reload: boolean = false): Promise<boolean> {
     await this.loadFiles(reload);
-    await this.loadAllConfigs(reload);
+    await this.loadAllLink(reload);
     if (reload) {
       if (this.typeName === '成员目录') {
         await this.target.loadContent(reload);
@@ -405,7 +397,6 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       );
       if (mode === 2 && this.target.hasRelationAuth()) {
         operates.push(directoryNew);
-        operates.push(transferNew);
         if (this.target.space.user.copyFiles.size > 0) {
           operates.push(fileOperates.Parse);
         }
@@ -478,74 +469,37 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       return report;
     }
   }
-  async createConfig(
-    collName: config.ConfigColl,
-    data: schema.XFileInfo,
-  ): Promise<IFileInfo<schema.XFileInfo> | undefined> {
-    data.id = "snowId()";
-    data.belongId = this.belongId;
+  async createLink(data: model.Link): Promise<ILink | undefined> {
+    data.id = 'snowId()';
     data.directoryId = this.id;
-    const coll = new Collection<schema.XFileInfo>(
+    data.curEnv = -1;
+    data.envs = [];
+    data.nodes = [];
+    data.edges = [];
+    const coll = new Collection<model.Link>(
       this.belongId,
       this.metadata.shareId,
-      collName,
+      storeCollName.Links,
     );
     let res = await coll.insert(data);
     if (res) {
-      let config = this.converting(res);
-      if (!this.configs.has(collName)) {
-        this.configs.set(collName, []);
-      }
-      this.configs.get(collName)!.push(config);
-      return config;
+      let link = new Link(res, this);
+      this.links.push(link);
+      return link;
     }
   }
-  async loadConfigs(
-    collName: config.ConfigColl,
-    reload: boolean = false,
-  ): Promise<IFileInfo<schema.XFileInfo>[]> {
-    if (collName == config.ConfigColl.Unknown) return [];
-    if (!this.configs.has(collName) || reload) {
-      const coll = new Collection<schema.XFileInfo>(
+  async loadAllLink(reload: boolean = false): Promise<ILink[]> {
+    if (this.links.length < 1 || reload) {
+      const coll = new Collection<model.Link>(
         this.belongId,
         this.metadata.shareId,
-        collName,
+        storeCollName.Links,
       );
       const res = await coll.load({ options: { match: { directoryId: this.id } } });
       if (res.length > 0) {
-        let configs = (res as []).map((item) => this.converting(item));
-        this.configs.set(collName, configs);
-      } else {
-        this.configs.set(collName, []);
+        this.links = res.map((item) => new Link(item, this));
       }
     }
-    return this.configs.get(collName)!;
-  }
-  async loadAllConfigs(reload: boolean = false): Promise<void> {
-    await Promise.all(
-      Object.entries(config.ConfigColl).map((value) => {
-        return this.loadConfigs(value[1], reload);
-      }),
-    );
-  }
-  converting(data: schema.XFileInfo): IFileInfo<schema.XFileInfo> {
-    switch (data.typeName) {
-      case '请求':
-        return new config.Request(data as schema.XRequest, this);
-      case '链接':
-        return new config.Link(data as schema.XLink, this);
-      case '脚本':
-        return new config.Executable(data as schema.XExecutable, this);
-      case '映射':
-        return new config.Mapping(data as schema.XMapping, this);
-      case '环境':
-        return new config.Environment(data as schema.XEnvironment, this);
-      case '选择':
-        return new config.Selection(data as schema.XSelection, this);
-      case '存储':
-        return new config.Store(data as schema.XStore, this);
-      default:
-        return new config.Unknown(config.ConfigColl.Unknown, data, this);
-    }
+    return this.links;
   }
 }

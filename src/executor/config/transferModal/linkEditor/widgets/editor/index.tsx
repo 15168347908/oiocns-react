@@ -1,28 +1,19 @@
-import { linkCmd } from '@/ts/base/common/command';
-import { XEntity } from '@/ts/base/schema';
-import { IBelong, IDirectory, IEntity } from '@/ts/core';
-import { ConfigColl, ILink } from '@/ts/core/thing/transfer/config';
+import { IDirectory } from '@/ts/core';
+import { ILink } from '@/ts/core/thing/link';
 import { LoadingOutlined } from '@ant-design/icons';
-import { Graph, Node } from '@antv/x6';
+import { Graph } from '@antv/x6';
 import React, { createRef, useEffect, useState } from 'react';
-import { MenuItemType } from 'typings/globelType';
-import { ToolBar, openSelector } from '../toolBar';
+import { ToolBar } from '../toolBar';
 import cls from './../../index.module.less';
-import { Persistence, Temping, createGraph } from './widgets/graph';
-import { addNode, createDownstream, getShareEntity } from './widgets/node';
+import { LinkStore, createGraph } from './widgets/graph';
+import { addNode } from './widgets/node';
 
 export interface IProps {
   current: ILink;
-  retention: 'runtime' | 'configuration';
 }
 
-const RetentionEvent = {
-  runtime: ['executing', 'center'],
-  configuration: ['insertNode', 'openSelector', 'executing', 'center'],
-};
-
 const loadProps = async (current: IDirectory) => {
-  await current.loadAllConfigs();
+  await current.loadAllLink();
   for (const child of current.children) {
     await loadProps(child);
   }
@@ -32,7 +23,7 @@ const loadProps = async (current: IDirectory) => {
  * 返回一个请求编辑器
  * @returns
  */
-const LinkEditor: React.FC<IProps> = ({ current, retention }) => {
+const LinkEditor: React.FC<IProps> = ({ current }) => {
   const ref = createRef<HTMLDivElement>();
   const [initializing, setInitializing] = useState<boolean>(true);
   useEffect(() => {
@@ -40,22 +31,30 @@ const LinkEditor: React.FC<IProps> = ({ current, retention }) => {
       let root = current.directory.target.directory;
       loadProps(root).then(() => setInitializing(false));
     } else {
-      const graph = createGraph(ref, retention);
-      if (current.metadata.data) {
-        graph.fromJSON(current.metadata.data);
-      }
-      const id = linkCmd.subscribe((type: string, cmd: string, args: any) => {
+      const graph = createGraph(ref);
+      graph.fromJSON(current.metadata.graph);
+      graph.use(new LinkStore(current));
+      current.binding(() => graph.toJSON());
+      const id = current.command.subscribe((type: string, cmd: string, args: any) => {
         if (type != 'graph') return;
-        if (RetentionEvent[retention].indexOf(cmd) != -1) {
-          handler(current, graph, cmd, args);
-        }
+        handler(current, graph, cmd, args);
       });
-      if (retention == 'configuration') {
-        const update = () => {
-          current.metadata.data = graph.toJSON({ diff: true });
-          current.refresh(current.metadata);
-        };
-        const addTools = ({ cell }: any) => {
+      if (current.status == 'Editable') {
+        graph.on('node:added', () => current.refresh(current.metadata));
+        graph.on('node:moved', () => current.refresh(current.metadata));
+        graph.on('node:removed', () => current.refresh(current.metadata));
+        graph.on('node:selected', (a) => current.command.emitter('node', 'selected', a));
+        graph.on('node:unselected', (a) =>
+          current.command.emitter('node', 'unselected', a),
+        );
+        graph.on('node:contextmenu', (a) =>
+          current.command.emitter('node', 'contextmenu', a),
+        );
+        graph.on('node:click', (a) => current.command.emitter('node', 'click', a));
+        graph.on('edge:added', () => current.refresh(current.metadata));
+        graph.on('edge:moved', () => current.refresh(current.metadata));
+        graph.on('edge:removed', () => current.refresh(current.metadata));
+        graph.on('edge:mouseenter', ({ cell }: any) => {
           cell.addTools([
             { name: 'vertices' },
             {
@@ -63,33 +62,23 @@ const LinkEditor: React.FC<IProps> = ({ current, retention }) => {
               args: { distance: 20 },
             },
           ]);
-        };
-        const removeTools = ({ cell }: any) => {
+        });
+        graph.on('edge:mouseleave', ({ cell }: any) => {
           if (cell.hasTool('button-remove')) {
             cell.removeTool('button-remove');
           }
           if (cell.hasTool('vertices')) {
             cell.removeTool('vertices');
           }
-        };
-        graph.on('node:added', update);
-        graph.on('node:moved', update);
-        graph.on('node:removed', update);
-        graph.on('node:selected', (a) => linkCmd.emitter('node', 'selected', a));
-        graph.on('node:unselected', (a) => linkCmd.emitter('node', 'unselected', a));
-        graph.on('node:contextmenu', (a) => linkCmd.emitter('node', 'contextmenu', a));
-        graph.on('node:click', (a) => linkCmd.emitter('node', 'click', a));
-        graph.on('edge:added', update);
-        graph.on('edge:moved', update);
-        graph.on('edge:removed', update);
-        graph.on('edge:mouseenter', addTools);
-        graph.on('edge:mouseleave', removeTools);
-        graph.on('blank:click', (a) => linkCmd.emitter('blank', 'click', a));
-        graph.on('blank:contextmenu', (a) => linkCmd.emitter('blank', 'contextmenu', a));
+        });
+        graph.on('blank:click', (a) => current.command.emitter('blank', 'click', a));
+        graph.on('blank:contextmenu', (a) =>
+          current.command.emitter('blank', 'contextmenu', a),
+        );
       }
       return () => {
         graph.off();
-        linkCmd.unsubscribe(id);
+        current.command.unsubscribe(id);
         graph.dispose();
       };
     }
@@ -97,7 +86,7 @@ const LinkEditor: React.FC<IProps> = ({ current, retention }) => {
   return (
     <div className={cls.link}>
       <div className={cls.link} ref={ref} />
-      <ToolBar current={current} retention={retention} />
+      <ToolBar current={current} />
       {initializing && (
         <div className={cls.loading}>
           <LoadingOutlined />
@@ -116,51 +105,20 @@ const LinkEditor: React.FC<IProps> = ({ current, retention }) => {
 const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
   switch (cmd) {
     case 'insertNode':
-      let entities: IEntity<XEntity>[] = args;
+      if (current.status != 'Editable') return;
       let [x, y, offset] = [0, 0, 20];
-      for (let request of entities) {
-        addNode({
-          graph: graph,
-          position: {
-            x: x,
-            y: y,
-          },
-          entityId: request.metadata.id,
-        });
-        x += offset;
-        y += offset;
-      }
-      break;
-    case 'openSelector':
-      const node = args[0] as Node;
-      const menu = args[1] as MenuItemType;
-      switch (menu.itemType) {
-        default:
-          const belong = current.directory.target as IBelong;
-          openSelector(
-            belong,
-            (selected) => {
-              for (const select of selected) {
-                createDownstream(graph, node, select.id);
-              }
-              linkCmd.emitter('node', 'unselected', { node: node });
-            },
-            menu.key as ConfigColl,
-          );
-      }
+      addNode({
+        graph: graph,
+        position: {
+          x: x,
+          y: y,
+        },
+      });
+      x += offset;
+      y += offset;
       break;
     case 'executing':
-      const nodes = graph.getNodes();
-      const temping = graph.getPlugin<Temping>(Persistence);
-      temping?.createEnv();
-      linkCmd.emitter('node', 'clearStatus');
-      linkCmd.emitter('environments', 'refresh', graph);
-      for (const node of nodes) {
-        const entity = getShareEntity(node);
-        if (entity && graph.isRootNode(node)) {
-          linkCmd.emitter('ergodic', entity.typeName, { nodeId: node.id });
-        }
-      }
+      current.execute();
       break;
     case 'center':
       graph.centerContent();

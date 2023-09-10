@@ -1,225 +1,51 @@
 import OioForm from '@/components/Common/FormDesign/OioFormNext';
-import EntityForm from '@/executor/config/entityForm';
 import OperateModal from '@/executor/config/operateModal';
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
-import { deepClone } from '@/ts/base/common';
-import { linkCmd } from '@/ts/base/common/command';
-import { XEntity, XFileInfo, XSelection, XStore } from '@/ts/base/schema';
-import { IBelong, IDirectory, IEntity, IFileInfo, IForm } from '@/ts/core';
-import { ShareIdSet, ShareSet } from '@/ts/core/public/entity';
-import { CollMap, ConfigColl, ILink } from '@/ts/core/thing/transfer/config';
-import { CloseCircleOutlined } from '@ant-design/icons';
+import { model } from '@/ts/base';
+import { XEntity } from '@/ts/base/schema';
+import { IBelong, IEntity, IForm } from '@/ts/core';
+import { ShareSet } from '@/ts/core/public/entity';
+import { ILink } from '@/ts/core/thing/link';
 import ProTable from '@ant-design/pro-table';
-import { Button, Dropdown, Modal, Space, Tag, message } from 'antd';
+import { Button, Modal, Space } from 'antd';
 import { Item, Toolbar } from 'devextreme-react/data-grid';
 import CustomStore from 'devextreme/data/custom_store';
-import React, { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
-import Selector from '../../selector';
-import { Environments } from './environments';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import * as forms from './../forms/index';
+import Environments from './environments';
 
-interface ToolProps {
+interface IProps {
   current: ILink;
-  retention: 'runtime' | 'configuration';
 }
 
-export const ToolBar: React.FC<ToolProps> = ({
-  current,
-  retention = 'configuration',
-}) => {
+export const ToolBar: React.FC<IProps> = ({ current }) => {
   return (
     <>
-      <Environments key={'environments'} />
-      <NodeTools key={'nodeTools'} current={current} retention={retention} />
-      <Operate key={'operateModal'} />
-      <Transfer key={'transfer'} />
-      <OpenOperate key={'openOperate'} />
+      <NodeTools current={current}></NodeTools>
+      <Environments key={'environments'} current={current} />
+      <Operate key={'operateModal'} current={current} />
+      <Transfer key={'transfer'} current={current} />
+      <OpenOperate key={'openOperate'} current={current} />
     </>
   );
 };
 
-const NodeTools: React.FC<ToolProps> = ({ current, retention }) => {
-  const belong = current.directory.target as IBelong;
+const NodeTools: React.FC<IProps> = ({ current }) => {
   return (
     <Space style={{ position: 'absolute', left: 20, top: 64 }}>
-      {retention == 'configuration' && (
-        <Button
-          onClick={() =>
-            openSelector(belong, (selected) => {
-              linkCmd.emitter('graph', 'insertNode', selected);
-            })
-          }>
-          插入节点
-        </Button>
-      )}
-      <Button onClick={() => linkCmd.emitter('graph', 'executing')}>运行</Button>
-      <Button onClick={() => linkCmd.emitter('graph', 'center')}>定位至内容中心</Button>
+      <Button onClick={() => current.command.emitter('graph', 'executing')}>运行</Button>
+      <Button onClick={() => current.command.emitter('graph', 'center')}>
+        定位至内容中心
+      </Button>
     </Space>
   );
 };
 
-interface EntityProps {
-  curDir: IDirectory;
-  types?: string[];
-  size?: 'small' | 'middle' | 'large';
-  style?: CSSProperties;
-}
-
-export const NewEntity: React.FC<EntityProps> = ({
-  curDir,
-  types,
-  size,
-  style,
-}): ReactNode => {
-  types = types?.map((item) => '新增' + item);
-  return (
-    <Dropdown
-      menu={{
-        items: [
-          { key: 'newDir', label: '新增目录' },
-          { key: 'newRequest', label: '新增请求' },
-          { key: 'newExecutable', label: '新增脚本' },
-          { key: 'newMapping', label: '新增映射' },
-          { key: 'newSelection', label: '新增选择' },
-          { key: 'newEnvironment', label: '新增环境' },
-          { key: 'newStore', label: '新增存储' },
-          { key: 'newWorkConfig', label: '新增事项配置' },
-          { key: 'newThingConfig', label: '新增实体配置' },
-        ].filter(
-          (item) => !types || types.length == 0 || types.indexOf(item.label) != -1,
-        ),
-        onClick: (info) => {
-          linkCmd.emitter('entity', 'add', { curDir, cmd: info.key });
-        },
-      }}
-      children={
-        <Button size={size} style={style}>
-          新增
-        </Button>
-      }
-    />
-  );
-};
-
-export const openSelector = (
-  current: IBelong,
-  finished: (selected: IEntity<XEntity>[]) => void,
-  typeName?: ConfigColl | 'Form',
-) => {
-  let selected: IEntity<XEntity>[] = [];
-  Modal.confirm({
-    icon: <></>,
-    width: 1000,
-    content: (
-      <Selector
-        current={current}
-        onChange={(entities) => (selected = entities)}
-        loadItems={async (current: IDirectory) => {
-          const ans: IEntity<XEntity>[] = [];
-          const needs: string[] = [];
-          const forms = await current.loadForms();
-          await current.loadAllConfigs();
-          if (typeName) {
-            switch (typeName) {
-              case 'Form':
-                ans.push(...forms);
-                break;
-              default:
-                needs.push(typeName);
-                break;
-            }
-          } else {
-            ans.push(...forms);
-            needs.push(
-              ConfigColl.Requests,
-              ConfigColl.Scripts,
-              ConfigColl.Mappings,
-              ConfigColl.Stores,
-              ConfigColl.Selections,
-            );
-          }
-          current.configs.forEach((values, key) => {
-            if (needs.indexOf(key) != -1) {
-              ans.push(...values);
-            }
-          });
-          return ans;
-        }}
-        treeNode={(node, cur) => {
-          return (
-            <Space style={{ padding: 2 }}>
-              {node.name}
-              {node.id == cur?.id ? <Tag color="blue">当前</Tag> : ''}
-              <CloseCircleOutlined
-                onClick={(e) => {
-                  linkCmd.emitter('entity', 'delete', { entity: node });
-                  e.stopPropagation();
-                }}
-              />
-            </Space>
-          );
-        }}
-        add={(curDir: IDirectory) => {
-          return (
-            <NewEntity
-              curDir={curDir}
-              style={{ marginTop: 10 }}
-              types={typeName ? [CollMap[typeName]] : []}
-            />
-          );
-        }}
-        update={(entity: IEntity<XEntity>) => {
-          return (
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Space>
-                <Tag color="blue">{entity.typeName}</Tag>
-                {entity.name}
-              </Space>
-              <Space>
-                <Button
-                  size="small"
-                  onClick={() => {
-                    linkCmd.emitter('entity', 'open', { entity });
-                  }}>
-                  编辑
-                </Button>
-                <Button
-                  size="small"
-                  onClick={() => {
-                    linkCmd.emitter('entity', 'copy', { entity });
-                  }}>
-                  复制
-                </Button>
-                <Button
-                  size="small"
-                  onClick={() => {
-                    linkCmd.emitter('entity', 'update', { entity });
-                  }}>
-                  更新
-                </Button>
-                <Button
-                  size="small"
-                  onClick={() => {
-                    linkCmd.emitter('entity', 'delete', { entity });
-                  }}>
-                  删除
-                </Button>
-              </Space>
-            </div>
-          );
-        }}
-      />
-    ),
-    onOk: () => {
-      finished(selected);
-    },
-  });
-};
-
-const Transfer = (): ReactNode => {
-  const [entities, setEntities] = useState<{ [key: string]: IEntity<XEntity> }>({});
+const Transfer: React.FC<IProps> = ({ current }) => {
+  const [entities, setEntities] = useState<{ [key: string]: any }>({});
   const [commands, setCommands] = useState<{ [key: string]: string }>({});
   useEffect(() => {
-    const id = linkCmd.subscribe((type, cmd, args) => {
+    const id = current.command.subscribe((type, cmd, args) => {
       if (type != 'entity') return;
       switch (type) {
         case 'entity':
@@ -251,11 +77,6 @@ const Transfer = (): ReactNode => {
               Modal.confirm({
                 title: '确认复制吗',
                 onOk: async () => {
-                  const file = entity as IFileInfo<XFileInfo>;
-                  await file.directory.createConfig(
-                    file.metadata.collName,
-                    deepClone(file.metadata),
-                  );
                   finished();
                 },
                 okText: '确认',
@@ -268,8 +89,6 @@ const Transfer = (): ReactNode => {
               Modal.confirm({
                 title: '确认删除吗',
                 onOk: async () => {
-                  const file = entity as IFileInfo<XFileInfo>;
-                  await file.delete();
                   finished();
                 },
                 okText: '确认',
@@ -282,11 +101,11 @@ const Transfer = (): ReactNode => {
       }
     });
     return () => {
-      linkCmd.unsubscribe(id);
+      current.command.unsubscribe(id);
     };
   });
   const finished = (id?: string) => {
-    linkCmd.emitter('selector', 'refresh');
+    current.command.emitter('selector', 'refresh');
     if (id) {
       delete entities[id];
       delete commands[id];
@@ -297,25 +116,42 @@ const Transfer = (): ReactNode => {
   return (
     <>
       {Object.entries(entities).map((entry) => {
-        return (
-          <EntityForm
-            cmd={commands[entry[0]]}
-            entity={entry[1]}
-            finished={() => {
-              finished(entry[0]);
-            }}
-          />
-        );
+        switch (commands[entry[0]]) {
+          case 'newEnvironment':
+          case 'updateEnvironment':
+            return (
+              <forms.EnvironmentForm
+                formType={commands[entry[0]]}
+                link={current}
+                current={entry[1]}
+                finished={() => finished(entry[0])}
+              />
+            );
+          case 'newRequest':
+          case 'updateRequest':
+            return (
+              <forms.RequestForm
+                formType={commands[entry[0]]}
+                link={current}
+                current={entry[1]}
+                finished={() => {
+                  finished(entry[0]);
+                }}
+              />
+            );
+          default:
+            return <></>;
+        }
       })}
     </>
   );
 };
 
-const OpenOperate = (): ReactNode => {
+const OpenOperate: React.FC<IProps> = ({ current }) => {
   const [entity, setEntity] = useState<IEntity<XEntity>>();
   const [cmd, setCmd] = useState<string>('');
   useEffect(() => {
-    const id = linkCmd.subscribe((type, cmd, args) => {
+    const id = current.command.subscribe((type, cmd, args) => {
       if (type != 'entity') return;
       switch (type) {
         case 'entity':
@@ -331,7 +167,7 @@ const OpenOperate = (): ReactNode => {
       }
     });
     return () => {
-      linkCmd.unsubscribe(id);
+      current.command.unsubscribe(id);
     };
   });
   const finished = () => {
@@ -346,12 +182,6 @@ interface OpenArgs {
   call: Call;
 }
 
-interface SelArgs {
-  selection: XSelection;
-  data: any;
-  call: Call;
-}
-
 interface StoreArgs {
   storeId: string;
   formId: string;
@@ -361,14 +191,14 @@ interface StoreArgs {
 
 type Call = (type: string, data?: any, message?: string) => void;
 
-const Operate: React.FC<{}> = ({}) => {
+const Operate: React.FC<IProps> = ({ current }) => {
   const [open, setOpen] = useState<boolean>();
   const [name, setName] = useState<string>();
   const [center, setCenter] = useState<ReactNode>(<></>);
   const data = useRef<any>();
   const call = useRef<Call>((_: string) => {});
   useEffect(() => {
-    const id = linkCmd.subscribe(async (type, cmd, args) => {
+    const id = current.command.subscribe(async (type, cmd, args) => {
       const loadForm = async (formId: string, call: Call): Promise<IForm | undefined> => {
         const form = ShareSet.get(formId) as IForm;
         if (!form) {
@@ -396,22 +226,6 @@ const Operate: React.FC<{}> = ({}) => {
         case 'selection':
           switch (cmd) {
             case 'open':
-              const selArgs = args as SelArgs;
-              const dataSource = selArgs.data ?? [];
-              const form = await loadForm(selArgs.selection.formId, selArgs.call);
-              if (!form) return;
-              setCenter(
-                <Selection
-                  key={'table'}
-                  selection={selArgs.selection}
-                  form={form}
-                  dataSource={dataSource}
-                  data={data}
-                />,
-              );
-              setName(selArgs.selection.name);
-              setOpen(true);
-              call.current = selArgs.call;
               break;
           }
         case 'store':
@@ -431,39 +245,12 @@ const Operate: React.FC<{}> = ({}) => {
                     return (
                       <Toolbar>
                         <Item location="after">
-                          <Button
-                            loading={saving}
-                            onClick={async () => {
-                              if (ShareIdSet.has(storeArgs.storeId)) {
-                                const store = ShareIdSet.get(storeArgs.storeId) as XStore;
-                                if (ShareSet.has(store.uploadDir)) {
-                                  const json = JSON.stringify(storeArgs.data);
-                                  const file = new File([json], '资产卡片.json');
-                                  const dir = ShareSet.get(store.uploadDir) as IDirectory;
-                                  setSaving(true);
-                                  dir.createFile(file, (progress) => {
-                                    if (progress >= 100) {
-                                      setSaving(false);
-                                      message.success('转储成功！');
-                                    }
-                                  });
-                                }
-                              }
-                            }}>
+                          <Button loading={saving} onClick={async () => {}}>
                             转储至目录
                           </Button>
                         </Item>
                         <Item location="after">
-                          <Button
-                            loading={saving}
-                            onClick={async () => {
-                              if (ShareIdSet.has(storeArgs.storeId)) {
-                                const store = ShareIdSet.get(storeArgs.storeId) as XStore;
-                                if (ShareSet.has(store.uploadDir)) {
-                                  const dir = ShareSet.get(store.uploadDir) as IDirectory;
-                                }
-                              }
-                            }}>
+                          <Button loading={saving} onClick={async () => {}}>
                             存储至实体库
                           </Button>
                         </Item>
@@ -498,7 +285,7 @@ const Operate: React.FC<{}> = ({}) => {
       }
     });
     return () => {
-      linkCmd.unsubscribe(id);
+      current.command.unsubscribe(id);
     };
   });
   return (
@@ -550,7 +337,7 @@ const InputForm: React.FC<FormProps> = ({ form, data }) => {
 };
 
 interface SelectionProps extends FormProps {
-  selection: XSelection;
+  selection: model.Selection;
   dataSource: any[];
 }
 

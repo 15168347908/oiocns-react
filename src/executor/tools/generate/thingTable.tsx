@@ -3,7 +3,7 @@ import { model } from '@/ts/base';
 import { Dropdown } from 'antd';
 import { AiOutlineEllipsis } from 'react-icons/ai';
 import { GenerateColumn } from './columns';
-import { Column, DataGrid, IDataGridOptions, Toolbar } from 'devextreme-react/data-grid';
+import { Column, DataGrid, IDataGridOptions } from 'devextreme-react/data-grid';
 import { AnyThingColumns } from '@/config/column';
 import { ItemType } from 'antd/lib/menu/hooks/useItems';
 

@@ -1,32 +1,32 @@
-import { linkCmd } from '@/ts/base/common/command';
-import { Graph } from '@antv/x6';
 import { Table } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';
-import { Persistence, Temping } from './editor/widgets/graph';
+import { ILink } from '@/ts/core/thing/link';
 
-interface IProps {}
+interface IProps {
+  current: ILink;
+}
 
 interface Kv {
   k: string;
-  v: string;
+  v?: string;
 }
 
-export const getKvs = (graph: Graph): Kv[] => {
-  const temping = graph.getPlugin<Temping>(Persistence);
-  const env = temping?.curEnv();
+export const getKvs = (current: ILink): Kv[] => {
   const kvs: Kv[] = [];
-  if (env) {
-    for (const k in env) {
-      kvs.push({ k: k, v: env[k] });
+  const metadata = current.metadata;
+  if (metadata.curEnv <= metadata.envs.length - 1) {
+    const curEnv = metadata.envs[metadata.curEnv];
+    for (const k in curEnv.params) {
+      kvs.push({ k: k, v: curEnv.params[k] });
     }
   }
   return kvs;
 };
 
-export const Environments: React.FC<IProps> = ({}) => {
-  const [kvs, setKvs] = useState<Kv[]>([]);
+const Environments: React.FC<IProps> = ({ current }) => {
+  const [kvs, setKvs] = useState<Kv[]>(getKvs(current));
   const columns: ColumnsType<Kv> = [
     {
       title: '键',
@@ -47,25 +47,22 @@ export const Environments: React.FC<IProps> = ({}) => {
     },
   ];
   useEffect(() => {
-    const id = linkCmd.subscribe((type, cmd, graph) => {
-      if (type == 'environments') {
-        switch (cmd) {
-          case 'refresh':
-            setKvs(getKvs(graph));
-            break;
-        }
+    const id = current.command.subscribe((type) => {
+      switch (type) {
+        case 'environment':
+          setKvs(getKvs(current));
+          break;
       }
     });
     return () => {
-      linkCmd.unsubscribe(id);
+      current.unsubscribe(id);
     };
   });
-  if (kvs.length == 0) {
-    return <></>;
-  }
   return (
     <div style={{ position: 'absolute', right: 20, top: 64 }}>
       <Table key={'key'} columns={columns} dataSource={kvs} />;
     </div>
   );
 };
+
+export default Environments;

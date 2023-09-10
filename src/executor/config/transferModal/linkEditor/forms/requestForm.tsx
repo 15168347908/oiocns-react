@@ -1,24 +1,18 @@
 import SchemaForm from '@/components/SchemaForm';
-import { Link } from '@/ts/base/model';
-import { IDirectory } from '@/ts/core';
 import { ILink } from '@/ts/core/thing/link';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React from 'react';
+import { model } from '../../../../../ts/base';
 
 interface IProps {
   formType: string;
-  current: IDirectory | ILink;
-  finished: (link?: ILink) => void;
+  link: ILink;
+  current?: model.RequestNode;
+  finished: () => void;
 }
 
-const LinkModal: React.FC<IProps> = ({ formType, current, finished }) => {
-  let initialValue = {};
-  switch (formType) {
-    case 'updateLink':
-      initialValue = current.metadata;
-      break;
-  }
-  const columns: ProFormColumnsType<Link>[] = [
+const RequestForm: React.FC<IProps> = ({ formType, link, current, finished }) => {
+  const columns: ProFormColumnsType<model.RequestNode>[] = [
     {
       title: '名称',
       dataIndex: 'name',
@@ -38,22 +32,19 @@ const LinkModal: React.FC<IProps> = ({ formType, current, finished }) => {
       dataIndex: 'remark',
       valueType: 'textarea',
       colProps: { span: 24 },
-      formItemProps: {
-        rules: [{ required: true, message: '备注为必填项' }],
-      },
     },
   ];
   return (
-    <SchemaForm<Link>
+    <SchemaForm<model.RequestNode>
       open
-      title="链接定义"
+      title="请求定义"
       width={640}
       columns={columns}
-      initialValues={initialValue}
       rowProps={{
         gutter: [24, 0],
       }}
       layoutType="ModalForm"
+      initialValues={current}
       onOpenChange={(open: boolean) => {
         if (!open) {
           finished();
@@ -61,23 +52,27 @@ const LinkModal: React.FC<IProps> = ({ formType, current, finished }) => {
       }}
       onFinish={async (values) => {
         switch (formType) {
-          case 'newLink': {
-            values.typeName = '链接';
-            let directory = current as IDirectory;
-            let request = await directory.createLink(values);
-            finished(request as ILink);
-            break;
+          case 'newRequest': {
+            values.typeName = '请求';
+            values.data = {
+              uri: '',
+              method: 'GET',
+              header: {
+                'Content-Type': 'application/json;charset=UTF-8',
+              },
+              content: '',
+            };
+            await link.addNode(values);
           }
-          case 'updateLink': {
-            let link = current as ILink;
-            link.refresh({ ...initialValue, ...values });
-            finished(link);
+          case 'updateRequest': {
+            await link.updScript({ ...current, ...values });
             break;
           }
         }
+        finished();
       }}
     />
   );
 };
 
-export default LinkModal;
+export { RequestForm };

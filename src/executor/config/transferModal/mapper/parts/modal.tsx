@@ -1,14 +1,16 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
-import { IMapping } from '@/ts/core/thing/transfer/config';
 import React from 'react';
 import Mapper from './mapper';
+import { ILink } from '@/ts/core/thing/link';
+import { model } from '@/ts/base';
 
 interface IProps {
-  current: IMapping;
+  link: ILink;
+  current: model.MappingNode;
   finished: () => void;
 }
 
-const MappingModal: React.FC<IProps> = ({ current, finished }) => {
+const MappingModal: React.FC<IProps> = ({ link, current, finished }) => {
   return (
     <FullScreenModal
       open
@@ -19,7 +21,7 @@ const MappingModal: React.FC<IProps> = ({ current, finished }) => {
       destroyOnClose
       title={'映射配置'}
       onCancel={() => finished()}>
-      <Mapper current={current} />
+      <Mapper link={link} current={current} />
     </FullScreenModal>
   );
 };

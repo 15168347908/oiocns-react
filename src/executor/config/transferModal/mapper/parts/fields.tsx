@@ -1,63 +1,43 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
-import { FieldModel } from '@/ts/base/model';
-import { XAttribute, XSpeciesItem } from '@/ts/base/schema';
-import { IForm, ISpecies } from '@/ts/core';
+import { model } from '@/ts/base';
+import { XAttribute } from '@/ts/base/schema';
+import { IForm } from '@/ts/core';
 import { ShareIdSet, ShareSet } from '@/ts/core/public/entity';
-import { IMapping } from '@/ts/core/thing/transfer/config';
+import { ILink } from '@/ts/core/thing/link';
 import { Radio, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';
-import { Command } from '@/ts/base';
 
 interface IProps {
-  current: IMapping;
+  link: ILink;
+  current: model.MappingNode;
   target: 'source' | 'target';
-  cmd: Command;
 }
 
-const Fields: React.FC<IProps> = ({ current, target, cmd }) => {
-  const id = current.metadata[target];
-  const type = current.metadata.type;
+const Fields: React.FC<IProps> = ({ link, current, target }) => {
+  const id = current.data[target];
   const [attrs, setAttrs] = useState<XAttribute[]>([]);
-  const [items, setItems] = useState<XSpeciesItem[]>([]);
   const [initial, setInitial] = useState<boolean>(true);
   useEffect(() => {
-    const subscribeId = current.subscribe(() => {
-      const used = new Set(current.metadata.mappings.map((item) => item[target]));
-      switch (type) {
-        case 'fields':
-          if (ShareSet.has(id)) {
-            const form = ShareSet.get(id) as IForm;
-            if (initial) {
-              form.loadContent().then(() => {
-                setAttrs(form.attributes.filter((field) => !used.has(field.id)));
-                setInitial(false);
-                cmd.emitter('fields', 'refresh');
-              });
-            } else {
-              setAttrs(form.attributes.filter((field) => !used.has(field.id)));
-            }
-          }
-          break;
-        case 'specieItems':
-          if (ShareSet.has(id)) {
-            const species = ShareSet.get(id) as ISpecies;
-            if (initial) {
-              species.loadContent().then(() => {
-                setItems(species.items.filter((item) => !used.has(item.id)));
-                setInitial(false);
-              });
-            } else {
-              setItems(species.items.filter((item) => !used.has(item.id)));
-            }
-          }
-          break;
+    const subscribeId = link.subscribe(() => {
+      const used = new Set(current.data.mappings.map((item) => item[target]));
+      if (ShareSet.has(id)) {
+        const form = ShareSet.get(id) as IForm;
+        if (initial) {
+          form.loadContent().then(() => {
+            setAttrs(form.attributes.filter((field) => !used.has(field.id)));
+            setInitial(false);
+            link.command.emitter('fields', 'refresh');
+          });
+        } else {
+          setAttrs(form.attributes.filter((field) => !used.has(field.id)));
+        }
       }
     });
     return () => {
-      current.unsubscribe(subscribeId);
+      link.unsubscribe(subscribeId);
     };
-  }, [current]);
+  }, [link]);
   return (
     <div className={cls['flex-column']}>
       <div>
@@ -66,44 +46,21 @@ const Fields: React.FC<IProps> = ({ current, target, cmd }) => {
       <div className={cls['fields']}>
         <Radio.Group buttonStyle="outline">
           <Space direction="vertical">
-            {type == 'fields' &&
-              attrs
-                .sort(
-                  (f, s) => f.property?.info.localeCompare(s.property?.info ?? '') ?? 0,
-                )
-                .map((item, index) => (
-                  <Radio
-                    className={cls['field']}
-                    value={item}
-                    onClick={() => {
-                      current[target] = { index, item };
-                      current.changCallback();
-                    }}>
-                    <Space>
-                      <Tag color="cyan">{item.property?.valueType}</Tag>
-                      {item.name + ' ' + item.property?.info}
-                    </Space>
-                  </Radio>
-                ))}
-            {type == 'specieItems' &&
-              items
-                .sort(
-                  (f, s) => f.info?.localeCompare(s.info) ?? 0,
-                )
-                .map((item, index) => (
-                  <Radio
-                    className={cls['field']}
-                    value={item}
-                    onClick={() => {
-                      current[target] = { index, item };
-                      current.changCallback();
-                    }}>
-                    <Space>
-                      {item.info}
-                      {item.name}
-                    </Space>
-                  </Radio>
-                ))}
+            {attrs
+              .sort((f, s) => f.property?.info.localeCompare(s.property?.info ?? '') ?? 0)
+              .map((item, index) => (
+                <Radio
+                  className={cls['field']}
+                  value={item}
+                  onClick={() => {
+                    link.changCallback();
+                  }}>
+                  <Space>
+                    <Tag color="cyan">{item.property?.valueType}</Tag>
+                    {item.name + ' ' + item.property?.info}
+                  </Space>
+                </Radio>
+              ))}
           </Space>
         </Radio.Group>
       </div>

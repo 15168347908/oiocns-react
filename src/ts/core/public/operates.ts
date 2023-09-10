@@ -229,25 +229,7 @@ export const directoryNew = {
     directoryOperates.NewThingConfig,
     directoryOperates.NewWorkConfig,
     directoryOperates.NewReport,
-  ],
-};
-
-/** 数据迁移 */
-export const transferNew = {
-  sort: 1,
-  cmd: 'transfer',
-  label: '迁移配置',
-  iconType: 'new',
-  menus: [
     directoryOperates.NewLink,
-    directoryOperates.NewRequest,
-    directoryOperates.BatchRequest,
-    directoryOperates.NewMapping,
-    directoryOperates.BatchMapping,
-    directoryOperates.NewExecutable,
-    directoryOperates.NewEnvironment,
-    directoryOperates.NewSelection,
-    directoryOperates.NewStore,
   ],
 };
 

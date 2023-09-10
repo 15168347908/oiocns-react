@@ -1,44 +1,20 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
+import { model } from '@/ts/base';
 import { generateUuid, sleep } from '@/ts/base/common';
-import { linkCmd } from '@/ts/base/common/command';
-import { XEntity, XExecutable } from '@/ts/base/schema';
-import { IEntity, ShareIdSet, ShareSet } from '@/ts/core/public/entity';
-import {
-  ConfigColl,
-  IExecutable,
-  IMapping,
-  IRequest,
-  ISelection,
-} from '@/ts/core/thing/transfer/config';
-import Encryption from '@/utils/encryption';
-import { Sandbox } from '@/utils/sandbox';
+import { ShareIdSet } from '@/ts/core/public/entity';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   LoadingOutlined,
   PauseCircleOutlined,
   StopOutlined,
-  PlusCircleOutlined,
 } from '@ant-design/icons';
-import { Cell, Graph, Model, Node } from '@antv/x6';
-import { message } from 'antd';
+import { Graph, Node } from '@antv/x6';
 import React, { useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
 import cls from './../../../index.module.less';
-import { Persistence, Temping } from './graph';
-import { AxiosError } from 'axios';
 import { generateEdge } from './edge';
-
-export enum ExecStatus {
-  Stop = 'stop',
-  Running = 'running',
-  Completed = 'completed',
-  Error = 'error',
-}
-
-export interface DataNode {
-  entityId: string;
-}
+import { LinkStore } from './graph';
 
 interface NodeOptions {
   graph: Graph;
@@ -86,29 +62,24 @@ const getDownstreamNodePosition = (node: Node, graph: Graph, dx = 250, dy = 100)
   };
 };
 
-// 根据节点的类型获取ports
-const getPortsByType = (id: string) => {
-  return [
-    {
-      id: `${id}-in`,
-      group: 'in',
-    },
-    {
-      id: `${id}-out`,
-      group: 'out',
-    },
-  ];
-};
-
-export const addNode = (props: NodeOptions & DataNode): Node<Node.Properties> => {
-  const { graph, position, entityId } = props;
+export const addNode = (props: NodeOptions): Node<Node.Properties> => {
+  const { graph, position } = props;
   const id = generateUuid();
   const node: Node.Metadata = {
     id: id,
     shape: 'data-processing-dag-node',
     ...position,
-    data: { entityId: entityId },
-    ports: getPortsByType(id),
+    data: {},
+    ports: [
+      {
+        id: `${id}-in`,
+        group: 'in',
+      },
+      {
+        id: `${id}-out`,
+        group: 'out',
+      },
+    ],
   };
   return graph.addNode(node);
 };
@@ -144,7 +115,6 @@ export const createDownstream = (graph: Graph, node: Node, entityId: string) => 
   const newNode = addNode({
     graph: graph,
     position: { ...position },
-    entityId: entityId,
   });
   const source = node.id;
   const target = newNode.id;
@@ -153,42 +123,6 @@ export const createDownstream = (graph: Graph, node: Node, entityId: string) => 
 };
 
 const menus: { [key: string]: MenuItemType } = {
-  request: {
-    key: ConfigColl.Requests,
-    label: '请求',
-    itemType: '请求',
-    children: [],
-  },
-  script: {
-    key: ConfigColl.Scripts,
-    label: '脚本',
-    itemType: '脚本',
-    children: [],
-  },
-  mapping: {
-    key: ConfigColl.Mappings,
-    label: '映射',
-    itemType: '映射',
-    children: [],
-  },
-  store: {
-    key: ConfigColl.Stores,
-    label: '存储',
-    itemType: '存储',
-    children: [],
-  },
-  form: {
-    key: 'form',
-    label: '表单',
-    itemType: '表单',
-    children: [],
-  },
-  selection: {
-    key: ConfigColl.Selections,
-    label: '选择',
-    itemType: '选择',
-    children: [],
-  },
   open: {
     key: 'open',
     label: '编辑',
@@ -221,43 +155,21 @@ const getNextMenu = (typeName: string): MenuItemType[] => {
   }
 };
 
-// 遍历参数
-interface ErgodicArgs {
-  preNode?: Node;
-  preData?: any;
-  nodeId: string;
-}
-
-// 发送消息
-const emitter = (type: string, preNode: Node, nextId: string, preData: any) => {
-  linkCmd.emitter('ergodic', type, {
-    preNode: preNode,
-    preData: preData,
-    nodeId: nextId,
-  });
-};
-
 interface Info {
   node: Node;
   graph: Graph;
 }
 
-export const getShareEntity = (
-  node: Node | Cell<Cell.Properties>,
-): IEntity<XEntity> | undefined => {
-  const { entityId } = node.getData() as DataNode;
-  return ShareSet.get(entityId);
-};
-
 export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
-  const [nodeStatus, setNodeStatus] = useState<ExecStatus>(ExecStatus.Stop);
+  const entity = node.getData() as model.Node<any>;
+  const link = graph.getPlugin<LinkStore>('LinkStore')!.link;
+  const [graphStatus, setGraphStatus] = useState<model.GraphStatus>(link.status);
+  const [nodeStatus, setNodeStatus] = useState<model.NodeStatus>('Stop');
   const [visible, setVisible] = useState<boolean>(false);
   const [visibleOperate, setVisibleOperate] = useState<boolean>(false);
   const [visibleClosing, setVisibleClosing] = useState<boolean>(true);
   const [visibleMenu, setVisibleMenu] = useState<boolean>(false);
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number }>();
-  const entity = getShareEntity(node);
-  const temping = graph.getPlugin<Temping>(Persistence);
 
   // 删除标记
   const Remove: React.FC<{}> = () => {
@@ -276,15 +188,8 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
     return <></>;
   };
 
-  if (!entity) {
-    if (temping?.retention == 'runtime') {
-      return <></>;
-    }
-    return <Remove></Remove>;
-  }
-
   useEffect(() => {
-    const id = linkCmd.subscribe(async (type, cmd, args) => {
+    const id = link.command.subscribe(async (type, cmd, args) => {
       switch (type) {
         case 'blank': {
           switch (cmd) {
@@ -309,7 +214,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               }
               break;
             case 'clearStatus':
-              setNodeStatus(ExecStatus.Stop);
+              setNodeStatus('Stop');
               break;
             case 'contextmenu':
               if (args.node.id == node.id) {
@@ -321,213 +226,51 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
           }
           break;
         case 'ergodic':
-          const { nodeId, preData } = args as ErgodicArgs;
-          if (nodeId != node.id) return;
-          setNodeStatus(ExecStatus.Running);
-          const ergodic = (nextData: any) => {
-            const iterator: Model.SearchIterator = (cell, distance) => {
-              if (distance == 1) {
-                const next = getShareEntity(cell);
-                if (next) {
-                  emitter(next.metadata.typeName, node, cell.id, nextData);
-                }
-              }
-            };
-            graph.searchCell(node, iterator, { outgoing: true });
-          };
-          const formCall = (type: string, data: any, msg?: string) => {
-            switch (type) {
-              case '成功':
-                setNodeStatus(ExecStatus.Completed);
-                ergodic(data);
-                break;
-              case '取消':
-              case '错误':
-                message.error(msg);
-                setNodeStatus(ExecStatus.Error);
-                break;
-            }
-          };
-          const isArray = (data: any) => {
-            if (!(data instanceof Array)) {
-              throw new Error('输入必须是一个数组！');
-            }
-          };
-          const curEnv = temping?.curEnv();
-          const executing = (input: any, coder: string): any => {
-            const runtime = {
-              environment: curEnv,
-              preData: input,
-              nextData: {},
-              ...Encryption,
-              log: (...message: string[]) => {
-                console.log(message);
-              },
-            };
-            Sandbox(coder)(runtime);
-            linkCmd.emitter('environments', 'refresh', graph);
-            return runtime.nextData;
-          };
           try {
             await sleep(500);
             switch (cmd) {
               case '请求': {
-                const request = entity as IRequest;
-                const environment = ShareIdSet.get(request.metadata.envId ?? '');
-                const preExecs = request.metadata.prefixExecs;
-                if (preExecs) {
-                  for (const exec of preExecs) {
-                    const executable = ShareIdSet.get(exec) as XExecutable;
-                    if (executable) {
-                      executing(
-                        { executable: executable, kvs: environment.kvs },
-                        executable.coder,
-                      );
-                    }
-                  }
-                }
-                const response = await request.exec({ ...curEnv, ...preData });
-                const suffixExecs = request.metadata.suffixExecs;
-                if (suffixExecs) {
-                  let next = {};
-                  for (const exec of suffixExecs) {
-                    const executable = ShareIdSet.get(exec) as XExecutable;
-                    if (executable) {
-                      next = { ...next, ...executing(response, executable.coder) };
-                    }
-                  }
-                  ergodic({ ...next });
-                  break;
-                }
-                ergodic(response);
                 break;
               }
               case '脚本': {
-                const exec = entity as IExecutable;
-                ergodic(executing(preData, exec.metadata.coder));
                 break;
               }
               case '映射': {
-                isArray(preData.array);
-                const mapping = entity as IMapping;
-                switch (mapping.metadata.type) {
-                  case 'fields':
-                    ergodic({
-                      array: await mapping.mapping(preData.array),
-                      formId: mapping.metadata.target,
-                    });
-                    break;
-                  case 'specieItems':
-                    break;
-                }
                 break;
               }
               case '实体配置':
               case '事项配置': {
-                linkCmd.emitter('input', 'open', {
-                  formId: entity.id,
-                  call: formCall,
-                });
                 return;
               }
               case '选择': {
-                isArray(preData.array);
-                const selection = entity as ISelection;
-                linkCmd.emitter('selection', 'open', {
-                  selection: selection.metadata,
-                  data: preData.array,
-                  call: formCall,
-                });
                 break;
               }
               case '存储': {
-                isArray(preData.array);
-                linkCmd.emitter('store', 'open', {
-                  storeId: entity.id,
-                  formId: preData.formId,
-                  data: preData.array,
-                  call: formCall,
-                });
                 break;
               }
             }
-            setNodeStatus(ExecStatus.Completed);
+            setNodeStatus('Completed');
           } catch (error) {
-            if (error instanceof AxiosError) {
-              if (error.response) {
-                const data = error.response.data;
-                const msg = '执行请求异常，错误信息：' + JSON.stringify(data);
-                message.error(msg);
-              } else {
-                message.error('执行请求异常，错误信息：' + error.message);
-              }
-            } else if (error instanceof Error) {
-              message.error('执行异常，错误信息：' + error.message);
-            } else {
-              message.error('执行异常');
-            }
-            setNodeStatus(ExecStatus.Error);
+            setNodeStatus('Error');
           }
           break;
       }
     });
     return () => {
-      linkCmd.unsubscribe(id);
+      link.command.unsubscribe(id);
     };
   });
-
-  // 展开菜单
-  const PlusMenus: React.FC<{}> = () => {
-    const menus = getNextMenu(entity.typeName);
-    return (
-      <div
-        style={{ visibility: visible ? 'visible' : 'hidden' }}
-        className={`${cls['flex-row']} ${cls['plus-menu']}`}>
-        <PlusCircleOutlined
-          style={{
-            fontSize: 20,
-            color: '#9498df',
-          }}
-          onClick={() => setVisibleOperate(!visibleOperate)}
-        />
-        <ul
-          className={`${cls['dropdown']}`}
-          style={{ visibility: visibleOperate ? 'visible' : 'hidden' }}>
-          {menus.map((item) => {
-            return (
-              <li
-                key={item.key}
-                className={`${cls['item']}`}
-                onClick={() => {
-                  switch (item.itemType) {
-                    case '请求':
-                    case '脚本':
-                    case '映射':
-                    case '选择':
-                    case '存储':
-                      linkCmd.emitter('graph', 'openSelector', [node, item]);
-                      break;
-                  }
-                }}>
-                {item.label}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    );
-  };
 
   // 状态
   const Status: React.FC<{}> = () => {
     switch (nodeStatus) {
-      case ExecStatus.Stop:
+      case 'Stop':
         return <PauseCircleOutlined style={{ color: '#9498df', fontSize: 18 }} />;
-      case ExecStatus.Running:
+      case 'Running':
         return <LoadingOutlined style={{ color: '#9498df', fontSize: 18 }} />;
-      case ExecStatus.Completed:
+      case 'Completed':
         return <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 18 }} />;
-      case ExecStatus.Error:
+      case 'Error':
         return <StopOutlined style={{ color: '#ff4d4f', fontSize: 18 }} />;
     }
   };
@@ -536,7 +279,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   const Info: React.FC<{}> = () => {
     return (
       <div className={`${cls['flex-row']} ${cls['info']} ${cls['border']}`}>
-        <EntityIcon entity={entity.metadata} />
+        <EntityIcon entity={entity} />
         <div style={{ marginLeft: 10 }}>{entity.name}</div>
       </div>
     );
@@ -550,7 +293,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
           {entity.typeName}
         </div>
         <div className={`${cls['tag-item']} ${cls['text-overflow']}`}>
-          {ShareIdSet.get(entity.metadata.belongId)?.name}
+          {ShareIdSet.get(entity.belongId)?.name}
         </div>
       </div>
     );
@@ -575,7 +318,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 className={`${cls['item']}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  linkCmd.emitter('entity', item.key, { entity });
+                  link.command.emitter('entity', item.key, { entity });
                   setVisibleMenu(false);
                 }}>
                 {item.label}
@@ -600,20 +343,19 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
       onDoubleClick={() => {
         switch (entity.typeName) {
           case '脚本':
-            linkCmd.emitter('entity', 'update', { entity });
+            link.command.emitter('entity', 'update', { entity });
             break;
           default:
-            linkCmd.emitter('entity', 'open', { entity });
+            link.command.emitter('entity', 'open', { entity });
             break;
         }
       }}>
       <Tag />
       <Status />
       <Info />
-      {temping?.retention == 'configuration' && (
+      {graphStatus == 'Editable' && (
         <>
           <Remove />
-          <PlusMenus />
           <ContextMenu />
         </>
       )}

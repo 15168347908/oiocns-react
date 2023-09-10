@@ -45,7 +45,7 @@ const OperateModal: React.FC<IProps> = ({ cmd, entity, finished }) => {
         case '请求':
           return <RequestModal finished={finished} current={entity as any} />;
         case '映射':
-          return <MapperModal finished={finished} current={entity as any}/>
+          return <MapperModal finished={finished} link={entity as any}/>
         default:
           return <></>;
       }

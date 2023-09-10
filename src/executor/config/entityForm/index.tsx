@@ -12,12 +12,6 @@ import LabelsForm from './labelsForm';
 import RenameForm from './renameForm';
 import LabelsReport from './labelsReport';
 import LinkForm from './linkForm';
-import ExecutableForm from './executableForm';
-import EnvironmentForm from './environmentForm';
-import RequestForm from './requestForm';
-import SelectionForm from './selectionForm';
-import MappingForm from './mappingForm';
-import StoreForm from './storeForm';
 
 interface IProps {
   cmd: string;
@@ -98,39 +92,9 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
           finished={reloadFinish}
         />
       );
-    case 'newRequest':
-    case 'updateRequest':
-      return (
-        <RequestForm formType={cmd} current={entity as any} finished={reloadFinish} />
-      );
-    case 'newMapping':
-    case 'updateMapping':
-      return (
-        <MappingForm formType={cmd} current={entity as any} finished={reloadFinish} />
-      );
     case 'newLink':
     case 'updateLink':
       return <LinkForm formType={cmd} current={entity as any} finished={reloadFinish} />;
-    case 'newExecutable':
-    case 'updateExecutable':
-      return (
-        <ExecutableForm formType={cmd} current={entity as any} finished={reloadFinish} />
-      );
-    case 'newEnvironment':
-    case 'updateEnvironment':
-      return (
-        <EnvironmentForm formType={cmd} current={entity as any} finished={reloadFinish} />
-      );
-    case 'newSelection':
-    case 'updateSelection':
-      return (
-        <SelectionForm formType={cmd} current={entity as any} finished={reloadFinish} />
-      );
-    case 'newStore':
-    case 'updateStore':
-      return (
-        <StoreForm formType={cmd} current={entity as any} finished={reloadFinish} />
-      );
     case 'newProperty':
     case 'updateProperty':
     case 'remarkProperty':

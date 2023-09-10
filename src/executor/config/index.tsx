@@ -6,8 +6,6 @@ import OperateModal from './operateModal';
 import SettingAuth from './settingModal/settingAuth';
 import SettingStation from './settingModal/settingStation';
 import SettingIdentity from './settingModal/settingIdentity';
-import RequestsModal from './transferModal/apiEditor';
-import MappingBatchModal from './transferModal/mapper';
 
 const entityMap: any = {
   目录: 'Dir',
@@ -72,10 +70,6 @@ const ConfigExecutor: React.FC<IProps> = ({ cmd, args, finished }) => {
         return <EntityForm cmd={cmd} entity={args[0]} finished={finished} />;
       }
       break;
-    case "batchRequest":
-      return <RequestsModal current={args[0]} finished={finished}></RequestsModal>;
-    case 'batchMapping':
-      return <MappingBatchModal current={args[0]} finished={finished}></MappingBatchModal>;
     default:
       if (cmd === 'pull' || cmd.startsWith('join')) {
         return <OperateModal cmd={cmd} entity={args[0]} finished={finished} />;

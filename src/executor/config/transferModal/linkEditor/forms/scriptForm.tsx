@@ -1,27 +1,29 @@
-import SchemaForm from '@/components/SchemaForm';
-import { XExecutable } from '@/ts/base/schema';
-import { IDirectory } from '@/ts/core';
-import {} from '@/ts/core/';
-import { ConfigColl, IExecutable } from '@/ts/core/thing/transfer/config';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React from 'react';
-import MonacoEditor from '../transferModal/apiEditor/parts/monacor';
+import MonacoEditor from '../../apiEditor/parts/monacor';
 import { Space } from 'antd';
+import { ILink, Pos } from '@/ts/core/thing/link';
+import { model } from '@/ts/base';
+import SchemaForm from '@/components/SchemaForm';
 
 interface IProps {
   formType: string;
-  current: IDirectory | IExecutable;
-  finished: (executable?: IExecutable) => void;
+  link: ILink;
+  node: model.Node<any>;
+  pos: Pos;
+  current?: model.Script;
+  finished: (code?: string) => void;
 }
 
-const ExecutableForm: React.FC<IProps> = ({ formType, current, finished }) => {
-  let initialValue = {};
-  switch (formType) {
-    case 'updateExecutable':
-      initialValue = current.metadata;
-      break;
-  }
-  const columns: ProFormColumnsType<XExecutable>[] = [
+const ScriptForm: React.FC<IProps> = ({
+  formType,
+  link,
+  pos,
+  node,
+  current,
+  finished,
+}) => {
+  const columns: ProFormColumnsType<model.Script>[] = [
     {
       title: '名称',
       dataIndex: 'name',
@@ -30,15 +32,8 @@ const ExecutableForm: React.FC<IProps> = ({ formType, current, finished }) => {
       },
     },
     {
-      title: '编码',
-      dataIndex: 'code',
-      formItemProps: {
-        rules: [{ required: true, message: '编码为必填项' }],
-      },
-    },
-    {
       title: '脚本',
-      dataIndex: 'coder',
+      dataIndex: 'code',
       colProps: { span: 24 },
       renderFormItem: (_, __, form) => {
         return (
@@ -69,12 +64,12 @@ const ExecutableForm: React.FC<IProps> = ({ formType, current, finished }) => {
     },
   ];
   return (
-    <SchemaForm<XExecutable>
+    <SchemaForm<model.Script>
       open
       title="脚本配置"
       width={1000}
       columns={columns}
-      initialValues={initialValue}
+      initialValues={current}
       rowProps={{
         gutter: [24, 0],
       }}
@@ -86,21 +81,17 @@ const ExecutableForm: React.FC<IProps> = ({ formType, current, finished }) => {
       }}
       onFinish={async (values) => {
         switch (formType) {
-          case 'newExecutable':
-            const dir = current as IDirectory;
-            values.typeName = '脚本';
-            let executable = await dir.createConfig(ConfigColl.Scripts, values);
-            finished(executable as IExecutable);
+          case 'newScript':
+            await link.addNodeScript(pos, node, values);
             break;
-          case 'updateExecutable':
-            const exec = current as IExecutable;
-            await exec.refresh({ ...initialValue, ...values });
-            finished(exec);
+          case 'updateScript':
+            await link.updNodeScript(pos, node, { ...current, ...values });
             break;
         }
+        finished();
       }}
     />
   );
 };
 
-export default ExecutableForm;
+export { ScriptForm };
