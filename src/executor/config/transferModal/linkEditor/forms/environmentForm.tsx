@@ -99,7 +99,7 @@ const EnvironmentForm: React.FC<IProps> = ({ formType, link, current, finished }
             await link.addEnv(values);
             break;
           case 'updateEnvironment':
-            await link.updEnv(values);
+            await link.updEnv({ ...current, ...values });
             break;
         }
         finished();

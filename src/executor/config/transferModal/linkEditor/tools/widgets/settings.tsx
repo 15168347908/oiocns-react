@@ -1,7 +1,7 @@
 import { Table } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import React, { useEffect, useState } from 'react';
-import cls from './../index.module.less';
+import cls from './../../index.module.less';
 import { ILink } from '@/ts/core/thing/link';
 
 interface IProps {
@@ -16,16 +16,18 @@ interface Kv {
 export const getKvs = (current: ILink): Kv[] => {
   const kvs: Kv[] = [];
   const metadata = current.metadata;
-  if (metadata.curEnv >= 0 && metadata.curEnv <= metadata.envs.length - 1) {
-    const curEnv = metadata.envs[metadata.curEnv];
-    for (const k in curEnv.params) {
-      kvs.push({ k: k, v: curEnv.params[k] });
+  if (metadata.curEnv) {
+    const curEnv = metadata.envs.find((item) => item.id == metadata.curEnv);
+    if (curEnv) {
+      for (const k in curEnv.params) {
+        kvs.push({ k: k, v: curEnv.params[k] });
+      }
     }
   }
   return kvs;
 };
 
-const Environments: React.FC<IProps> = ({ current }) => {
+const Settings: React.FC<IProps> = ({ current }) => {
   const [kvs, setKvs] = useState<Kv[]>(getKvs(current));
   const columns: ColumnsType<Kv> = [
     {
@@ -47,9 +49,10 @@ const Environments: React.FC<IProps> = ({ current }) => {
     },
   ];
   useEffect(() => {
-    const id = current.command.subscribe((type) => {
-      switch (type) {
-        case 'environment':
+    const id = current.command.subscribe((type, cmd, args) => {
+      if (type != 'environments') return;
+      switch (cmd) {
+        case 'refresh':
           setKvs(getKvs(current));
           break;
       }
@@ -60,9 +63,9 @@ const Environments: React.FC<IProps> = ({ current }) => {
   });
   return (
     <div style={{ position: 'absolute', right: 20, top: 64 }}>
-      <Table key={'key'} columns={columns} dataSource={kvs} />;
+      <Table key={'key'} columns={columns} dataSource={kvs} />
     </div>
   );
 };
 
-export default Environments;
+export default Settings;

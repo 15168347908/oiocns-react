@@ -1,12 +1,10 @@
 import { IDirectory } from '@/ts/core';
 import { ILink } from '@/ts/core/thing/link';
-import { LoadingOutlined } from '@ant-design/icons';
 import { Graph } from '@antv/x6';
 import React, { createRef, useEffect, useState } from 'react';
-import { ToolBar } from '../widgets/toolBar';
-import cls from './../../index.module.less';
+import cls from './../index.module.less';
 import { LinkStore, createGraph } from './widgets/graph';
-import { addNode } from './widgets/node';
+import { createNode } from './widgets/node';
 
 export interface IProps {
   current: ILink;
@@ -32,19 +30,20 @@ const LinkEditor: React.FC<IProps> = ({ current }) => {
       loadProps(root).then(() => setInitializing(false));
     } else {
       const graph = createGraph(ref);
+      graph.use(new LinkStore(current));
       if (current.metadata.graph) {
         graph.fromJSON(current.metadata.graph);
       }
-      graph.use(new LinkStore(current));
-      current.binding(() => graph.toJSON());
-      const id = current.command.subscribe((type: string, cmd: string, args: any) => {
-        if (type != 'graph') return;
-        handler(current, graph, cmd, args);
-      });
+      graph.centerContent();
       if (current.status == 'Editable') {
-        graph.on('node:added', () => current.refresh(current.metadata));
+        graph.on('node:added', async (args) => {
+          await current.addNode(args.cell.getData());
+          current.command.emitter('tools', 'update', args.cell.getData());
+        });
         graph.on('node:moved', () => current.refresh(current.metadata));
-        graph.on('node:removed', () => current.refresh(current.metadata));
+        graph.on('node:removed', async (args) => {
+          await current.delNode(args.cell.getData().id);
+        });
         graph.on('node:selected', (a) => current.command.emitter('node', 'selected', a));
         graph.on('node:unselected', (a) =>
           current.command.emitter('node', 'unselected', a),
@@ -53,9 +52,19 @@ const LinkEditor: React.FC<IProps> = ({ current }) => {
           current.command.emitter('node', 'contextmenu', a),
         );
         graph.on('node:click', (a) => current.command.emitter('node', 'click', a));
-        graph.on('edge:added', () => current.refresh(current.metadata));
+        graph.on('edge:change:target', async (args) => {
+          if ((args.current as any)?.cell) {
+            await current.addEdge({
+              id: args.edge.id,
+              start: args.edge.getSourceCellId(),
+              end: args.edge.getTargetCellId(),
+            });
+          }
+        });
         graph.on('edge:moved', () => current.refresh(current.metadata));
-        graph.on('edge:removed', () => current.refresh(current.metadata));
+        graph.on('edge:removed', async (args) => {
+          await current.delEdge(args.cell.id);
+        });
         graph.on('edge:mouseenter', ({ cell }: any) => {
           cell.addTools([
             { name: 'vertices' },
@@ -78,24 +87,20 @@ const LinkEditor: React.FC<IProps> = ({ current }) => {
           current.command.emitter('blank', 'contextmenu', a),
         );
       }
+      current.binding(() => graph.toJSON());
+      current.command.emitter('tools', 'initialized', graph);
+      const id = current.command.subscribe((type: string, cmd: string, args: any) => {
+        if (type != 'graph') return;
+        handler(current, graph, cmd, args);
+      });
       return () => {
-        graph.off();
         current.command.unsubscribe(id);
+        graph.off();
         graph.dispose();
       };
     }
   }, [ref]);
-  return (
-    <div className={cls.link}>
-      <div className={cls.link} ref={ref} />
-      <ToolBar current={current} />
-      {initializing && (
-        <div className={cls.loading}>
-          <LoadingOutlined />
-        </div>
-      )}
-    </div>
-  );
+  return <div className={cls.link} ref={ref} />;
 };
 
 /**
@@ -109,15 +114,12 @@ const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
     case 'insertNode':
       if (current.status != 'Editable') return;
       let [x, y, offset] = [0, 0, 20];
-      addNode({
-        graph: graph,
-        position: {
-          x: x,
-          y: y,
-        },
-      });
+      const node = createNode(args);
+      node.x = x;
+      node.y = y;
       x += offset;
       y += offset;
+      graph.addNode(node);
       break;
     case 'executing':
       current.execute();

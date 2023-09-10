@@ -5,26 +5,18 @@ import React from 'react';
 import { model } from '../../../../../ts/base';
 
 interface IProps {
-  formType: string;
   link: ILink;
-  current?: model.RequestNode;
+  current: model.RequestNode;
   finished: () => void;
 }
 
-const RequestForm: React.FC<IProps> = ({ formType, link, current, finished }) => {
+const RequestForm: React.FC<IProps> = ({ link, current, finished }) => {
   const columns: ProFormColumnsType<model.RequestNode>[] = [
     {
       title: '名称',
       dataIndex: 'name',
       formItemProps: {
         rules: [{ required: true, message: '名称为必填项' }],
-      },
-    },
-    {
-      title: '编码',
-      dataIndex: 'code',
-      formItemProps: {
-        rules: [{ required: true, message: '编码为必填项' }],
       },
     },
     {
@@ -48,27 +40,13 @@ const RequestForm: React.FC<IProps> = ({ formType, link, current, finished }) =>
       onOpenChange={(open: boolean) => {
         if (!open) {
           finished();
+          link.command.emitter('node', 'delete', current);
         }
       }}
       onFinish={async (values) => {
-        switch (formType) {
-          case 'newRequest': {
-            values.typeName = '请求';
-            values.data = {
-              uri: '',
-              method: 'GET',
-              header: {
-                'Content-Type': 'application/json;charset=UTF-8',
-              },
-              content: '',
-            };
-            await link.addNode(values);
-          }
-          case 'updateRequest': {
-            await link.updScript({ ...current, ...values });
-            break;
-          }
-        }
+        const node = { ...current, ...values };
+        await link.updNode(node);
+        link.command.emitter('node', 'update', node);
         finished();
       }}
     />

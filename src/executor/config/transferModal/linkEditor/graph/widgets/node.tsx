@@ -1,6 +1,5 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { model } from '@/ts/base';
-import { generateUuid, sleep } from '@/ts/base/common';
 import { ShareIdSet } from '@/ts/core/public/entity';
 import {
   CheckCircleOutlined,
@@ -12,14 +11,9 @@ import {
 import { Graph, Node } from '@antv/x6';
 import React, { useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
-import cls from './../../../index.module.less';
+import cls from './../../index.module.less';
 import { generateEdge } from './edge';
 import { LinkStore } from './graph';
-
-interface NodeOptions {
-  graph: Graph;
-  position: { x: number; y: number };
-}
 
 /**
  * 根据起点初始下游节点的位置信息
@@ -29,7 +23,7 @@ interface NodeOptions {
  * @param dy
  * @returns
  */
-const getDownstreamNodePosition = (node: Node, graph: Graph, dx = 250, dy = 100) => {
+const getNextNodePos = (node: Node, graph: Graph, dx = 250, dy = 100) => {
   // 找出画布中以该起始节点为起点的相关边的终点id集合
   const downstreamNodeIdList: string[] = [];
   graph.getEdges().forEach((edge) => {
@@ -62,26 +56,29 @@ const getDownstreamNodePosition = (node: Node, graph: Graph, dx = 250, dy = 100)
   };
 };
 
-export const addNode = (props: NodeOptions): Node<Node.Properties> => {
-  const { graph, position } = props;
-  const id = generateUuid();
+/**
+ * 创建节点
+ * @param data 数据
+ * @returns 节点
+ */
+export const createNode = (data: model.Node<any>): Node.Metadata => {
   const node: Node.Metadata = {
-    id: id,
+    id: data.id,
     shape: 'data-processing-dag-node',
-    ...position,
-    data: {},
+    data: data,
     ports: [
       {
-        id: `${id}-in`,
+        id: `${data.id}-in`,
         group: 'in',
       },
       {
-        id: `${id}-out`,
+        id: `${data.id}-out`,
         group: 'out',
       },
     ],
   };
-  return graph.addNode(node);
+  console.log(data);
+  return node;
 };
 
 /**
@@ -108,18 +105,13 @@ export const createEdge = (source: string, target: string, graph: Graph) => {
 };
 
 // 创建下游的节点和边
-export const createDownstream = (graph: Graph, node: Node, entityId: string) => {
-  // 获取下游节点的初始位置信息
-  const position = getDownstreamNodePosition(node, graph);
-  // 创建下游节点
-  const newNode = addNode({
-    graph: graph,
-    position: { ...position },
-  });
-  const source = node.id;
-  const target = newNode.id;
-  // 创建该节点出发到下游节点的边
-  createEdge(source, target, graph);
+export const createDownstream = (graph: Graph, node: Node, data: model.Node<any>) => {
+  const position = getNextNodePos(node, graph);
+  const nextNode = createNode(data);
+  nextNode.x = position.x;
+  nextNode.y = position.y;
+  const newNode = graph.addNode(nextNode);
+  createEdge(node.id, newNode.id, graph);
 };
 
 const menus: { [key: string]: MenuItemType } = {
@@ -161,11 +153,10 @@ interface Info {
 }
 
 export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
-  const entity = node.getData() as model.Node<any>;
-  const link = graph.getPlugin<LinkStore>('LinkStore')!.link;
-  const [graphStatus, setGraphStatus] = useState<model.GraphStatus>(link.status);
-  const [nodeStatus, setNodeStatus] = useState<model.NodeStatus>('Stop');
-  const [visible, setVisible] = useState<boolean>(false);
+  const link = graph.getPlugin<LinkStore>('LinkStore')?.link;
+  const status = link?.status ?? 'Editable';
+  const [entity, setEntity] = useState(node.getData() as model.Node<any>);
+  const [nodeStatus, setNodeStatus] = useState<model.NodeStatus>(status);
   const [visibleOperate, setVisibleOperate] = useState<boolean>(false);
   const [visibleClosing, setVisibleClosing] = useState<boolean>(true);
   const [visibleMenu, setVisibleMenu] = useState<boolean>(false);
@@ -189,7 +180,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   };
 
   useEffect(() => {
-    const id = link.command.subscribe(async (type, cmd, args) => {
+    const id = link?.command.subscribe(async (type, cmd, args) => {
       switch (type) {
         case 'blank': {
           switch (cmd) {
@@ -203,18 +194,14 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
         case 'node':
           switch (cmd) {
             case 'selected':
-              if (args.node.id == node.id) {
-                setVisible(true);
-              }
               break;
             case 'unselected':
               if (args.node.id == node.id) {
-                setVisible(false);
                 setVisibleOperate(false);
               }
               break;
             case 'clearStatus':
-              setNodeStatus('Stop');
+              setNodeStatus(link.status);
               break;
             case 'contextmenu':
               if (args.node.id == node.id) {
@@ -223,48 +210,42 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 setMenuPosition({ x: args.x - position.x, y: args.y - position.y });
               }
               break;
-          }
-          break;
-        case 'ergodic':
-          try {
-            await sleep(500);
-            switch (cmd) {
-              case '请求': {
-                break;
+            case 'update':
+              if (args.id == node.id) {
+                setEntity(args);
               }
-              case '脚本': {
-                break;
+              break;
+            case 'delete':
+              if (args.id == node.id) {
+                node.remove();
               }
-              case '映射': {
-                break;
-              }
-              case '实体配置':
-              case '事项配置': {
-                return;
-              }
-              case '选择': {
-                break;
-              }
-              case '存储': {
-                break;
-              }
-            }
-            setNodeStatus('Completed');
-          } catch (error) {
-            setNodeStatus('Error');
           }
           break;
       }
     });
     return () => {
-      link.command.unsubscribe(id);
+      link?.command.unsubscribe(id ?? '');
     };
   });
+
+  // 编辑态
+  const edit = () => {
+    switch (entity.typeName) {
+      case '脚本':
+        link?.command.emitter('tools', 'update', entity);
+        break;
+      default:
+        link?.command.emitter('tools', 'edit', entity);
+        break;
+    }
+  };
 
   // 状态
   const Status: React.FC<{}> = () => {
     switch (nodeStatus) {
-      case 'Stop':
+      case 'Editable':
+        return <PauseCircleOutlined style={{ color: '#9498df', fontSize: 18 }} />;
+      case 'Viewable':
         return <PauseCircleOutlined style={{ color: '#9498df', fontSize: 18 }} />;
       case 'Running':
         return <LoadingOutlined style={{ color: '#9498df', fontSize: 18 }} />;
@@ -279,7 +260,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   const Info: React.FC<{}> = () => {
     return (
       <div className={`${cls['flex-row']} ${cls['info']} ${cls['border']}`}>
-        <EntityIcon entity={entity} />
+        <EntityIcon entityId={entity.name} />
         <div style={{ marginLeft: 10 }}>{entity.name}</div>
       </div>
     );
@@ -293,7 +274,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
           {entity.typeName}
         </div>
         <div className={`${cls['tag-item']} ${cls['text-overflow']}`}>
-          {ShareIdSet.get(entity.belongId)?.name}
+          {ShareIdSet.get(link?.metadata.belongId ?? '')?.name ?? '归属'}
         </div>
       </div>
     );
@@ -318,7 +299,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 className={`${cls['item']}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  link.command.emitter('entity', item.key, { entity });
+                  link?.command.emitter('entity', item.key, { entity });
                   setVisibleMenu(false);
                 }}>
                 {item.label}
@@ -333,27 +314,14 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   // 结构
   return (
     <div
-      className={`
-        ${cls['flex-row']}
-        ${cls['container']}
-        ${cls['border']}
-        ${visible ? cls['selected'] : ''}`}
+      className={`${cls['flex-row']} ${cls['container']} ${cls['border']}`}
       onMouseEnter={() => setVisibleClosing(true)}
       onMouseLeave={() => setVisibleClosing(false)}
-      onDoubleClick={() => {
-        switch (entity.typeName) {
-          case '脚本':
-            link.command.emitter('entity', 'update', { entity });
-            break;
-          default:
-            link.command.emitter('entity', 'open', { entity });
-            break;
-        }
-      }}>
+      onDoubleClick={edit}>
       <Tag />
       <Status />
       <Info />
-      {graphStatus == 'Editable' && (
+      {status == 'Editable' && (
         <>
           <Remove />
           <ContextMenu />

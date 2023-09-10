@@ -473,7 +473,6 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
   async createLink(data: model.Link): Promise<ILink | undefined> {
     data.id = 'snowId()';
     data.directoryId = this.id;
-    data.curEnv = -1;
     data.envs = [];
     data.nodes = [];
     data.edges = [];

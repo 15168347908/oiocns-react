@@ -938,27 +938,33 @@ export type Script = {
   code: string;
 };
 
-// 节点类型
-export type NodeType = 'Request' | 'Link' | 'Mapping' | 'Store';
-
-// 节点状态
-export type NodeStatus = 'Stop' | 'Running' | 'Completed' | 'Error';
-
 // 图状态
 export type GraphStatus = 'Editable' | 'Viewable' | 'Running';
+
+// 节点状态
+export type NodeStatus = 'Completed' | 'Error' | GraphStatus;
+
+// 节点类型
+export type NodeType = '请求' | '链接' | '映射' | '存储';
 
 // 事件
 export type Event = 'Edit' | 'View' | 'Run';
 
 // 节点
 export type Node<T> = {
+  // 主键
+  id: string;
+  // 名称
+  name: string;
+  // 类型
+  typeName: string;
   // 前置脚本
   preScripts: Script[];
   // 后置脚本
   postScripts: Script[];
   // 数据（请求、子链接、映射、存储）
   data: T;
-} & XEntity;
+};
 
 // 运行时
 export type RunNode<T> = NodeStatus & Node<T>;
@@ -967,7 +973,7 @@ export type RunNode<T> = NodeStatus & Node<T>;
 export type RequestNode = Node<HttpRequestType>;
 
 // 链接节点
-export type LinkNode = Node<Link>;
+export type LinkNode = Node<string>;
 
 // 脚本节点
 export type ScriptNode = Node<Script>;
@@ -988,7 +994,7 @@ export type Link = {
   // 环境集合
   envs: Environment[];
   // 当前环境
-  curEnv: number;
+  curEnv?: string;
   // 节点集合
   nodes: Node<any>[];
   // 边集合

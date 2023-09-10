@@ -20,13 +20,7 @@ const entityMap: any = {
   事项配置: 'WorkConfig',
   实体配置: 'ThingConfig',
   报表: 'Report',
-  请求: 'Request',
   链接: 'Link',
-  映射: 'Mapping',
-  脚本: 'Executable',
-  环境: 'Environment',
-  选择: 'Selection',
-  存储: 'Store',
 };
 
 interface IProps {

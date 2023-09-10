@@ -39,7 +39,7 @@ export interface ILink extends IFileInfo<model.Link> {
   /** 更新节点 */
   updNode(node: model.Node<any>): Promise<void>;
   /** 删除节点 */
-  delNode(node: model.Node<any>): Promise<void>;
+  delNode(id: string): Promise<void>;
   /** 节点添加脚本 */
   addNodeScript(pos: Pos, node: model.Node<any>, script: model.Script): Promise<void>;
   /** 节点更新脚本 */
@@ -49,17 +49,19 @@ export interface ILink extends IFileInfo<model.Link> {
   /** 遍历节点 */
   visitNode(node: model.Node<any>, preData?: any): Promise<void>;
   /** 增加边 */
-  addEdge(start: model.Node<any>, end: model.Node<any>): Promise<void>;
+  addEdge(edge: model.Edge): Promise<void>;
   /** 更新边 */
   updEdge(edge: model.Edge): Promise<void>;
   /** 删除边 */
-  delEdge(edge: model.Edge): Promise<void>;
+  delEdge(id: string): Promise<void>;
   /** 新增环境 */
   addEnv(env: model.Environment): Promise<void>;
   /** 修改环境 */
   updEnv(env: model.Environment): Promise<void>;
-  /** 修改环境 */
-  delEnv(env: model.Environment): Promise<void>;
+  /** 删除环境 */
+  delEnv(id: string): Promise<void>;
+  /** 变更环境 */
+  changeEnv(id: string): Promise<void>;
   /** 请求 */
   request(node: model.Node<any>): Promise<model.HttpResponseType>;
   /** 脚本 */
@@ -182,9 +184,12 @@ export class Link extends FileInfo<model.Link> implements ILink {
   execute(link?: ILink) {
     this.machine('Run');
     this.curVisited = new Set();
-    this.curTask = deepClone(this.metadata.envs[this.metadata.curEnv]);
+    const env = this.metadata.envs.find((item) => item.id == this.metadata.curEnv);
+    if (env) {
+      this.curTask = deepClone(env);
+      this.taskList.push(this.curTask);
+    }
     this.curPreLink = link;
-    this.taskList.push(this.curTask);
     this.command.emitter('main', 'refresh');
     this.command.emitter('main', 'roots');
   }
@@ -249,14 +254,12 @@ export class Link extends FileInfo<model.Link> implements ILink {
   }
 
   async addNode(node: model.Node<any>): Promise<void> {
-    node.id = generateUuid();
     node.preScripts = [];
     node.postScripts = [];
     let index = this.metadata.nodes.findIndex((item) => item.id == node.id);
     if (index == -1) {
       this.metadata.nodes.push(node);
       await this.refresh(this.metadata);
-      this.command.emitter('graph', 'add', node);
     }
   }
 
@@ -265,16 +268,14 @@ export class Link extends FileInfo<model.Link> implements ILink {
     if (index != -1) {
       this.metadata.nodes[index] = node;
       await this.refresh(this.metadata);
-      this.command.emitter('node', 'update', node);
     }
   }
 
-  async delNode(node: model.Node<any>): Promise<void> {
-    let index = this.metadata.nodes.findIndex((item) => item.id == node.id);
+  async delNode(id: string): Promise<void> {
+    let index = this.metadata.nodes.findIndex((item) => item.id == id);
     if (index != -1) {
       this.metadata.nodes.splice(index, 1);
       await this.refresh(this.metadata);
-      this.command.emitter('graph', 'delete', node);
     }
   }
 
@@ -373,16 +374,10 @@ export class Link extends FileInfo<model.Link> implements ILink {
     }
   }
 
-  async addEdge(start: model.Node<any>, end: model.Node<any>): Promise<void> {
-    let index = this.metadata.edges.findIndex((item) => {
-      return start.id == item.start && end.id == item.end;
-    });
+  async addEdge(edge: model.Edge): Promise<void> {
+    let index = this.metadata.edges.findIndex((item) => edge.id == item.id);
     if (index == -1) {
-      this.metadata.edges.push({
-        id: generateUuid(),
-        start: start.id,
-        end: end.id,
-      });
+      this.metadata.edges.push(edge);
       await this.refresh(this.metadata);
     }
   }
@@ -390,13 +385,13 @@ export class Link extends FileInfo<model.Link> implements ILink {
   async updEdge(edge: model.Edge): Promise<void> {
     let index = this.metadata.edges.findIndex((item) => item.id == edge.id);
     if (index != -1) {
-      this.metadata.edges.push(edge);
+      this.metadata.edges[index] = edge;
       await this.refresh(this.metadata);
     }
   }
 
-  async delEdge(edge: model.Edge): Promise<void> {
-    let index = this.metadata.edges.findIndex((item) => item.id == edge.id);
+  async delEdge(id: string): Promise<void> {
+    let index = this.metadata.edges.findIndex((item) => item.id == id);
     if (index != -1) {
       this.metadata.edges.splice(index, 1);
       await this.refresh(this.metadata);
@@ -410,7 +405,7 @@ export class Link extends FileInfo<model.Link> implements ILink {
     if (index == -1) {
       this.metadata.envs.push({ ...env, id: generateUuid() });
       await this.refresh(this.metadata);
-      this.command.emitter('environments', 'add', env);
+      this.command.emitter('environments', 'refresh');
     }
   }
 
@@ -421,18 +416,32 @@ export class Link extends FileInfo<model.Link> implements ILink {
     if (index != -1) {
       this.metadata.envs[index] = env;
       await this.refresh(this.metadata);
-      this.command.emitter('environment', 'update', env);
+      this.command.emitter('environments', 'refresh');
     }
   }
 
-  async delEnv(env: model.Environment): Promise<void> {
+  async delEnv(id: string): Promise<void> {
     let index = this.metadata.envs.findIndex((item) => {
-      return item.id == env.id;
+      return item.id == id;
     });
     if (index != -1) {
       this.metadata.envs.splice(index, 1);
       await this.refresh(this.metadata);
-      this.command.emitter('environments', 'delete', env);
+      this.command.emitter('environments', 'refresh');
+      if (id == this.metadata.curEnv) {
+        this.metadata.curEnv = undefined;
+        this.command.emitter('environments', 'refresh');
+      }
+    }
+  }
+
+  async changeEnv(id: string): Promise<void> {
+    for (const item of this.metadata.envs) {
+      if (item.id == id) {
+        this.metadata.curEnv = id;
+        await this.refresh(this.metadata);
+        this.command.emitter('environments', 'refresh');
+      }
     }
   }
 
@@ -477,3 +486,61 @@ export class Link extends FileInfo<model.Link> implements ILink {
     }
   }
 }
+
+export const getDefaultRequestNode = (): model.RequestNode => {
+  return {
+    id: generateUuid(),
+    name: '请求',
+    typeName: '请求',
+    preScripts: [],
+    postScripts: [],
+    data: {
+      uri: '',
+      method: 'GET',
+      header: {
+        'Content-Type': 'application/json;charset=UTF-8',
+      },
+      content: '',
+    },
+  };
+};
+
+export const getDefaultMappingNode = (): model.MappingNode => {
+  return {
+    id: generateUuid(),
+    name: '映射',
+    typeName: '映射',
+    preScripts: [],
+    postScripts: [],
+    data: {
+      source: '',
+      target: '',
+      mappings: [],
+    },
+  };
+};
+
+export const getDefaultStoreNode = (): model.StoreNode => {
+  return {
+    id: generateUuid(),
+    name: '存储',
+    typeName: '存储',
+    preScripts: [],
+    postScripts: [],
+    data: {
+      formId: '',
+      directoryId: '',
+    },
+  };
+};
+
+export const getDefaultLinkNode = (): model.LinkNode => {
+  return {
+    id: generateUuid(),
+    name: '链接',
+    typeName: '链接',
+    preScripts: [],
+    postScripts: [],
+    data: '',
+  };
+};
