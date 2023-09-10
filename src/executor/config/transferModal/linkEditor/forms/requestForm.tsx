@@ -20,6 +20,16 @@ const RequestForm: React.FC<IProps> = ({ link, current, finished }) => {
       },
     },
     {
+      title: '前置脚本',
+      dataIndex: 'preScripts',
+      valueType: 'select',
+    },
+    {
+      title: '后置脚本',
+      dataIndex: 'postScripts',
+      valueType: 'select',
+    },
+    {
       title: '备注',
       dataIndex: 'remark',
       valueType: 'textarea',

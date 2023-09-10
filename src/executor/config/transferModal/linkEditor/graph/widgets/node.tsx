@@ -299,7 +299,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 className={`${cls['item']}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  link?.command.emitter('entity', item.key, { entity });
+                  link?.command.emitter('node', item.key, { entity });
                   setVisibleMenu(false);
                 }}>
                 {item.label}
