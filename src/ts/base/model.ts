@@ -1,4 +1,4 @@
-import { XEntity, XForm, XIdentity, XTarget, Xbase } from './schema';
+import { XForm, XIdentity, XTarget, Xbase } from './schema';
 // 请求类型定义
 export type ReqestType = {
   // 模块
@@ -105,10 +105,10 @@ export type OnlineInfo = {
 /** 在线信息查询接口 */
 export type OnlineSet = {
   // 用户连接
-  users: OnlineInfo[];
+  users: OnlineInfo[],
   // 存储连接
-  storages: OnlineInfo[];
-};
+  storages: OnlineInfo[],
+}
 // 分页返回定义
 export type PageResult<T> = {
   // 便宜量
@@ -609,7 +609,7 @@ export type InstanceDataModel = {
     /** 特性id */
     [id: string]: any;
   };
-  formRules?: any;
+  formRules?:any
 };
 
 export type FieldModel = {
@@ -679,8 +679,14 @@ export type WorkNodeModel = {
   belongId: string;
   // 节点归属定义Id
   defineId: string;
-  // 绑定的表单信息
-  forms: XForm[] | undefined;
+  // 主表Id集合
+  primaryFormIds: string[] | undefined;
+  // 子表Id集合
+  detailFormIds: string[] | undefined;
+  // 主表
+  primaryForms: XForm[] | undefined;
+  // 子表
+  detailForms: XForm[] | undefined;
 };
 
 export type Branche = {
@@ -880,10 +886,10 @@ export const badRequest = (
 };
 /** 规则触发时机 */
 export enum RuleTriggers {
-  'Start' = 'Start', //初始化
-  'Running' = 'Running', //修改后
-  'Submit' = 'Submit', //提交前
-  'ThingsChanged' = 'ThingsChanged', //子表变化后
+  'Start' = 'Start',//初始化
+  'Running' = 'Running',//修改后
+  'Submit' = 'Submit',//提交前
+  'ThingsChanged' = 'ThingsChanged',//子表变化后
 }
 
 // 边
