@@ -12,7 +12,6 @@ export { MessageType, OperateType, SpeciesType, TargetType, TaskStatus } from '.
 export {
   directoryNew,
   directoryOperates,
-  transferNew,
   entityOperates,
   fileOperates,
   memberOperates,
