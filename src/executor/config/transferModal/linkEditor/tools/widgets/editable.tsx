@@ -1,10 +1,10 @@
-import { ILink } from '@/ts/core';
+import { ITransfer } from '@/ts/core';
 import React, { ReactNode, useEffect, useState } from 'react';
 import RequestModal from './../../../apiEditor/layout';
 import MappingModal from './../../../mapper/parts/modal';
 
 interface IProps {
-  current: ILink;
+  current: ITransfer;
 }
 
 const Editable: React.FC<IProps> = ({ current }) => {

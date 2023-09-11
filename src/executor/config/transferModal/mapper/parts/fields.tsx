@@ -2,13 +2,13 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { model } from '@/ts/base';
 import { XAttribute } from '@/ts/base/schema';
 import { IForm } from '@/ts/core';
-import { ILink } from '@/ts/core';
+import { ITransfer } from '@/ts/core';
 import { Radio, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';
 
 interface IProps {
-  link: ILink;
+  link: ITransfer;
   current: model.MappingNode;
   target: 'source' | 'target';
 }

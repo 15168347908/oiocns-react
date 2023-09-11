@@ -1,6 +1,6 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { model } from '@/ts/base';
-import { ILink } from '@/ts/core';
+import { ITransfer } from '@/ts/core';
 import {
   getDefaultLinkNode,
   getDefaultMappingNode,
@@ -15,7 +15,7 @@ import { createNode } from '../../graph/widgets/node';
 import cls from './../../index.module.less';
 
 interface IProps {
-  current: ILink;
+  current: ITransfer;
 }
 
 const Nodes: React.FC<IProps> = ({ current }) => {

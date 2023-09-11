@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import EditableTable from './editable';
-import { ILink } from '@/ts/core';
+import { ITransfer } from '@/ts/core';
 import { model } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
 
 export interface IProps {
-  current: ILink;
+  current: ITransfer;
   node: model.RequestNode;
 }
 

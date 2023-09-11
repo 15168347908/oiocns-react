@@ -1,11 +1,11 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
 import React from 'react';
 import RequestLayout from './main';
-import { ILink } from '@/ts/core';
+import { ITransfer } from '@/ts/core';
 import { model } from '@/ts/base';
 
 interface IProps {
-  current: ILink;
+  current: ITransfer;
   node: model.RequestNode;
   finished: () => void;
 }

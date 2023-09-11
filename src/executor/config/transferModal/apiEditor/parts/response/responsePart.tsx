@@ -1,9 +1,9 @@
-import { ILink } from '@/ts/core';
+import { ITransfer } from '@/ts/core';
 import React from 'react';
 import MonacoEditor from '../monacor';
 
 interface IProps {
-  current: ILink;
+  current: ITransfer;
 }
 
 const ResponsePart: React.FC<IProps> = ({ current }) => {

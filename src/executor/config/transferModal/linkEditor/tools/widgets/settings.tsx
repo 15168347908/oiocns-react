@@ -2,10 +2,10 @@ import { Table } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import React, { useEffect, useState } from 'react';
 import cls from './../../index.module.less';
-import { ILink } from '@/ts/core';
+import { ITransfer } from '@/ts/core';
 
 interface IProps {
-  current: ILink;
+  current: ITransfer;
 }
 
 interface Kv {
@@ -13,7 +13,7 @@ interface Kv {
   v?: string;
 }
 
-export const getKvs = (current: ILink): Kv[] => {
+export const getKvs = (current: ITransfer): Kv[] => {
   const kvs: Kv[] = [];
   const metadata = current.metadata;
   if (metadata.curEnv) {

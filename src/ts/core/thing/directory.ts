@@ -8,7 +8,7 @@ import {
 } from '../public';
 import { ITarget } from '../target/base/target';
 import { Form, IForm } from './standard/form';
-import { Link, ILink } from './standard/transfer';
+import { Transfer, ITransfer } from './standard/transfer';
 import { SysFileInfo, ISysFileInfo, IFileInfo, FileInfo } from './fileinfo';
 import { Species, ISpecies } from './standard/species';
 import { Member } from './member';
@@ -53,11 +53,11 @@ export interface IDirectory extends IFileInfo<schema.XDirectory> {
   /** 目录下的应用 */
   applications: IApplication[];
   /** 目录下的链接 */
-  links: ILink[];
-  /** 新建链接配置 */
-  createLink(data: model.Link): Promise<ILink | undefined>;
-  /** 加载链接配置 */
-  loadAllLink(reload?: boolean): Promise<ILink[]>;
+  transfers: ITransfer[];
+  /** 新建迁移配置 */
+  createTransfer(data: model.Transfer): Promise<ITransfer | undefined>;
+  /** 加载迁移配置 */
+  loadAllTransfer(reload?: boolean): Promise<ITransfer[]>;
   /** 加载文件 */
   loadFiles(reload?: boolean): Promise<ISysFileInfo[]>;
   /** 上传文件 */
@@ -103,7 +103,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
   children: IDirectory[] = [];
   taskList: model.TaskModel[] = [];
   forms: IForm[] = [];
-  links: ILink[] = [];
+  transfers: ITransfer[] = [];
   files: ISysFileInfo[] = [];
   specieses: ISpecies[] = [];
   propertys: IProperty[] = [];
@@ -128,7 +128,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     if (this.typeName === '成员目录') {
       cnt.push(...this.target.members.map((i) => new Member(i, this)));
     } else {
-      cnt.push(...this.forms, ...this.applications, ...this.files);
+      cnt.push(...this.forms, ...this.applications, ...this.files, ...this.transfers);
       if (mode != 1) {
         cnt.push(...this.propertys);
         cnt.push(...this.specieses);
@@ -300,7 +300,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     }
     return applications;
   }
-  async createLink(data: model.Link): Promise<ILink | undefined> {
+  async createTransfer(data: model.Transfer): Promise<ITransfer | undefined> {
     const res = await this.resource.transferColl.insert({
       ...data,
       envs: [],
@@ -309,15 +309,15 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       directoryId: this.id,
     });
     if (res) {
-      const link = new Link(res, this);
-      this.links.push(link);
+      const link = new Transfer(res, this);
+      this.transfers.push(link);
       return link;
     }
   }
-  async loadAllLink(reload: boolean = false): Promise<ILink[]> {
-    const links: ILink[] = [...this.links];
+  async loadAllTransfer(reload: boolean = false): Promise<ITransfer[]> {
+    const links: ITransfer[] = [...this.transfers];
     for (const subDirectory of this.children) {
-      links.push(...(await subDirectory.loadAllLink(reload)));
+      links.push(...(await subDirectory.loadAllTransfer(reload)));
     }
     return links;
   }
@@ -362,9 +362,9 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     if (this.id === this.target.id) {
       await this.resource.preLoad();
     }
-    this.links = this.resource.transferColl.cache
+    this.transfers = this.resource.transferColl.cache
       .filter((i) => i.directoryId === this.id)
-      .map((l) => new Link(l, this));
+      .map((l) => new Transfer(l, this));
     this.forms = this.resource.formColl.cache
       .filter((i) => i.directoryId === this.id)
       .map((f) => new Form(f, this));

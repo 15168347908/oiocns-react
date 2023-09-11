@@ -1,5 +1,5 @@
 import { IDirectory } from '@/ts/core';
-import { ILink } from '@/ts/core';
+import { ITransfer } from '@/ts/core';
 import { Graph } from '@antv/x6';
 import React, { createRef, useEffect, useState } from 'react';
 import cls from './../index.module.less';
@@ -7,11 +7,11 @@ import { LinkStore, createGraph } from './widgets/graph';
 import { createNode } from './widgets/node';
 
 export interface IProps {
-  current: ILink;
+  current: ITransfer;
 }
 
 const loadProps = async (current: IDirectory) => {
-  await current.loadAllLink();
+  await current.loadAllTransfer();
   for (const child of current.children) {
     await loadProps(child);
   }
@@ -109,7 +109,7 @@ const LinkEditor: React.FC<IProps> = ({ current }) => {
  * @param cmd 命令
  * @param args 参数
  */
-const handler = (current: ILink, graph: Graph, cmd: string, args: any) => {
+const handler = (current: ITransfer, graph: Graph, cmd: string, args: any) => {
   switch (cmd) {
     case 'insertNode':
       if (current.status != 'Editable') return;

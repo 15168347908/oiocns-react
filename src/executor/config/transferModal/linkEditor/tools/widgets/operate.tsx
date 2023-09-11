@@ -1,14 +1,14 @@
 import OioForm from '@/components/Common/FormDesign/OioFormNext';
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
 import { model, schema } from '@/ts/base';
-import { IBelong, IForm, ILink } from '@/ts/core';
+import { IBelong, IForm, ITransfer } from '@/ts/core';
 import { ProTable } from '@ant-design/pro-components';
 import { Modal } from 'antd';
 import CustomStore from 'devextreme/data/custom_store';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
 interface IProps {
-  current: ILink;
+  current: ITransfer;
 }
 
 type Call = (type: string, data?: any, message?: string) => void;

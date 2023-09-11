@@ -3,10 +3,10 @@ import React, { useEffect, useState } from 'react';
 import Body from './widgets/body';
 import Headers from './widgets/headers';
 import Params from './widgets/params';
-import { ILink } from '@/ts/core';
+import { ITransfer } from '@/ts/core';
 import { model } from '@/ts/base';
 interface IProps {
-  current: ILink;
+  current: ITransfer;
   node: model.RequestNode;
 }
 

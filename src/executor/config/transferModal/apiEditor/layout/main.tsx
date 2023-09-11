@@ -6,10 +6,10 @@ import React, { useRef } from 'react';
 import InputBox from '../parts/inputBox';
 import RequestPart from '../parts/request';
 import ResponsePart from '../parts/response/responsePart';
-import { ILink } from '@/ts/core';
+import { ITransfer } from '@/ts/core';
 
 interface IProps {
-  current: ILink;
+  current: ITransfer;
   node: model.RequestNode;
   finished?: () => void;
 }

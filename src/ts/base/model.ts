@@ -1037,7 +1037,7 @@ export type StoreNode = Node<Store>;
 export type KeyValue = { [key: string]: string | undefined };
 
 // 链接
-export type Link = {
+export type Transfer = {
   // 目录
   directoryId: string;
   // 环境集合

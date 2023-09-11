@@ -1,4 +1,4 @@
-import { ILink } from '@/ts/core';
+import { ITransfer } from '@/ts/core';
 import { CloseOutlined, EditOutlined } from '@ant-design/icons';
 import { Button, Select, Space } from 'antd';
 import { DefaultOptionType } from 'antd/lib/select';
@@ -6,10 +6,10 @@ import React, { useEffect, useState } from 'react';
 import cls from './../../index.module.less';
 
 interface IProps {
-  current: ILink;
+  current: ITransfer;
 }
 
-const getOptions = (current: ILink) => {
+const getOptions = (current: ITransfer) => {
   return current.metadata.envs.map((item) => {
     return {
       value: item.id,
