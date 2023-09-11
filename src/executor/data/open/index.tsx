@@ -6,10 +6,6 @@ import React from 'react';
 import FormView from './form';
 import WorkStart from './work';
 import OfficeView from './office';
-import CodeEditor from './CodeEditor';
-import MyMdEditor from './MdEditor';
-import ReportView from './report';
-import LinkModal from '@/executor/config/transferModal/linkEditor';
 
 const officeExt = ['.pdf', '.xls', '.xlsx', '.doc', '.docx', '.ppt', '.pptx'];
 const videoExt = ['.mp4', '.avi', '.mov', '.mpg', '.swf', '.flv', '.mpeg'];
@@ -31,38 +27,8 @@ const ExecutorOpen: React.FC<IOpenProps> = (props: IOpenProps) => {
     ) {
       return <VideoView share={data} finished={props.finished} />;
     }
-    // if (data?.extension === '.md') {
-    //   return <MarkdownView share={data} finished={props.finished}></MarkdownView>;
-    // }
     if (officeExt.includes(data.extension ?? '-')) {
       return <OfficeView share={data} finished={props.finished} />;
-    }
-    console.log(data);
-
-    if (
-      ['.vue', '.tsx', '.jsx', '.js', '.json', '.html', '.java'].find(
-        (m) => m === data?.extension,
-      )
-    ) {
-      return (
-        <CodeEditor
-          isProject={false}
-          finished={props.finished}
-          form={props.entity}
-          supportFiles={[
-            '.vue',
-            '.tsx',
-            '.jsx',
-            '.js',
-            '.json',
-            '.html',
-            '.java',
-          ]}></CodeEditor>
-      );
-    }
-    if (data.contentType?.startsWith('text')) {
-      //注释md文档
-      return <MyMdEditor finished={props.finished} form={props.entity} />;
     }
   } else {
     switch (props.entity.typeName) {
@@ -71,34 +37,6 @@ const ExecutorOpen: React.FC<IOpenProps> = (props: IOpenProps) => {
         return <FormView form={props.entity as any} finished={props.finished} />;
       case '办事':
         return <WorkStart current={props.entity as any} finished={props.finished} />;
-      case '报表':
-        return (
-          <ReportView
-            current={props.entity as any}
-            finished={props.finished}
-          />
-        );
-      case "链接":
-        return <LinkModal current={props.entity as any} finished={props.finished}></LinkModal>
-      case '目录':
-        if (props.cmd === 'openFolderWithEditor') {
-          return (
-            <CodeEditor
-              isProject={props.entity.typeName === '目录'}
-              finished={props.finished}
-              form={props.entity}
-              supportFiles={[
-                '.vue',
-                '.tsx',
-                '.jsx',
-                '.js',
-                '.json',
-                '.html',
-                '.java',
-              ]}></CodeEditor>
-          );
-        }
-        break;
     }
     command.emitter('config', props.cmd, props.entity);
   }

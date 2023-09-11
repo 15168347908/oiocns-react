@@ -3,14 +3,13 @@ import { kernel, model, schema } from '../../../ts/base';
 import { IBelong } from '@/ts/core';
 import { useEffect, useState } from 'react';
 import React from 'react';
-import { WorkFormRulesType } from '@/ts/core/work/rules/workFormRules';
 import { Tabs } from 'antd';
+
 interface IProps {
   allowEdit: boolean;
   belong: IBelong;
   forms: schema.XForm[];
   data: model.InstanceDataModel;
-  ruleService?: WorkFormRulesType;
   getFormData: (id: string) => model.FormEditData;
   onChanged?: (id: string, data: model.FormEditData) => void;
 }
@@ -26,13 +25,12 @@ const PrimaryForm: React.FC<IProps> = (props) => {
   );
   useEffect(() => {
     if (!data) {
-      kernel.createThing(props.belong.userId, '').then((res) => {
+      kernel.createThing(props.belong.userId, [], '').then((res) => {
         if (res.success && res.data) {
           setData(res.data);
         }
       });
     }
-    props?.ruleService && (props.ruleService.currentMainFormId = form.id);
   }, []);
   if (!data) return <></>;
   return (
@@ -41,7 +39,6 @@ const PrimaryForm: React.FC<IProps> = (props) => {
       form={form}
       fields={fields}
       fieldsValue={data}
-      ruleService={props.ruleService}
       belong={props.belong}
       disabled={!props.allowEdit}
       submitter={{
@@ -50,11 +47,11 @@ const PrimaryForm: React.FC<IProps> = (props) => {
         },
         render: (_: any, _dom: any) => <></>,
       }}
-      onValuesChange={(_val, vals) => {
-        if (props.allowEdit && vals) {
-          Object.keys(vals).forEach((k) => {
-            data[k] = vals[k];
-            props.data.primary[k] = vals[k];
+      onValuesChange={(a) => {
+        if (props.allowEdit) {
+          Object.keys(a).forEach((k) => {
+            data[k] = a[k];
+            props.data.primary[k] = a[k];
           });
           formData.after = [data];
           props.onChanged?.apply(this, [form.id, formData]);
