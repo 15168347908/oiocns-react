@@ -1,4 +1,4 @@
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import React, { ReactNode, useEffect, useState } from 'react';
 import RequestModal from './../../../apiEditor/layout';
 import MappingModal from './../../../mapper/parts/modal';

@@ -6,7 +6,7 @@ import {
   getDefaultMappingNode,
   getDefaultRequestNode,
   getDefaultStoreNode,
-} from '@/ts/core/thing/link';
+} from '@/ts/core';
 import { Graph } from '@antv/x6';
 import { Dnd } from '@antv/x6-plugin-dnd';
 import { Space } from 'antd';

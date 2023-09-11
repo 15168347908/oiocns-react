@@ -2,7 +2,7 @@ import { ProFormColumnsType } from '@ant-design/pro-components';
 import React from 'react';
 import MonacoEditor from '../../apiEditor/parts/monacor';
 import { Space } from 'antd';
-import { ILink, Pos } from '@/ts/core/thing/link';
+import { ILink, Pos } from '@/ts/core';
 import { model } from '@/ts/base';
 import SchemaForm from '@/components/SchemaForm';
 

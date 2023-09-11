@@ -1,4 +1,4 @@
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import { Basecoat, Graph, Path, Platform } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
 import { register } from '@antv/x6-react-shape';

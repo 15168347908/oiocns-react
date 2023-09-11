@@ -3,7 +3,7 @@ import GenerateThingTable from '@/executor/tools/generate/thingTable';
 import { model } from '@/ts/base';
 import { IBelong, IForm } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Modal } from 'antd';
 import { Item, Toolbar } from 'devextreme-react/data-grid';

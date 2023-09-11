@@ -1,5 +1,5 @@
 import SchemaForm from '@/components/SchemaForm';
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React from 'react';
 import { model } from '../../../../../ts/base';

@@ -1,5 +1,5 @@
 import { MappingNode } from '@/ts/base/model';
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import { Col, Layout, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import React from 'react';

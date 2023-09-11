@@ -1,5 +1,5 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import React from 'react';
 import LinkEditor from './graph';
 import { ToolBar } from './tools';

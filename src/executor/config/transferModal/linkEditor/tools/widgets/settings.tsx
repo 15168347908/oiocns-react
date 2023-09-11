@@ -2,7 +2,7 @@ import { Table } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import React, { useEffect, useState } from 'react';
 import cls from './../../index.module.less';
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 
 interface IProps {
   current: ILink;

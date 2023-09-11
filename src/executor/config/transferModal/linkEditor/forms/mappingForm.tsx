@@ -2,7 +2,7 @@ import SchemaForm from '@/components/SchemaForm';
 import { model } from '@/ts/base';
 import orgCtrl from '@/ts/controller';
 import { IDirectory } from '@/ts/core';
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import React, { useRef, useState } from 'react';
 import { MenuItem, expand } from '../..';

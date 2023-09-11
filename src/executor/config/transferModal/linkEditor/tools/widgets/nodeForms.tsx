@@ -1,4 +1,4 @@
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import { Modal } from 'antd';
 import React from 'react';
 import { useState, useEffect } from 'react';

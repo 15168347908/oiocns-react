@@ -3,7 +3,7 @@ import { model } from '@/ts/base';
 import { XAttribute, XSpeciesItem } from '@/ts/base/schema';
 import { IDirectory, IForm, ISpecies } from '@/ts/core';
 import { ShareSet } from '@/ts/core/public/entity';
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import { Button, Col, Modal, Row, Space, Tag, TreeSelect, message } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { defaultGenLabel, expand } from '../..';

@@ -4,7 +4,7 @@ import { generateUuid } from '@/ts/base/common';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React, { useState } from 'react';
 import EditableTable from '../../apiEditor/parts/request/widgets/editable';
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 
 interface IProps {
   formType: string;

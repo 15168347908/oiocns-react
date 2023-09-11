@@ -1,4 +1,4 @@
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import React from 'react';
 import MonacoEditor from '../monacor';
 

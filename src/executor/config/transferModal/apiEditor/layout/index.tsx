@@ -1,7 +1,7 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
 import React from 'react';
 import RequestLayout from './main';
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import { model } from '@/ts/base';
 
 interface IProps {

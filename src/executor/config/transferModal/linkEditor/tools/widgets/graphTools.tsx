@@ -1,4 +1,4 @@
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import { CloseOutlined, EditOutlined } from '@ant-design/icons';
 import { Button, Select, Space } from 'antd';
 import { DefaultOptionType } from 'antd/lib/select';

@@ -1,5 +1,5 @@
 import { IDirectory } from '@/ts/core';
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import { Graph } from '@antv/x6';
 import React, { createRef, useEffect, useState } from 'react';
 import cls from './../index.module.less';

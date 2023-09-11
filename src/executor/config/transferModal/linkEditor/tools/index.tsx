@@ -1,4 +1,4 @@
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import React from 'react';
 import GraphTools from './widgets/graphTools';
 import Nodes from './widgets/nodes';

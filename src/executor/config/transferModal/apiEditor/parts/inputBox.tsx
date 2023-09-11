@@ -1,5 +1,5 @@
 import { model } from '@/ts/base';
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import { Button, Input, Select, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 

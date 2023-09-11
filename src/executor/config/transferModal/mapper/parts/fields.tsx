@@ -3,7 +3,7 @@ import { model } from '@/ts/base';
 import { XAttribute } from '@/ts/base/schema';
 import { IForm } from '@/ts/core';
 import { ShareIdSet, ShareSet } from '@/ts/core/public/entity';
-import { ILink } from '@/ts/core/thing/link';
+import { ILink } from '@/ts/core';
 import { Radio, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';
