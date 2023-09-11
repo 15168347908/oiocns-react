@@ -53,4 +53,4 @@ const RequestForm: React.FC<IProps> = ({ link, current, finished }) => {
   );
 };
 
-export { RequestForm };
+export default RequestForm;

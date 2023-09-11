@@ -68,7 +68,7 @@ const CustomBreadcrumb = (props: CustomBreadcrumbType) => {
               onClick={() => {
                 props.onSelect?.apply(this, [item]);
               }}>
-              <span style={{ fontSize: 16, paddingTop: 6, paddingRight: 4 }}  key={item.key}>
+              <span style={{ fontSize: 16, paddingTop: 6, paddingRight: 4 }}>
                 {item.icon}
               </span>
               {item.label}{' '}
