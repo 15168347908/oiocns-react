@@ -10,7 +10,7 @@ interface IProps {
   finished: () => void;
 }
 
-const RequestForm: React.FC<IProps> = ({ link, current, finished }) => {
+export const RequestForm: React.FC<IProps> = ({ link, current, finished }) => {
   const columns: ProFormColumnsType<model.RequestNode>[] = [
     {
       title: '名称',
@@ -52,5 +52,3 @@ const RequestForm: React.FC<IProps> = ({ link, current, finished }) => {
     />
   );
 };
-
-export default RequestForm;

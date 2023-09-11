@@ -2,7 +2,7 @@ import { ProFormColumnsType } from '@ant-design/pro-components';
 import React from 'react';
 import MonacoEditor from '../../apiEditor/parts/monacor';
 import { Space } from 'antd';
-import { ILink, Pos } from '@/ts/core';
+import { ILink } from '@/ts/core';
 import { model } from '@/ts/base';
 import SchemaForm from '@/components/SchemaForm';
 
@@ -10,12 +10,12 @@ interface IProps {
   formType: string;
   link: ILink;
   node: model.Node<any>;
-  pos: Pos;
+  pos: model.ScriptPos;
   current?: model.Script;
   finished: (code?: string) => void;
 }
 
-const ScriptForm: React.FC<IProps> = ({
+export const ScriptForm: React.FC<IProps> = ({
   formType,
   link,
   pos,
@@ -93,5 +93,3 @@ const ScriptForm: React.FC<IProps> = ({
     />
   );
 };
-
-export { ScriptForm };

@@ -1,6 +1,5 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { model } from '@/ts/base';
-import { ShareIdSet } from '@/ts/core/public/entity';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -14,6 +13,7 @@ import { MenuItemType } from 'typings/globelType';
 import cls from './../../index.module.less';
 import { generateEdge } from './edge';
 import { LinkStore } from './graph';
+import { XTarget } from '@/ts/base/schema';
 
 /**
  * 根据起点初始下游节点的位置信息
@@ -274,7 +274,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
           {entity.typeName}
         </div>
         <div className={`${cls['tag-item']} ${cls['text-overflow']}`}>
-          {ShareIdSet.get(link?.metadata.belongId ?? '')?.name ?? '归属'}
+          {link?.findMetadata<XTarget>(link?.metadata.belongId ?? '')?.name ?? '归属'}
         </div>
       </div>
     );

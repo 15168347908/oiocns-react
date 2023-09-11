@@ -1,12 +1,12 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { model } from '@/ts/base';
+import { ILink } from '@/ts/core';
 import {
-  ILink,
   getDefaultLinkNode,
   getDefaultMappingNode,
   getDefaultRequestNode,
   getDefaultStoreNode,
-} from '@/ts/core';
+} from '@/ts/core/thing/standard/transfer';
 import { Graph } from '@antv/x6';
 import { Dnd } from '@antv/x6-plugin-dnd';
 import { Space } from 'antd';

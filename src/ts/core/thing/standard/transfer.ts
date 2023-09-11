@@ -5,7 +5,6 @@ import { IDirectory } from '../directory';
 import { FileInfo, IFileInfo } from '../fileinfo';
 
 export type GraphData = () => any;
-export type Pos = 'pre' | 'post';
 
 export interface ILink extends IFileInfo<model.Link> {
   /** 集合名称 */
@@ -37,11 +36,19 @@ export interface ILink extends IFileInfo<model.Link> {
   /** 删除节点 */
   delNode(id: string): Promise<void>;
   /** 节点添加脚本 */
-  addNodeScript(pos: Pos, node: model.Node<any>, script: model.Script): Promise<void>;
+  addNodeScript(
+    pos: model.ScriptPos,
+    node: model.Node<any>,
+    script: model.Script,
+  ): Promise<void>;
   /** 节点更新脚本 */
-  updNodeScript(pos: Pos, node: model.Node<any>, script: model.Script): Promise<void>;
+  updNodeScript(
+    pos: model.ScriptPos,
+    node: model.Node<any>,
+    script: model.Script,
+  ): Promise<void>;
   /** 节点删除脚本 */
-  delNodeScript(pos: Pos, node: model.Node<any>, script: model.Script): Promise<void>;
+  delNodeScript(pos: model.ScriptPos, node: model.Node<any>, id: string): Promise<void>;
   /** 遍历节点 */
   visitNode(node: model.Node<any>, preData?: any): Promise<void>;
   /** 增加边 */
@@ -266,7 +273,7 @@ export class Link extends FileInfo<model.Link> implements ILink {
   }
 
   async addNodeScript(
-    pos: Pos,
+    pos: model.ScriptPos,
     node: model.Node<any>,
     script: model.Script,
   ): Promise<void> {
@@ -283,7 +290,7 @@ export class Link extends FileInfo<model.Link> implements ILink {
   }
 
   async updNodeScript(
-    pos: Pos,
+    pos: model.ScriptPos,
     node: model.Node<any>,
     script: model.Script,
   ): Promise<void> {
@@ -307,18 +314,18 @@ export class Link extends FileInfo<model.Link> implements ILink {
   }
 
   async delNodeScript(
-    pos: Pos,
+    pos: model.ScriptPos,
     node: model.Node<any>,
-    script: model.Script,
+    id: string,
   ): Promise<void> {
     switch (pos) {
       case 'pre': {
-        let index = node.preScripts.findIndex((item) => item.id == script.id);
+        let index = node.preScripts.findIndex((item) => item.id == id);
         node.preScripts.splice(index, 1);
         break;
       }
       case 'post': {
-        let index = node.postScripts.findIndex((item) => item.id == script.id);
+        let index = node.postScripts.findIndex((item) => item.id == id);
         node.postScripts.splice(index, 1);
         break;
       }
