@@ -1,4 +1,4 @@
-import { XForm, XIdentity, XTarget, Xbase } from './schema';
+import { XEntity, XForm, XIdentity, XTarget, Xbase } from './schema';
 // 请求类型定义
 export type ReqestType = {
   // 模块
