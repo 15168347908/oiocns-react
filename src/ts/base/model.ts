@@ -1,4 +1,4 @@
-import { XEntity, XForm, XIdentity, XTarget, Xbase } from './schema';
+import { Xbase, XEntity, XForm, XIdentity, XTarget } from './schema';
 // 请求类型定义
 export type ReqestType = {
   // 模块
@@ -16,8 +16,31 @@ export type DataProxyType = {
   action: string;
   // 归属
   belongId: string;
+  // 抄送
+  copyId?: string;
   // 参数
   params: any;
+  // 关系举证(用户鉴权[user=>relations=>target],最大支持2级关系)
+	relations: string[];
+};
+// 请求数据核类型定义
+export type DataNotityType = {
+  // 数据
+	data: any;
+  // 通知的用户
+	targetId: string;
+  // 是否忽略自己
+	ignoreSelf: boolean;
+  // 标签
+	flag: string;
+  // 关系举证(用户鉴权[user=>relations=>target],最大支持2级关系)
+	relations: string[];
+  // 归属用户
+	belongId: string;
+  // 通知用户自身
+  onlyTarget: boolean;
+  // 仅通知在线用户
+  onlineOnly: boolean;
 };
 // 代理请求类型定义
 export type HttpRequestType = {
@@ -105,10 +128,10 @@ export type OnlineInfo = {
 /** 在线信息查询接口 */
 export type OnlineSet = {
   // 用户连接
-  users: OnlineInfo[];
+  users: OnlineInfo[],
   // 存储连接
-  storages: OnlineInfo[];
-};
+  storages: OnlineInfo[],
+}
 // 分页返回定义
 export type PageResult<T> = {
   // 便宜量
@@ -328,28 +351,20 @@ export type MsgTagModel = {
   tags: string[];
 };
 
-export type MsgSaveModel = {
-  // 唯一ID
-  id: string;
-  // 归属用户ID
-  belongId: string;
+export type ChatMessageType = {
   // 发起方Id
   fromId: string;
   // 接收方Id
   toId: string;
   // 接收会话Id
   sessionId: string;
-  // 消息类型
-  msgType: string;
-  // 消息体
-  msgBody: string;
-  // 消息创建时间
-  createTime: string;
-  // 消息变更时间
-  updateTime: string;
-  // 消息标签
-  tags?: CommentType[];
-};
+  // 类型
+  typeName: string;
+  // 内容
+  content: string;
+  // 评注
+  comments: CommentType[];
+} & Xbase;
 
 export type CommentType = {
   // 标签名称
@@ -609,7 +624,6 @@ export type InstanceDataModel = {
     /** 特性id */
     [id: string]: any;
   };
-  formRules?: any;
 };
 
 export type FieldModel = {
@@ -679,8 +693,14 @@ export type WorkNodeModel = {
   belongId: string;
   // 节点归属定义Id
   defineId: string;
-  // 绑定的表单信息
-  forms: XForm[] | undefined;
+  // 主表Id集合
+  primaryFormIds: string[] | undefined;
+  // 子表Id集合
+  detailFormIds: string[] | undefined;
+  // 主表
+  primaryForms: XForm[] | undefined;
+  // 子表
+  detailForms: XForm[] | undefined;
 };
 
 export type Branche = {
@@ -853,6 +873,28 @@ export type OperateModel = {
   menus?: OperateModel[];
 };
 
+/** 会话元数据 */
+export type MsgChatData = {
+  /** 消息类会话完整Id */
+  fullId: string;
+  /** 会话标签 */
+  labels: string[];
+  /** 会话名称 */
+  chatName: string;
+  /** 会话备注 */
+  chatRemark: string;
+  /** 是否置顶 */
+  isToping: boolean;
+  /** 会话未读消息数量 */
+  noReadCount: number;
+  /** 最后一次消息时间 */
+  lastMsgTime: number;
+  /** 最新消息 */
+  lastMessage?: ChatMessageType;
+  /** 提及我 */
+  mentionMe: boolean;
+};
+
 // 动态
 export type ActivityType = {
   // 类型
@@ -862,7 +904,7 @@ export type ActivityType = {
   // 资源
   resource: FileItemShare[];
   // 评注
-  comment: CommentType[];
+  comments: CommentType[];
   // 点赞
   likes: string[];
   // 转发
@@ -871,6 +913,15 @@ export type ActivityType = {
   tags: string[];
 } & Xbase;
 
+// 加载请求类型
+export type LoadOptions = {
+  filter: any[];
+  take: number;
+  group: string;
+  skip: number;
+  options: any;
+}
+
 /** 请求失败 */
 export const badRequest = (
   msg: string = '请求失败',
@@ -878,13 +929,8 @@ export const badRequest = (
 ): ResultType<any> => {
   return { success: false, msg: msg, code: code, data: false };
 };
-/** 规则触发时机 */
-export enum RuleTriggers {
-  'Start' = 'Start', //初始化
-  'Running' = 'Running', //修改后
-  'Submit' = 'Submit', //提交前
-  'ThingsChanged' = 'ThingsChanged', //子表变化后
-}
+
+
 
 // 边
 export type Edge = {
@@ -950,6 +996,9 @@ export type NodeType = '请求' | '链接' | '映射' | '存储';
 // 事件
 export type Event = 'Edit' | 'View' | 'Run';
 
+// 脚本位置
+export type ScriptPos = 'pre' | 'post'
+
 // 节点
 export type Node<T> = {
   // 主键
@@ -988,7 +1037,7 @@ export type StoreNode = Node<Store>;
 export type KeyValue = { [key: string]: string | undefined };
 
 // 链接
-export type Link = {
+export type Transfer = {
   // 目录
   directoryId: string;
   // 环境集合

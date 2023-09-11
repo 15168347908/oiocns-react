@@ -27,7 +27,7 @@ const Design: React.FC<IProps> = ({ current, onSave, node, onSaveFinished }) => 
     code: getNodeCode(),
     parentCode: '',
     type: AddNodeType.ROOT,
-    name: '发起角色',
+    name: '发起权限',
     destType: '角色',
     destId: '0',
     destName: '全员',
@@ -87,7 +87,6 @@ const Design: React.FC<IProps> = ({ current, onSave, node, onSaveFinished }) => 
       />
       {currentNode && (
         <FlowDrawer
-          forms={resource?.forms || []}
           define={current}
           isOpen={currentNode != undefined}
           current={currentNode}

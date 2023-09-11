@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { model } from '@/ts/base';
 import { Dropdown } from 'antd';
 import { AiOutlineEllipsis } from 'react-icons/ai';
@@ -16,7 +16,6 @@ interface IProps extends IDataGridOptions {
     items: ItemType[];
     onMenuClick: (key: string, data: any) => void;
   };
-  customToolBar?: () => ReactNode;
 }
 
 /** 使用form生成表单 */
@@ -73,7 +72,6 @@ const GenerateThingTable = (props: IProps) => {
         });
         props.onSelectionChanged?.apply(this, [info]);
       }}>
-      {props.customToolBar?.()}
       {fields.map((field) =>
         GenerateColumn(field, props.beforeSource, props.hideColumns, props.dataIndex),
       )}
