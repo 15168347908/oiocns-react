@@ -5,8 +5,8 @@ import { model } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
 
 export interface IProps {
-  current: ITransfer;
-  node: model.RequestNode;
+  transfer: ITransfer;
+  current: model.RequestNode;
 }
 
 interface HeaderData {
@@ -37,22 +37,22 @@ const toKvHeader = (headers: readonly HeaderData[]) => {
   return final;
 };
 
-const Header: React.FC<IProps> = ({ current, node }) => {
-  const [headers, setHeaders] = useState(toHeader(node.data.header));
+const Header: React.FC<IProps> = ({ transfer, current }) => {
+  const [headers, setHeaders] = useState(toHeader(current.data.header));
   useEffect(() => {
-    const id = current.command.subscribe((type, cmd, args) => {
+    const id = transfer.command.subscribe((type, cmd, args) => {
       if (type == 'node' && cmd == 'update') {
         setHeaders(args.data.headers);
       }
     });
     return () => {
-      current.unsubscribe(id);
+      transfer.unsubscribe(id);
     };
   });
 
   const onChange = (headers: readonly HeaderData[]) => {
-    node.data.header = toKvHeader(headers);
-    current.updNode(node);
+    current.data.header = toKvHeader(headers);
+    transfer.updNode(current);
   };
 
   return (

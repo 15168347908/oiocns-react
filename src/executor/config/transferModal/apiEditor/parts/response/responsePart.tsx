@@ -3,13 +3,13 @@ import React from 'react';
 import MonacoEditor from '../monacor';
 
 interface IProps {
-  current: ITransfer;
+  transfer: ITransfer;
 }
 
-const ResponsePart: React.FC<IProps> = ({ current }) => {
+const ResponsePart: React.FC<IProps> = ({ transfer }) => {
   return (
     <MonacoEditor
-      cmd={current.command}
+      cmd={transfer.command}
       style={{ margin: 10 }}
       options={{ readOnly: true }}
     />

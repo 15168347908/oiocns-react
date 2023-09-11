@@ -136,7 +136,9 @@ export class Transfer extends FileInfo<model.Transfer> implements ITransfer {
 
   async delete(): Promise<boolean> {
     if (await this.directory.resource.transferColl.delete(this.metadata)) {
-      this.directory.transfers = this.directory.transfers.filter((item) => item.key != this.key);
+      this.directory.transfers = this.directory.transfers.filter(
+        (item) => item.key != this.key,
+      );
       return true;
     }
     return false;
@@ -149,7 +151,9 @@ export class Transfer extends FileInfo<model.Transfer> implements ITransfer {
       })
     ) {
       this.setMetadata({ ...this._metadata, name: name });
-      this.directory.transfers = this.directory.transfers.filter((item) => item.key != this.key);
+      this.directory.transfers = this.directory.transfers.filter(
+        (item) => item.key != this.key,
+      );
       return true;
     }
     return false;
@@ -168,7 +172,9 @@ export class Transfer extends FileInfo<model.Transfer> implements ITransfer {
     ) {
       this.setMetadata({ ...this._metadata, directoryId: destination.id });
       destination.transfers.push(this);
-      this.directory.transfers = this.directory.transfers.filter((item) => item.key != this.key);
+      this.directory.transfers = this.directory.transfers.filter(
+        (item) => item.key != this.key,
+      );
       return true;
     }
     return false;
@@ -393,7 +399,9 @@ export class Transfer extends FileInfo<model.Transfer> implements ITransfer {
       return item.id == env.id;
     });
     if (index == -1) {
-      this.metadata.envs.push({ ...env, id: common.generateUuid() });
+      const id = common.generateUuid();
+      this.metadata.envs.push({ ...env, id: id });
+      this.metadata.curEnv = id;
       await this.refresh(this.metadata);
       this.command.emitter('environments', 'refresh');
     }
@@ -417,11 +425,10 @@ export class Transfer extends FileInfo<model.Transfer> implements ITransfer {
     if (index != -1) {
       this.metadata.envs.splice(index, 1);
       await this.refresh(this.metadata);
-      this.command.emitter('environments', 'refresh');
       if (id == this.metadata.curEnv) {
         this.metadata.curEnv = undefined;
-        this.command.emitter('environments', 'refresh');
       }
+      this.command.emitter('environments', 'refresh');
     }
   }
 

@@ -19,8 +19,8 @@ const Editable: React.FC<IProps> = ({ current }) => {
               setCenter(
                 <RequestModal
                   finished={() => setCenter(<></>)}
-                  current={current}
-                  node={args}
+                  transfer={current}
+                  current={args}
                 />,
               );
               break;

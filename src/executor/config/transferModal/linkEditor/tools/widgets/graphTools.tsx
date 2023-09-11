@@ -35,7 +35,6 @@ const getOptions = (current: ITransfer) => {
 };
 
 const GraphTools: React.FC<IProps> = ({ current }) => {
-  console.log(current.metadata);
   const [curEnv, setCurEnv] = useState<string | undefined>(current.metadata.curEnv);
   const [options, setOptions] = useState<DefaultOptionType[]>(getOptions(current));
   useEffect(() => {
@@ -43,6 +42,7 @@ const GraphTools: React.FC<IProps> = ({ current }) => {
       if (type != 'environments') return;
       switch (cmd) {
         case 'refresh':
+          console.log(current, current.metadata.curEnv);
           setOptions(getOptions(current));
           setCurEnv(current.metadata.curEnv);
           break;

@@ -4,21 +4,21 @@ import { Button, Input, Select, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 interface IProps {
-  current: ITransfer;
-  node: model.RequestNode;
+  transfer: ITransfer;
+  current: model.RequestNode;
   send: () => void;
 }
 
-const InputBox: React.FC<IProps> = ({ current, node, send }) => {
-  const [curNode, setCurNode] = useState(node);
+const InputBox: React.FC<IProps> = ({ transfer, current, send }) => {
+  const [curNode, setCurNode] = useState(current);
   useEffect(() => {
-    const id = current.command.subscribe((type, cmd, args) => {
+    const id = transfer.command.subscribe((type, cmd, args) => {
       if (type == 'node' && cmd == 'update') {
         setCurNode({ ...args });
       }
     });
     return () => {
-      current.unsubscribe(id);
+      transfer.unsubscribe(id);
     };
   });
   return (
@@ -35,8 +35,8 @@ const InputBox: React.FC<IProps> = ({ current, node, send }) => {
               };
             })}
             onChange={(value) => {
-              node.data.method = value;
-              current.updNode(node);
+              current.data.method = value;
+              transfer.updNode(current);
             }}
           />
         }
@@ -44,9 +44,19 @@ const InputBox: React.FC<IProps> = ({ current, node, send }) => {
         value={curNode.data.uri}
         placeholder="输入 URL 地址"
         onChange={(event) => {
-          node.data.uri = event.target.value;
-          current.updNode(node);
+          current.data.uri = event.target.value;
+          transfer.updNode(current);
         }}
+      />
+      <Select
+        disabled
+        value={transfer.metadata.curEnv}
+        options={transfer.metadata.envs.map((item) => {
+          return {
+            value: item.id,
+            label: item.name,
+          };
+        })}
       />
       <Button onClick={() => send()}>Send</Button>
     </Space.Compact>

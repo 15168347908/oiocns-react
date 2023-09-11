@@ -104,8 +104,6 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
                 }}
               />
             );
-          default:
-            return <></>;
         }
       })}
     </>
