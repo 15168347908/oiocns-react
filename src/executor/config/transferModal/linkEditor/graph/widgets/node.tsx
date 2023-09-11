@@ -116,9 +116,9 @@ export const createDownstream = (graph: Graph, node: Node, data: model.Node<any>
 
 const menus: { [key: string]: MenuItemType } = {
   open: {
-    key: 'open',
-    label: '编辑',
-    itemType: '编辑',
+    key: 'edit',
+    label: '打开',
+    itemType: '打开',
     children: [],
   },
   update: {
@@ -299,7 +299,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 className={`${cls['item']}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  link?.command.emitter('entity', item.key, { entity });
+                  link?.command.emitter('tools', item.key, entity);
                   setVisibleMenu(false);
                 }}>
                 {item.label}

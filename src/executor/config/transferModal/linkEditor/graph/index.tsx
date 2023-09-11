@@ -38,7 +38,6 @@ const LinkEditor: React.FC<IProps> = ({ current }) => {
       if (current.status == 'Editable') {
         graph.on('node:added', async (args) => {
           await current.addNode(args.cell.getData());
-          current.command.emitter('tools', 'update', args.cell.getData());
         });
         graph.on('node:moved', () => current.refresh(current.metadata));
         graph.on('node:removed', async (args) => {

@@ -10,11 +10,13 @@ interface IProps {
 }
 
 const InputBox: React.FC<IProps> = ({ transfer, current, send }) => {
-  const [curNode, setCurNode] = useState(current);
+  const [method, setMethod] = useState(current.data.method);
+  const [uri, setUri] = useState(current.data.uri);
   useEffect(() => {
-    const id = transfer.command.subscribe((type, cmd, args) => {
+    const id = transfer.command.subscribe((type, cmd) => {
       if (type == 'node' && cmd == 'update') {
-        setCurNode({ ...args });
+        setMethod(current.data.method);
+        setUri(current.data.uri);
       }
     });
     return () => {
@@ -27,7 +29,7 @@ const InputBox: React.FC<IProps> = ({ transfer, current, send }) => {
         addonBefore={
           <Select
             style={{ width: 100 }}
-            value={curNode.data.method}
+            value={method}
             options={['GET', 'POST'].map((item) => {
               return {
                 value: item,
@@ -40,8 +42,8 @@ const InputBox: React.FC<IProps> = ({ transfer, current, send }) => {
             }}
           />
         }
+        value={uri}
         size="large"
-        value={curNode.data.uri}
         placeholder="输入 URL 地址"
         onChange={(event) => {
           current.data.uri = event.target.value;

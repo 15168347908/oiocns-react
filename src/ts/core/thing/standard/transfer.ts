@@ -28,7 +28,7 @@ export interface ITransfer extends IFileInfo<model.Transfer> {
   /** 绑定图 */
   binding(getData: GraphData): void;
   /** 刷新数据 */
-  refresh(data: model.Transfer): Promise<void>;
+  refresh(data: model.Transfer): Promise<boolean>;
   /** 增加节点 */
   addNode(node: model.Node<any>): Promise<void>;
   /** 更新节点 */
@@ -128,10 +128,10 @@ export class Transfer extends FileInfo<model.Transfer> implements ITransfer {
     this.getData = getData;
   }
 
-  async refresh(data: model.Transfer): Promise<void> {
+  async refresh(data: model.Transfer): Promise<boolean> {
     data.graph = this.getData?.();
     this.setMetadata(data);
-    await this.directory.resource.transferColl.replace(this.metadata);
+    return !!(await this.directory.resource.transferColl.replace(this.metadata));
   }
 
   async delete(): Promise<boolean> {
@@ -258,7 +258,9 @@ export class Transfer extends FileInfo<model.Transfer> implements ITransfer {
     let index = this.metadata.nodes.findIndex((item) => item.id == node.id);
     if (index == -1) {
       this.metadata.nodes.push(node);
-      await this.refresh(this.metadata);
+      if (await this.refresh(this.metadata)) {
+        this.command.emitter('node', 'add', node);
+      }
     }
   }
 
@@ -266,15 +268,20 @@ export class Transfer extends FileInfo<model.Transfer> implements ITransfer {
     let index = this.metadata.nodes.findIndex((item) => item.id == node.id);
     if (index != -1) {
       this.metadata.nodes[index] = node;
-      await this.refresh(this.metadata);
+      if (await this.refresh(this.metadata)) {
+        this.command.emitter('node', 'update', node);
+      }
     }
   }
 
   async delNode(id: string): Promise<void> {
     let index = this.metadata.nodes.findIndex((item) => item.id == id);
     if (index != -1) {
+      let node = this.metadata.nodes[index];
       this.metadata.nodes.splice(index, 1);
-      await this.refresh(this.metadata);
+      if (await this.refresh(this.metadata)) {
+        this.command.emitter('node', 'delete', node);
+      }
     }
   }
 

@@ -46,7 +46,6 @@ export const RequestForm: React.FC<IProps> = ({ link, current, finished }) => {
       onFinish={async (values) => {
         const node = { ...current, ...values };
         await link.updNode(node);
-        link.command.emitter('node', 'update', node);
         finished();
       }}
     />

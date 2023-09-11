@@ -42,7 +42,8 @@ const Header: React.FC<IProps> = ({ transfer, current }) => {
   useEffect(() => {
     const id = transfer.command.subscribe((type, cmd, args) => {
       if (type == 'node' && cmd == 'update') {
-        setHeaders(args.data.headers);
+        console.log(args);
+        setHeaders(toHeader(args.data.header));
       }
     });
     return () => {
@@ -51,6 +52,7 @@ const Header: React.FC<IProps> = ({ transfer, current }) => {
   });
 
   const onChange = (headers: readonly HeaderData[]) => {
+    console.log(headers);
     current.data.header = toKvHeader(headers);
     transfer.updNode(current);
   };
