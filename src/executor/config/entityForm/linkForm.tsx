@@ -62,7 +62,7 @@ const TransferForm: React.FC<IProps> = ({ formType, current, finished }) => {
       onFinish={async (values) => {
         switch (formType) {
           case 'newTransferConfig': {
-            values.typeName = '迁移';
+            values.typeName = '迁移配置';
             let directory = current as IDirectory;
             let request = await directory.createTransfer(values);
             finished(request as ITransfer);
