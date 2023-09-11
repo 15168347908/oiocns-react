@@ -22,7 +22,7 @@ export class DataResource {
     this.target = target;
     this.relations = relations;
     this.formColl = this.genTargetColl<XForm>('standard-form');
-    this.transferColl = this.genTargetColl<Transfer>('standrand-transfer');
+    this.transferColl = this.genTargetColl<Transfer>('standard-transfer');
     this.speciesColl = this.genTargetColl<XSpecies>('standard-species');
     this.messageColl = this.genTargetColl<ChatMessageType>('chat-messages');
     this.propertyColl = this.genTargetColl<XProperty>('standard-property');
