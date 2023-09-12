@@ -23,8 +23,8 @@ export class XCollection<T extends schema.Xbase> {
     return this._collName;
   }
 
-  async all(): Promise<T[]> {
-    if (!this._loaded) {
+  async all(reload: boolean = false): Promise<T[]> {
+    if (!this._loaded || reload) {
       this._cache = await this.load({});
       this._loaded = true;
     }

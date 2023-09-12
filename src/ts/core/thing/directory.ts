@@ -17,6 +17,8 @@ import { Application, IApplication } from './standard/application';
 import { BucketOpreates, FileItemModel } from '@/ts/base/model';
 import { encodeKey } from '@/ts/base/common';
 import { DataResource } from './resource';
+import orgCtrl from '@/ts/controller';
+
 /** 可为空的进度回调 */
 export type OnProgress = (p: number) => void;
 
@@ -72,10 +74,8 @@ export interface IDirectory extends IFileInfo<schema.XDirectory> {
   createApplication(data: schema.XApplication): Promise<IApplication | undefined>;
   /** 加载全部应用 */
   loadAllApplication(reload?: boolean): Promise<IApplication[]>;
-  /** 加载目录资源 */
-  loadDirectoryResource(): Promise<void>;
   /** 情况目录资源 */
-  loadDirectoryResource(): Promise<void>;
+  loadDirectoryResource(reload?: boolean): Promise<void>;
 }
 
 /** 目录实现类 */
@@ -96,6 +96,19 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     this.target = _target;
     this.parent = _parent;
     this.taskEmitter = new common.Emitter();
+    if (!_parent) {
+      this.resource.directoryColl.subscribe((res: { operate: string; data: any }) => {
+        switch (res.operate ?? '') {
+          case 'refresh':
+            if (res.data && res.data.id == this.metadata.id) {
+              this.loadContent(true).then(() => {
+                orgCtrl.changCallback();
+              });
+            }
+            break;
+        }
+      });
+    }
   }
   target: ITarget;
   taskEmitter: common.Emitter;
@@ -146,7 +159,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       if (this.typeName === '成员目录') {
         await this.target.loadContent(reload);
       } else {
-        await this.loadDirectoryResource();
+        await this.loadDirectoryResource(reload);
       }
     }
     return false;
@@ -358,9 +371,9 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
     }
     return operates;
   }
-  public async loadDirectoryResource() {
+  public async loadDirectoryResource(reload: boolean = false) {
     if (this.id === this.target.id) {
-      await this.resource.preLoad();
+      await this.resource.preLoad(reload);
     }
     this.transfers = this.resource.transferColl.cache
       .filter((i) => i.directoryId === this.id)
@@ -384,7 +397,7 @@ export class Directory extends FileInfo<schema.XDirectory> implements IDirectory
       .filter((i) => i.parentId === this.id)
       .map((i) => {
         const subDir = new Directory(i, this.target, this);
-        subDir.loadDirectoryResource();
+        subDir.loadDirectoryResource(reload);
         return subDir;
       });
   }
