@@ -106,6 +106,9 @@ export class XCollection<T extends schema.Xbase> {
       copyId,
     );
     if (res.success) {
+      if (!Array.isArray(res.data)) {
+        res.data = [res.data as unknown as T];
+      }
       if (res.data && res.data.length > 0 && this._loaded) {
         this._cache.push(...res.data);
       }
