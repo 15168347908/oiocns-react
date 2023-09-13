@@ -61,17 +61,18 @@ const getNextNodePos = (node: Node, graph: Graph, dx = 250, dy = 100) => {
  * @param data 数据
  * @returns 节点
  */
-export const createNode = (id: string): Node.Metadata => {
+export const createNode = (data: model.Node<any>): Node.Metadata => {
   const node: Node.Metadata = {
-    id: id,
+    id: data.id,
     shape: 'data-processing-dag-node',
+    data: data,
     ports: [
       {
-        id: `${id}-in`,
+        id: `${data.id}-in`,
         group: 'in',
       },
       {
-        id: `${id}-out`,
+        id: `${data.id}-out`,
         group: 'out',
       },
     ],
@@ -105,7 +106,7 @@ export const createEdge = (source: string, target: string, graph: Graph) => {
 // 创建下游的节点和边
 export const createDownstream = (graph: Graph, node: Node, data: model.Node<any>) => {
   const position = getNextNodePos(node, graph);
-  const nextNode = createNode(data.id);
+  const nextNode = createNode(data);
   nextNode.x = position.x;
   nextNode.y = position.y;
   const newNode = graph.addNode(nextNode);
@@ -153,7 +154,8 @@ interface Info {
 export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   const link = graph.getPlugin<LinkStore>('LinkStore')?.link;
   const status = link?.status ?? 'Editable';
-  const [entity, setEntity] = useState(link?.getNode(node.id));
+  const movedNode = node.getData() as model.Node<any>;
+  const [entity, setEntity] = useState(link?.getNode(node.id) ?? movedNode);
   const [nodeStatus, setNodeStatus] = useState<model.NodeStatus>(status);
   const [visibleOperate, setVisibleOperate] = useState<boolean>(false);
   const [visibleClosing, setVisibleClosing] = useState<boolean>(true);

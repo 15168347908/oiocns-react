@@ -202,7 +202,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       });
       for (let item of array) {
         let oldItem: { [key: string]: any } = {};
-        let newItem: { [key: string]: any } = { Id: 'snowId()' };
+        let newItem: { [key: string]: any } = { Id: common.generateUuid() };
         Object.keys(item).forEach((key) => {
           if (sourceMap.has(key)) {
             const attr = sourceMap.get(key)!;
@@ -262,7 +262,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 
   async addNodeScript(p: model.Pos, n: model.Node<any>, s: model.Script): Promise<void> {
-    s.id = 'snowId()';
+    s.id = common.generateUuid();
     switch (p) {
       case 'pre':
         n.preScripts.push(s);
@@ -386,7 +386,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       return item.id == env.id;
     });
     if (index == -1) {
-      const id = 'snowId()';
+      const id = common.generateUuid();
       this.metadata.envs.push({ ...env, id: id });
       this.metadata.curEnv = id;
       if (await this.update(this.metadata)) {
@@ -480,7 +480,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
 
 export const getDefaultRequestNode = (): model.RequestNode => {
   return {
-    id: 'snowId()',
+    id: common.generateUuid(),
     name: '请求',
     typeName: '请求',
     preScripts: [],
@@ -498,7 +498,7 @@ export const getDefaultRequestNode = (): model.RequestNode => {
 
 export const getDefaultMappingNode = (): model.MappingNode => {
   return {
-    id: 'snowId()',
+    id: common.generateUuid(),
     name: '映射',
     typeName: '映射',
     preScripts: [],
@@ -513,7 +513,7 @@ export const getDefaultMappingNode = (): model.MappingNode => {
 
 export const getDefaultStoreNode = (): model.StoreNode => {
   return {
-    id: 'snowId()',
+    id: common.generateUuid(),
     name: '存储',
     typeName: '存储',
     preScripts: [],
@@ -527,7 +527,7 @@ export const getDefaultStoreNode = (): model.StoreNode => {
 
 export const getDefaultLinkNode = (): model.LinkNode => {
   return {
-    id: 'snowId()',
+    id: common.generateUuid(),
     name: '链接',
     typeName: '链接',
     preScripts: [],
