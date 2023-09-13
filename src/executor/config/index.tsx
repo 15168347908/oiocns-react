@@ -7,6 +7,7 @@ import OperateModal from './operateModal';
 import SettingAuth from './settingModal/settingAuth';
 import SettingStation from './settingModal/settingStation';
 import SettingIdentity from './settingModal/settingIdentity';
+import NewWarehouse from './transferModal/newWarehouse';
 
 const entityMap: any = {
   目录: 'Dir',
@@ -21,6 +22,7 @@ const entityMap: any = {
   事项配置: 'WorkConfig',
   实体配置: 'ThingConfig',
   迁移配置: 'TransferConfig',
+  报表: 'Report',
 };
 
 interface IProps {
@@ -63,6 +65,8 @@ const ConfigExecutor: React.FC<IProps> = ({ cmd, args, finished }) => {
         return <EntityForm cmd={cmd} entity={args[0]} finished={finished} />;
       }
       break;
+    case 'newWarehouse':
+      return <NewWarehouse current={args[0]} finished={finished}></NewWarehouse>;
     default:
       if (cmd === 'pull' || cmd.startsWith('join')) {
         return <OperateModal cmd={cmd} entity={args[0]} finished={finished} />;
