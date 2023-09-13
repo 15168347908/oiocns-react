@@ -2,6 +2,7 @@ import { command, model } from '@/ts/base';
 import { IDirectory } from '@/ts/core';
 import { formatDate } from '@/utils';
 import { dataHandling, generateXlsx, readXlsx } from '@/utils/excel';
+import { getConfigs, getReadConfigs } from '@/utils/excel/configs/index';
 import {
   Context,
   DataHandler,
@@ -9,12 +10,10 @@ import {
   ReadConfig,
   SheetConfig,
 } from '@/utils/excel/types';
-import { getConfigs, getReadConfigs } from '@/utils/excel/configs/index';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Modal, Spin, Tabs, Tag, Upload, message } from 'antd';
 import TabPane from 'antd/lib/tabs/TabPane';
 import React, { useState } from 'react';
-import orgCtrl from '@/ts/controller';
 
 /** 上传导入模板 */
 export const uploadTemplate = (dir: IDirectory) => {

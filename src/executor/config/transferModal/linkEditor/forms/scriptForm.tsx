@@ -8,16 +8,16 @@ import SchemaForm from '@/components/SchemaForm';
 
 interface IProps {
   formType: string;
-  link: ITransfer;
+  transfer: ITransfer;
   node: model.Node<any>;
   pos: model.Pos;
   current?: model.Script;
-  finished: (code?: string) => void;
+  finished: () => void;
 }
 
 export const ScriptForm: React.FC<IProps> = ({
   formType,
-  link,
+  transfer,
   pos,
   node,
   current,
@@ -55,8 +55,8 @@ export const ScriptForm: React.FC<IProps> = ({
             <MonacoEditor
               height={400}
               defaultLanguage="javascript"
-              defaultValue={form.getFieldValue('coder')}
-              onChange={(value) => form.setFieldValue('coder', value)}
+              defaultValue={form.getFieldValue('code')}
+              onChange={(value) => form.setFieldValue('code', value)}
             />
           </Space>
         );
@@ -82,10 +82,10 @@ export const ScriptForm: React.FC<IProps> = ({
       onFinish={async (values) => {
         switch (formType) {
           case 'newScript':
-            await link.addNodeScript(pos, node, values);
+            await transfer.addNodeScript(pos, node, values);
             break;
           case 'updateScript':
-            await link.updNodeScript(pos, node, { ...current, ...values });
+            await transfer.updNodeScript(pos, node, { ...current, ...values });
             break;
         }
         finished();

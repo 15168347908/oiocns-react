@@ -39,20 +39,11 @@ const toKvHeader = (headers: readonly HeaderData[]) => {
 
 const Header: React.FC<IProps> = ({ transfer, current }) => {
   const [headers, setHeaders] = useState(toHeader(current.data.header));
-  useEffect(() => {
-    const id = transfer.command.subscribe((type, cmd, args) => {
-      if (type == 'node' && cmd == 'update') {
-        setHeaders(toHeader(args.data.header));
-      }
-    });
-    return () => {
-      transfer.unsubscribe(id);
-    };
-  });
 
   const onChange = (headers: readonly HeaderData[]) => {
     current.data.header = toKvHeader(headers);
     transfer.updNode(current);
+    setHeaders([...headers]);
   };
 
   return (

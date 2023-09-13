@@ -24,6 +24,8 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   getData?: GraphData;
   /** 绑定图 */
   binding(getData: GraphData): void;
+  /** 获取节点 */
+  getNode(id: string): model.Node<any> | undefined;
   /** 增加节点 */
   addNode(node: model.Node<any>): Promise<void>;
   /** 更新节点 */
@@ -38,6 +40,8 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   delNodeScript(p: model.Pos, n: model.Node<any>, id: string): Promise<void>;
   /** 遍历节点 */
   visitNode(node: model.Node<any>, preData?: any): Promise<void>;
+  /** 获取边 */
+  getEdge(id: string): model.Edge | undefined;
   /** 增加边 */
   addEdge(edge: model.Edge): Promise<void>;
   /** 更新边 */
@@ -146,8 +150,24 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     for (const match of json.matchAll(/\{\{[^{}]*\}\}/g)) {
       for (let index = 0; index < match.length; index++) {
         let matcher = match[index];
-        let varName = matcher.substring(0, matcher.length - 1);
-        json.replaceAll(matcher, this.curTask?.params[varName] ?? '');
+        let varName = matcher.substring(2, matcher.length - 2);
+        switch (this.status) {
+          case 'Running':
+            json = json.replaceAll(matcher, this.curTask?.params[varName] ?? '');
+            break;
+          default:
+            if (this.metadata.curEnv) {
+              for (const env of this.metadata.envs) {
+                if (env.id == this.metadata.curEnv) {
+                  console.log(matcher, env.params, varName);
+                  json = json.replaceAll(matcher, env.params[varName] ?? '');
+                }
+              }
+            } else {
+              json = json.replaceAll(matcher, '');
+            }
+            break;
+        }
       }
     }
     return (await kernel.httpForward(JSON.parse(json))).data;
@@ -197,6 +217,14 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       }
     }
     return ans;
+  }
+
+  getNode(id: string): model.Node<any> | undefined {
+    for (const node of this.metadata.nodes) {
+      if (node.id == id) {
+        return node;
+      }
+    }
   }
 
   async addNode(node: model.Node<any>): Promise<void> {
@@ -309,6 +337,14 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       this.command.emitter('node', 'completed', node, nextData);
     } catch (error) {
       this.command.emitter('node', 'error', error);
+    }
+  }
+
+  getEdge(id: string): model.Edge | undefined {
+    for (let edge of this.metadata.edges) {
+      if (edge.id == id) {
+        return edge;
+      }
     }
   }
 

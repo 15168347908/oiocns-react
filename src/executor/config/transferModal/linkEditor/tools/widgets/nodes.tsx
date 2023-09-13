@@ -61,7 +61,7 @@ const Nodes: React.FC<IProps> = ({ current }) => {
         data = getDefaultLinkNode();
         break;
     }
-    const node = graph.current?.createNode(createNode(data));
+    const node = graph.current?.createNode(createNode(data.id));
     if (node) {
       dnd.current?.start(node, e.nativeEvent as any);
     }
