@@ -126,6 +126,9 @@ const handler = (current: ITransfer, graph: Graph, cmd: string, args: any) => {
     case 'center':
       graph.centerContent();
       break;
+    case 'refresh':
+      graph.fromJSON(current.metadata.graph);
+      break;
   }
 };
 
