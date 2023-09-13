@@ -41,7 +41,7 @@ export class Command {
    */
   public emitter(type: string, cmd: string, ...args: any): void {
     Object.keys(this.callbacks).forEach((key) => {
-      this.callbacks[key].apply(this, [type, cmd, ...args]);
+      this.callbacks[key]?.apply(this, [type, cmd, ...args]);
     });
   }
 }

@@ -314,7 +314,7 @@ export class StandardFileInfo<T extends schema.XStandard>
       switch (operate) {
         case 'replace':
           this.setMetadata(data);
-          this.changCallback();
+          break;
       }
     }
   }

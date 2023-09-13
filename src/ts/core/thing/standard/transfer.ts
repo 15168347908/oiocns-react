@@ -88,6 +88,15 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     this.setEntity();
   }
 
+  protected receiveMessage(operate: string, data: model.Transfer): void {
+    super.receiveMessage(operate, data);
+    switch (operate) {
+      case 'replace':
+        this.command.emitter('graph', 'refresh');
+        break;
+    }
+  }
+
   machine(event: model.Event): void {
     switch (event) {
       case 'Edit':
