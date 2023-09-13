@@ -1,12 +1,12 @@
 import { XForm } from '@/ts/base/schema';
-import { Command, kernel, model, schema, common } from '../../../base';
+import { Command, common, kernel, model, schema } from '../../../base';
 import { storeCollName } from '../../public';
 import { IDirectory } from '../directory';
-import { FileInfo, IFileInfo } from '../fileinfo';
+import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 
 export type GraphData = () => any;
 
-export interface ITransfer extends IFileInfo<model.Transfer> {
+export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 集合名称 */
   collName: string;
   /** 触发器 */
@@ -75,7 +75,7 @@ export interface ITransfer extends IFileInfo<model.Transfer> {
   execute(link?: ITransfer): void;
 }
 
-export class Transfer extends FileInfo<model.Transfer> implements ITransfer {
+export class Transfer extends StandardFileInfo<model.Transfer> implements ITransfer {
   collName: string;
   command: Command;
   taskList: model.Environment[];
@@ -87,7 +87,7 @@ export class Transfer extends FileInfo<model.Transfer> implements ITransfer {
   getData?: GraphData;
 
   constructor(metadata: model.Transfer, dir: IDirectory) {
-    super(metadata, dir);
+    super(metadata, dir, dir.resource.transferColl);
     this.collName = storeCollName.Transfer;
     this.command = new Command();
     this.taskList = [];
@@ -132,52 +132,6 @@ export class Transfer extends FileInfo<model.Transfer> implements ITransfer {
     data.graph = this.getData?.();
     this.setMetadata(data);
     return !!(await this.directory.resource.transferColl.replace(this.metadata));
-  }
-
-  async delete(): Promise<boolean> {
-    if (await this.directory.resource.transferColl.delete(this.metadata)) {
-      this.directory.transfers = this.directory.transfers.filter(
-        (item) => item.key != this.key,
-      );
-      return true;
-    }
-    return false;
-  }
-
-  async rename(name: string): Promise<boolean> {
-    if (
-      await this.directory.resource.transferColl.update(this.id, {
-        _set_: { name: name },
-      })
-    ) {
-      this.setMetadata({ ...this._metadata, name: name });
-      this.directory.transfers = this.directory.transfers.filter(
-        (item) => item.key != this.key,
-      );
-      return true;
-    }
-    return false;
-  }
-
-  async copy(destination: IDirectory): Promise<boolean> {
-    let res = await destination.createTransfer(this.metadata);
-    return !!res;
-  }
-
-  async move(destination: IDirectory): Promise<boolean> {
-    if (
-      await this.directory.resource.transferColl.update(this.id, {
-        _set_: { directoryId: destination.id },
-      })
-    ) {
-      this.setMetadata({ ...this._metadata, directoryId: destination.id });
-      destination.transfers.push(this);
-      this.directory.transfers = this.directory.transfers.filter(
-        (item) => item.key != this.key,
-      );
-      return true;
-    }
-    return false;
   }
 
   execute(link?: ITransfer) {
