@@ -468,7 +468,7 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
         switch (operate) {
           case 'insert':
             switch (a.typeName) {
-              case '链接':
+              case '迁移配置':
                 this.resource.transferColl.cache.push(a as model.Transfer);
                 this.transfers.push(new Transfer(a as model.Transfer, this));
                 break;
@@ -502,7 +502,7 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
             {
               let index = -1;
               switch (a.typeName) {
-                case '链接':
+                case '迁移配置':
                   index = this.resource.transferColl.cache.findIndex((s) => s.id == a.id);
                   if (index > -1) {
                     this.resource.transferColl.cache[index] = a as model.Transfer;
@@ -545,7 +545,7 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
             break;
           case 'delete':
             switch (a.typeName) {
-              case '链接':
+              case '迁移配置':
                 this.transfers = this.transfers.filter((s) => s.id != a.id);
                 this.resource.transferColl.removeCache(a.id);
                 break;
