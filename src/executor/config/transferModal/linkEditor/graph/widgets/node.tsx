@@ -221,6 +221,12 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               if (args.id == node.id) {
                 node.remove();
               }
+              break;
+            case 'start':
+              setNodeStatus('Running');
+              break;
+            case 'error':
+              break;
           }
           break;
       }

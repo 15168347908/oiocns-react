@@ -169,7 +169,8 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         }
       }
     }
-    return (await kernel.httpForward(JSON.parse(json))).data;
+    let data = (await kernel.httpForward(JSON.parse(json))).data;
+    return JSON.parse(data.content);
   }
 
   running(code: string, args: any): any {
@@ -200,7 +201,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       });
       for (let item of array) {
         let oldItem: { [key: string]: any } = {};
-        let newItem: { [key: string]: any } = { Id: common.generateUuid() };
+        let newItem: { [key: string]: any } = { Id: 'snowId()' };
         Object.keys(item).forEach((key) => {
           if (sourceMap.has(key)) {
             const attr = sourceMap.get(key)!;
@@ -260,7 +261,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 
   async addNodeScript(p: model.Pos, n: model.Node<any>, s: model.Script): Promise<void> {
-    s.id = common.generateUuid();
+    s.id = 'snowId()';
     switch (p) {
       case 'pre':
         n.preScripts.push(s);
@@ -309,7 +310,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 
   async visitNode(node: model.Node<any>, preData?: any): Promise<void> {
-    this.command.emitter('node', 'start', node);
+    this.command.emitter('running', 'start', node);
     try {
       for (const script of node.preScripts ?? []) {
         preData = this.running(script.code, preData);
@@ -333,9 +334,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         nextData = this.running(script.code, nextData);
       }
       this.curVisited?.add(node.id);
-      this.command.emitter('node', 'completed', node, nextData);
+      this.command.emitter('running', 'completed', node, nextData);
     } catch (error) {
-      this.command.emitter('node', 'error', error);
+      this.command.emitter('running', 'error', error);
     }
   }
 
@@ -382,7 +383,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       return item.id == env.id;
     });
     if (index == -1) {
-      const id = common.generateUuid();
+      const id = 'snowId()';
       this.metadata.envs.push({ ...env, id: id });
       this.metadata.curEnv = id;
       if (await this.update(this.metadata)) {
@@ -443,21 +444,21 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
 
   private async handing(cmd: string, args: any) {
     switch (cmd) {
-      case 'roots':
-        {
-          const not = this.metadata.edges.map((item) => item.end);
-          const roots = this.metadata.nodes.filter((item) => not.indexOf(item.id) == -1);
-          for (const root of roots) {
-            this.visitNode(root);
-          }
+      case 'roots': {
+        const not = this.metadata.edges.map((item) => item.end);
+        const roots = this.metadata.nodes.filter((item) => not.indexOf(item.id) == -1);
+        for (const root of roots) {
+          this.visitNode(root);
         }
         break;
-      case 'visitNode':
+      }
+      case 'visitNode': {
         if (this.preCheck(args)) {
           await this.visitNode(args);
         }
         break;
-      case 'next':
+      }
+      case 'next': {
         for (const edge of this.metadata.edges) {
           if (args[0].id == edge.start) {
             this.curVisited?.add(edge.id);
@@ -469,13 +470,14 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
           }
         }
         break;
+      }
     }
   }
 }
 
 export const getDefaultRequestNode = (): model.RequestNode => {
   return {
-    id: common.generateUuid(),
+    id: 'snowId()',
     name: '请求',
     typeName: '请求',
     preScripts: [],
@@ -493,7 +495,7 @@ export const getDefaultRequestNode = (): model.RequestNode => {
 
 export const getDefaultMappingNode = (): model.MappingNode => {
   return {
-    id: common.generateUuid(),
+    id: 'snowId()',
     name: '映射',
     typeName: '映射',
     preScripts: [],
@@ -508,7 +510,7 @@ export const getDefaultMappingNode = (): model.MappingNode => {
 
 export const getDefaultStoreNode = (): model.StoreNode => {
   return {
-    id: common.generateUuid(),
+    id: 'snowId()',
     name: '存储',
     typeName: '存储',
     preScripts: [],
@@ -522,7 +524,7 @@ export const getDefaultStoreNode = (): model.StoreNode => {
 
 export const getDefaultLinkNode = (): model.LinkNode => {
   return {
-    id: common.generateUuid(),
+    id: 'snowId()',
     name: '链接',
     typeName: '链接',
     preScripts: [],
