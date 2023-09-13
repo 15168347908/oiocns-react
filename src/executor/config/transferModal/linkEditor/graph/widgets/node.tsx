@@ -193,6 +193,25 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
           }
           break;
         }
+        case 'running':
+          const nodeRes = args[0];
+          if (nodeRes.id == node.id) {
+            switch (cmd) {
+              case 'start':
+                setNodeStatus('Running');
+                break;
+              case 'completed':
+                setNodeStatus('Completed');
+                break;
+              case 'error':
+                setNodeStatus('Error');
+                break;
+              default:
+                setNodeStatus(status);
+                break;
+            }
+          }
+          break;
         case 'node':
           switch (cmd) {
             case 'selected':
@@ -221,11 +240,6 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               if (args.id == node.id) {
                 node.remove();
               }
-              break;
-            case 'start':
-              setNodeStatus('Running');
-              break;
-            case 'error':
               break;
           }
           break;

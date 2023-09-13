@@ -2,6 +2,7 @@ import { XForm } from '@/ts/base/schema';
 import { Command, common, kernel, model, schema } from '../../../base';
 import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
+import { sleep } from '@/ts/base/common';
 
 export type GraphData = () => any;
 
@@ -310,8 +311,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 
   async visitNode(node: model.Node<any>, preData?: any): Promise<void> {
-    this.command.emitter('running', 'start', node);
+    this.command.emitter('running', 'start', [node]);
     try {
+      await sleep(1000);
       for (const script of node.preScripts ?? []) {
         preData = this.running(script.code, preData);
       }
@@ -334,9 +336,10 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         nextData = this.running(script.code, nextData);
       }
       this.curVisited?.add(node.id);
-      this.command.emitter('running', 'completed', node, nextData);
+      this.command.emitter('running', 'completed', [node, nextData]);
+      this.command.emitter('main', 'next', [node]);
     } catch (error) {
-      this.command.emitter('running', 'error', error);
+      this.command.emitter('running', 'error', [node, error]);
     }
   }
 
