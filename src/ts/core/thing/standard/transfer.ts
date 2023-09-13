@@ -159,7 +159,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
             if (this.metadata.curEnv) {
               for (const env of this.metadata.envs) {
                 if (env.id == this.metadata.curEnv) {
-                  console.log(matcher, env.params, varName);
                   json = json.replaceAll(matcher, env.params[varName] ?? '');
                 }
               }
