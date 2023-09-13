@@ -10,7 +10,7 @@ interface IProps {
   formType: string;
   link: ITransfer;
   node: model.Node<any>;
-  pos: model.ScriptPos;
+  pos: model.Pos;
   current?: model.Script;
   finished: (code?: string) => void;
 }

@@ -39,7 +39,7 @@ const LinkEditor: React.FC<IProps> = ({ current }) => {
         graph.on('node:added', async (args) => {
           await current.addNode(args.cell.getData());
         });
-        graph.on('node:moved', () => current.refresh(current.metadata));
+        graph.on('node:moved', () => current.update(current.metadata));
         graph.on('node:removed', async (args) => {
           await current.delNode(args.cell.getData().id);
         });
@@ -60,7 +60,7 @@ const LinkEditor: React.FC<IProps> = ({ current }) => {
             });
           }
         });
-        graph.on('edge:moved', () => current.refresh(current.metadata));
+        graph.on('edge:moved', () => current.update(current.metadata));
         graph.on('edge:removed', async (args) => {
           await current.delEdge(args.cell.id);
         });

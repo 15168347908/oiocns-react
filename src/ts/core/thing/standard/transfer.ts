@@ -1,14 +1,11 @@
 import { XForm } from '@/ts/base/schema';
 import { Command, common, kernel, model, schema } from '../../../base';
-import { storeCollName } from '../../public';
 import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 
 export type GraphData = () => any;
 
 export interface ITransfer extends IStandardFileInfo<model.Transfer> {
-  /** 集合名称 */
-  collName: string;
   /** 触发器 */
   command: Command;
   /** 任务记录 */
@@ -27,8 +24,6 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   getData?: GraphData;
   /** 绑定图 */
   binding(getData: GraphData): void;
-  /** 刷新数据 */
-  refresh(data: model.Transfer): Promise<boolean>;
   /** 增加节点 */
   addNode(node: model.Node<any>): Promise<void>;
   /** 更新节点 */
@@ -36,19 +31,11 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 删除节点 */
   delNode(id: string): Promise<void>;
   /** 节点添加脚本 */
-  addNodeScript(
-    pos: model.ScriptPos,
-    node: model.Node<any>,
-    script: model.Script,
-  ): Promise<void>;
+  addNodeScript(p: model.Pos, n: model.Node<any>, s: model.Script): Promise<void>;
   /** 节点更新脚本 */
-  updNodeScript(
-    pos: model.ScriptPos,
-    node: model.Node<any>,
-    script: model.Script,
-  ): Promise<void>;
+  updNodeScript(p: model.Pos, n: model.Node<any>, s: model.Script): Promise<void>;
   /** 节点删除脚本 */
-  delNodeScript(pos: model.ScriptPos, node: model.Node<any>, id: string): Promise<void>;
+  delNodeScript(p: model.Pos, n: model.Node<any>, id: string): Promise<void>;
   /** 遍历节点 */
   visitNode(node: model.Node<any>, preData?: any): Promise<void>;
   /** 增加边 */
@@ -76,7 +63,6 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
 }
 
 export class Transfer extends StandardFileInfo<model.Transfer> implements ITransfer {
-  collName: string;
   command: Command;
   taskList: model.Environment[];
   preStatus: model.GraphStatus;
@@ -88,7 +74,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
 
   constructor(metadata: model.Transfer, dir: IDirectory) {
     super(metadata, dir, dir.resource.transferColl);
-    this.collName = storeCollName.Transfer;
     this.command = new Command();
     this.taskList = [];
     this.preStatus = 'Editable';
@@ -128,10 +113,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     this.getData = getData;
   }
 
-  async refresh(data: model.Transfer): Promise<boolean> {
+  async update(data: model.Transfer): Promise<boolean> {
     data.graph = this.getData?.();
-    this.setMetadata(data);
-    return !!(await this.directory.resource.transferColl.replace(this.metadata));
+    return super.update(data);
   }
 
   execute(link?: ITransfer) {
@@ -212,7 +196,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     let index = this.metadata.nodes.findIndex((item) => item.id == node.id);
     if (index == -1) {
       this.metadata.nodes.push(node);
-      if (await this.refresh(this.metadata)) {
+      if (await this.update(this.metadata)) {
         this.command.emitter('node', 'add', node);
       }
     }
@@ -222,7 +206,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     let index = this.metadata.nodes.findIndex((item) => item.id == node.id);
     if (index != -1) {
       this.metadata.nodes[index] = node;
-      if (await this.refresh(this.metadata)) {
+      if (await this.update(this.metadata)) {
         this.command.emitter('node', 'update', node);
       }
     }
@@ -233,58 +217,46 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     if (index != -1) {
       let node = this.metadata.nodes[index];
       this.metadata.nodes.splice(index, 1);
-      if (await this.refresh(this.metadata)) {
+      if (await this.update(this.metadata)) {
         this.command.emitter('node', 'delete', node);
       }
     }
   }
 
-  async addNodeScript(
-    pos: model.ScriptPos,
-    node: model.Node<any>,
-    script: model.Script,
-  ): Promise<void> {
-    script.id = common.generateUuid();
-    switch (pos) {
+  async addNodeScript(p: model.Pos, n: model.Node<any>, s: model.Script): Promise<void> {
+    s.id = common.generateUuid();
+    switch (p) {
       case 'pre':
-        node.preScripts.push(script);
+        n.preScripts.push(s);
         break;
       case 'post':
-        node.postScripts.push(script);
+        n.postScripts.push(s);
         break;
     }
-    await this.updNode(node);
+    await this.updNode(n);
   }
 
-  async updNodeScript(
-    pos: model.ScriptPos,
-    node: model.Node<any>,
-    script: model.Script,
-  ): Promise<void> {
-    switch (pos) {
+  async updNodeScript(p: model.Pos, n: model.Node<any>, s: model.Script): Promise<void> {
+    switch (p) {
       case 'pre': {
-        let index = node.preScripts.findIndex((item) => item.id == script.id);
+        let index = n.preScripts.findIndex((item) => item.id == s.id);
         if (index != -1) {
-          node.preScripts[index] = script;
+          n.preScripts[index] = s;
         }
         break;
       }
       case 'post': {
-        let index = node.preScripts.findIndex((item) => item.id == script.id);
+        let index = n.preScripts.findIndex((item) => item.id == s.id);
         if (index != -1) {
-          node.postScripts[index] = script;
+          n.postScripts[index] = s;
         }
         break;
       }
     }
-    await this.updNode(node);
+    await this.updNode(n);
   }
 
-  async delNodeScript(
-    pos: model.ScriptPos,
-    node: model.Node<any>,
-    id: string,
-  ): Promise<void> {
+  async delNodeScript(pos: model.Pos, node: model.Node<any>, id: string): Promise<void> {
     switch (pos) {
       case 'pre': {
         let index = node.preScripts.findIndex((item) => item.id == id);
@@ -335,7 +307,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     let index = this.metadata.edges.findIndex((item) => edge.id == item.id);
     if (index == -1) {
       this.metadata.edges.push(edge);
-      await this.refresh(this.metadata);
+      if (await this.update(this.metadata)) {
+        this.command.emitter('edge', 'add', edge);
+      }
     }
   }
 
@@ -343,7 +317,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     let index = this.metadata.edges.findIndex((item) => item.id == edge.id);
     if (index != -1) {
       this.metadata.edges[index] = edge;
-      await this.refresh(this.metadata);
+      if (await this.update(this.metadata)) {
+        this.command.emitter('edge', 'update', edge);
+      }
     }
   }
 
@@ -351,7 +327,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     let index = this.metadata.edges.findIndex((item) => item.id == id);
     if (index != -1) {
       this.metadata.edges.splice(index, 1);
-      await this.refresh(this.metadata);
+      if (await this.update(this.metadata)) {
+        this.command.emitter('edge', 'delete', id);
+      }
     }
   }
 
@@ -363,8 +341,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       const id = common.generateUuid();
       this.metadata.envs.push({ ...env, id: id });
       this.metadata.curEnv = id;
-      await this.refresh(this.metadata);
-      this.command.emitter('environments', 'refresh');
+      if (await this.update(this.metadata)) {
+        this.command.emitter('environments', 'refresh');
+      }
     }
   }
 
@@ -374,8 +353,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     });
     if (index != -1) {
       this.metadata.envs[index] = env;
-      await this.refresh(this.metadata);
-      this.command.emitter('environments', 'refresh');
+      if (await this.update(this.metadata)) {
+        this.command.emitter('environments', 'refresh');
+      }
     }
   }
 
@@ -385,11 +365,12 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     });
     if (index != -1) {
       this.metadata.envs.splice(index, 1);
-      await this.refresh(this.metadata);
-      if (id == this.metadata.curEnv) {
-        this.metadata.curEnv = undefined;
+      if (await this.update(this.metadata)) {
+        if (id == this.metadata.curEnv) {
+          this.metadata.curEnv = undefined;
+        }
+        this.command.emitter('environments', 'refresh');
       }
-      this.command.emitter('environments', 'refresh');
     }
   }
 
@@ -397,8 +378,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     for (const item of this.metadata.envs) {
       if (item.id == id) {
         this.metadata.curEnv = id;
-        await this.refresh(this.metadata);
-        this.command.emitter('environments', 'refresh');
+        if (await this.update(this.metadata)) {
+          this.command.emitter('environments', 'refresh');
+        }
       }
     }
   }

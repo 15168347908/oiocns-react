@@ -1014,7 +1014,7 @@ export type NodeType = '请求' | '链接' | '映射' | '存储';
 export type Event = 'Edit' | 'View' | 'Run';
 
 // 脚本位置
-export type ScriptPos = 'pre' | 'post'
+export type Pos = 'pre' | 'post'
 
 // 节点
 export type Node<T> = {
