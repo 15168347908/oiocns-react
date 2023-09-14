@@ -20,6 +20,7 @@ export const RequestForm: React.FC<IProps> = ({ transfer, current, finished }) =
   const formRef = useRef<ProFormInstance>();
   const [open, setOpen] = useState<boolean>();
   const [formType, setFormType] = useState<string>('');
+  const [script, setScript] = useState<model.Script>();
   const [pos, setPos] = useState<model.Pos>();
   const ScriptTable: React.FC<{ pos: model.Pos; scripts: model.Script[] }> = ({
     pos,
@@ -68,8 +69,26 @@ export const RequestForm: React.FC<IProps> = ({ transfer, current, finished }) =
               dataIndex: 'name',
             },
             {
-              title: '代码',
+              title: '编码',
               dataIndex: 'code',
+            },
+            {
+              title: '操作',
+              key: 'action',
+              render: (_, record) => {
+                return (
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      setOpen(true);
+                      setScript(record);
+                      setFormType('updateScript');
+                      setPos(pos);
+                    }}>
+                    修改
+                  </Button>
+                );
+              },
             },
           ]}
         />
@@ -142,7 +161,7 @@ export const RequestForm: React.FC<IProps> = ({ transfer, current, finished }) =
         open
         formRef={formRef}
         title="请求定义"
-        width={640}
+        width={800}
         columns={columns}
         rowProps={{
           gutter: [24, 0],
@@ -166,6 +185,7 @@ export const RequestForm: React.FC<IProps> = ({ transfer, current, finished }) =
           transfer={transfer}
           node={current}
           pos={pos}
+          current={script}
           finished={() => {
             setOpen(false);
             setFormType('');

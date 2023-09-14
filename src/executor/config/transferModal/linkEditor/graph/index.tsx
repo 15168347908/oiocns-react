@@ -43,10 +43,6 @@ const TransferEditor: React.FC<IProps> = ({ current }) => {
         graph.on('node:removed', async (args) => {
           await current.delNode(args.cell.getData().id);
         });
-        graph.on('node:selected', (a) => current.command.emitter('node', 'selected', a));
-        graph.on('node:unselected', (a) =>
-          current.command.emitter('node', 'unselected', a),
-        );
         graph.on('node:contextmenu', (a) =>
           current.command.emitter('node', 'contextmenu', a),
         );

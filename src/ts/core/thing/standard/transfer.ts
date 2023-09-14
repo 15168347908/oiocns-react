@@ -236,8 +236,8 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       nextData: {},
       decrypt: common.decrypt,
       encrypt: common.encrypt,
-      log: (...message: string[]) => {
-        console.log(message);
+      log: (args: any) => {
+        console.log(args);
       },
     };
     common.Sandbox(code)(runtime);
@@ -339,7 +339,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         break;
       }
       case 'post': {
-        let index = n.preScripts.findIndex((item) => item.id == s.id);
+        let index = n.postScripts.findIndex((item) => item.id == s.id);
         if (index != -1) {
           n.postScripts[index] = s;
         }
@@ -379,7 +379,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         }
       }
       for (const script of node.preScripts ?? []) {
-        preData = this.running(script.code, preData);
+        preData = this.running(script.coder, preData);
       }
       let nextData: any;
       switch (node.typeName) {
@@ -391,13 +391,13 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
           this.getEntity<ITransfer>((node.data as model.Transfer).id)?.execute(this);
           break;
         case '映射':
-          nextData = await this.mapping(node, preData);
+          nextData = await this.mapping(node, preData.array);
           break;
         case '存储':
           break;
       }
       for (const script of node.postScripts ?? []) {
-        nextData = this.running(script.code, nextData);
+        nextData = this.running(script.coder, nextData);
       }
       this.curVisitedNodes?.set(node.id, { code: node.code, data: nextData });
       this.command.emitter('running', 'completed', [node]);

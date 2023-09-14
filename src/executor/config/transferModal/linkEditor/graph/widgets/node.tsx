@@ -157,8 +157,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   const movedNode = node.getData() as model.Node<any>;
   const [entity, setEntity] = useState(link?.getNode(node.id) ?? movedNode);
   const [nodeStatus, setNodeStatus] = useState<model.NodeStatus>(status);
-  const [visibleOperate, setVisibleOperate] = useState<boolean>(false);
-  const [visibleClosing, setVisibleClosing] = useState<boolean>(true);
+  const [visibleClosing, setVisibleClosing] = useState<boolean>(false);
   const [visibleMenu, setVisibleMenu] = useState<boolean>(false);
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number }>();
 
@@ -213,13 +212,6 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
           break;
         case 'node':
           switch (cmd) {
-            case 'selected':
-              break;
-            case 'unselected':
-              if (args.node.id == node.id) {
-                setVisibleOperate(false);
-              }
-              break;
             case 'contextmenu':
               if (args.node.id == node.id) {
                 const position = node.getPosition();

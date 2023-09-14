@@ -32,8 +32,15 @@ export const ScriptForm: React.FC<IProps> = ({
       },
     },
     {
-      title: '脚本',
+      title: '编码',
       dataIndex: 'code',
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+    },
+    {
+      title: '脚本',
+      dataIndex: 'coder',
       colProps: { span: 24 },
       renderFormItem: (_, __, form) => {
         return (
@@ -55,8 +62,8 @@ export const ScriptForm: React.FC<IProps> = ({
             <MonacoEditor
               height={400}
               defaultLanguage="javascript"
-              defaultValue={form.getFieldValue('code')}
-              onChange={(value) => form.setFieldValue('code', value)}
+              defaultValue={form.getFieldValue('coder')}
+              onChange={(value) => form.setFieldValue('coder', value)}
             />
           </Space>
         );

@@ -999,6 +999,7 @@ export type Script = {
   id: string;
   name: string;
   code: string;
+  coder: string;
 };
 
 // 图状态
