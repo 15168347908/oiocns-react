@@ -100,6 +100,20 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     this.setEntity();
   }
 
+  async copy(destination: IDirectory): Promise<boolean> {
+    if (this.allowCopy(destination)) {
+      return await super.copyTo(destination.id, destination.resource.transferColl);
+    }
+    return false;
+  }
+
+  async move(destination: IDirectory): Promise<boolean> {
+    if (this.allowCopy(destination)) {
+      return await super.copyTo(destination.id, destination.resource.transferColl);
+    }
+    return false;
+  }
+
   hasLoop(): boolean {
     const hasLoop = (node: model.Node<any>, chain: Set<string>) => {
       for (const edge of this.metadata.edges) {
@@ -126,15 +140,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       }
     }
     return false;
-  }
-
-  protected receiveMessage(operate: string, data: model.Transfer): void {
-    super.receiveMessage(operate, data);
-    switch (operate) {
-      case 'replace':
-        this.command.emitter('graph', 'refresh');
-        break;
-    }
   }
 
   machine(event: model.Event): void {
@@ -183,7 +188,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
 
   async update(data: model.Transfer): Promise<boolean> {
     data.graph = this.getData?.();
-    return super.update(data);
+    return await super.update(data);
   }
 
   execute(link?: ITransfer) {
@@ -299,7 +304,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     let index = this.metadata.nodes.findIndex((item) => item.id == node.id);
     if (index != -1) {
       this.metadata.nodes[index] = node;
-      if (await this.update(this.metadata)) {
+      const success = await this.update(this.metadata);
+      console.log(success, node);
+      if (success) {
         this.command.emitter('node', 'update', node);
       }
     }
