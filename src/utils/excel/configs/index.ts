@@ -1,5 +1,5 @@
 import { IDirectory } from '@/ts/core';
-import { ReadConfig, SheetConfig, SheetName } from '../types';
+import { ISheetRead, ISheet, SheetName } from '../types';
 import { AttrReadConfig, AttrSheetConfig } from './base/attribute';
 import { DirectoryReadConfig, DirectorySheetConfig } from './base/directory';
 import { FormReadConfig, FormSheetConfig } from './base/form';
@@ -18,7 +18,7 @@ import {
 import { PropReadConfig, PropSheetConfig } from './store/property';
 
 export const getConfigs = (directory: IDirectory) => {
-  let configs: SheetConfig<any>[] = [
+  let configs: ISheet<any>[] = [
     new DirectorySheetConfig(directory),
     new DictSheetConfig(directory),
     new DictItemSheetConfig(directory),
@@ -32,7 +32,7 @@ export const getConfigs = (directory: IDirectory) => {
 };
 
 export const getReadConfigs = (directory: IDirectory) => {
-  let readConfigs: ReadConfig<any, any, SheetConfig<any>>[] = [];
+  let readConfigs: ISheetRead<any, any, ISheet<any>>[] = [];
   for (let config of getConfigs(directory)) {
     switch (config.sheetName) {
       case SheetName.Directory:
