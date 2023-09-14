@@ -21,7 +21,7 @@ const loadProps = async (current: IDirectory) => {
  * 返回一个请求编辑器
  * @returns
  */
-const LinkEditor: React.FC<IProps> = ({ current }) => {
+const TransferEditor: React.FC<IProps> = ({ current }) => {
   const ref = createRef<HTMLDivElement>();
   const [initializing, setInitializing] = useState<boolean>(true);
   useEffect(() => {
@@ -132,4 +132,4 @@ const handler = (current: ITransfer, graph: Graph, cmd: string, args: any) => {
   }
 };
 
-export default LinkEditor;
+export default TransferEditor;

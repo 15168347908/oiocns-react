@@ -14,10 +14,14 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 当前任务 */
   curTask?: model.Environment;
   /** 已遍历点 */
-  curVisited?: Set<string>;
+  curVisitedNodes?: Set<string>;
+  /** 已遍历边 */
+  curVisitedEdges?: Set<string>;
   /** 前置链接 */
   curPreLink?: ITransfer;
-  /** 图状态 */
+  /** 前置状态 */
+  preStatus: model.GraphStatus;
+  /** 状态 */
   status: model.GraphStatus;
   /** 状态转移 */
   machine(event: model.Event): void;
@@ -73,7 +77,8 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   preStatus: model.GraphStatus;
   status: model.GraphStatus;
   curTask?: model.Environment;
-  curVisited?: Set<string>;
+  curVisitedNodes?: Set<string>;
+  curVisitedEdges?: Set<string>;
   curPreLink?: ITransfer;
   getData?: GraphData;
 
@@ -105,12 +110,16 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   machine(event: model.Event): void {
     switch (event) {
       case 'Edit':
+        if (this.status == 'Running') {
+          return;
+        }
+        this.status = 'Editable';
+        break;
       case 'View':
         if (this.status == 'Running') {
-          throw new Error('正在运行中！');
+          return;
         }
-        this.preStatus = this.status;
-        this.status = event == 'Edit' ? 'Editable' : 'Viewable';
+        this.status = 'Viewable';
         break;
       case 'Run':
         if (this.status == 'Running') {
@@ -118,6 +127,21 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         }
         this.preStatus = this.status;
         this.status = 'Running';
+        break;
+      case 'Completed':
+        if (this.status != 'Running') {
+          return;
+        }
+        if (this.metadata.nodes.length != this.curVisitedNodes?.size) {
+          return;
+        }
+        this.status = this.preStatus;
+        break;
+      case 'Error':
+        if (this.status != 'Running') {
+          return;
+        }
+        this.status = this.preStatus;
         break;
     }
     this.command.emitter('graph', 'status', this.status);
@@ -134,7 +158,8 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
 
   execute(link?: ITransfer) {
     this.machine('Run');
-    this.curVisited = new Set();
+    this.curVisitedNodes = new Set();
+    this.curVisitedEdges = new Set();
     const env = this.metadata.envs.find((item) => item.id == this.metadata.curEnv);
     if (env) {
       this.curTask = common.deepClone(env);
@@ -171,6 +196,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       }
     }
     let data = (await kernel.httpForward(JSON.parse(json))).data;
+    console.log(data);
     return JSON.parse(data.content);
   }
 
@@ -313,31 +339,31 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   async visitNode(node: model.Node<any>, preData?: any): Promise<void> {
     this.command.emitter('running', 'start', [node]);
     try {
-      await sleep(1000);
+      await sleep(Math.random() * 5000);
       for (const script of node.preScripts ?? []) {
         preData = this.running(script.code, preData);
       }
       let nextData: any;
       switch (node.typeName) {
-        case 'request':
+        case '请求':
           nextData = await this.request(node);
           break;
-        case 'link':
+        case '链接':
           // TODO 替换其它方案
           this.getEntity<ITransfer>((node.data as model.Transfer).id)?.execute(this);
           break;
-        case 'mapping':
+        case '映射':
           nextData = await this.mapping(node, preData.array);
           break;
-        case 'store':
+        case '存储':
           break;
       }
       for (const script of node.postScripts ?? []) {
         nextData = this.running(script.code, nextData);
       }
-      this.curVisited?.add(node.id);
-      this.command.emitter('running', 'completed', [node, nextData]);
-      this.command.emitter('main', 'next', [node]);
+      this.curVisitedNodes?.add(node.id);
+      this.command.emitter('running', 'completed', [node]);
+      this.command.emitter('main', 'next', [node, nextData]);
     } catch (error) {
       this.command.emitter('running', 'error', [node, error]);
     }
@@ -437,7 +463,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     this.command.emitter('node', 'loading', node);
     for (const edge of this.metadata.edges) {
       if (node.id == edge.end) {
-        if (!this.curVisited?.has(edge.id)) {
+        if (!this.curVisitedEdges?.has(edge.id)) {
           return false;
         }
       }
@@ -462,9 +488,16 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         break;
       }
       case 'next': {
+        if (
+          this.curVisitedNodes &&
+          this.curVisitedNodes.size == this.metadata.nodes.length
+        ) {
+          this.machine('Completed');
+          return;
+        }
         for (const edge of this.metadata.edges) {
           if (args[0].id == edge.start) {
-            this.curVisited?.add(edge.id);
+            this.curVisitedEdges?.add(edge.id);
             for (const node of this.metadata.nodes) {
               if (node.id == edge.end) {
                 this.command.emitter('main', 'visitNode', node, args[1]);

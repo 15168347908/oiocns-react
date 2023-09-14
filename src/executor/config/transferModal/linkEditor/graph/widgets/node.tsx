@@ -162,10 +162,6 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   const [visibleMenu, setVisibleMenu] = useState<boolean>(false);
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number }>();
 
-  if (!entity) {
-    return <></>;
-  }
-
   // 删除标记
   const Remove: React.FC<{}> = () => {
     if (visibleClosing) {
@@ -182,6 +178,10 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
     }
     return <></>;
   };
+
+  if (!entity) {
+    return <Remove />;
+  }
 
   useEffect(() => {
     const id = link?.command.subscribe(async (type, cmd, args) => {
@@ -208,9 +208,6 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               case 'error':
                 setNodeStatus('Error');
                 break;
-              default:
-                setNodeStatus(status);
-                break;
             }
           }
           break;
@@ -222,9 +219,6 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
               if (args.node.id == node.id) {
                 setVisibleOperate(false);
               }
-              break;
-            case 'clearStatus':
-              setNodeStatus(link.status);
               break;
             case 'contextmenu':
               if (args.node.id == node.id) {

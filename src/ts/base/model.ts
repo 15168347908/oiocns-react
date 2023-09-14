@@ -1011,10 +1011,10 @@ export type NodeStatus = 'Completed' | 'Error' | GraphStatus;
 export type NodeType = '请求' | '链接' | '映射' | '存储';
 
 // 事件
-export type Event = 'Edit' | 'View' | 'Run';
+export type Event = 'Edit' | 'View' | 'Run' | 'Completed' | 'Error';
 
 // 脚本位置
-export type Pos = 'pre' | 'post'
+export type Pos = 'pre' | 'post';
 
 // 节点
 export type Node<T> = {
