@@ -13,9 +13,9 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   taskList: model.Environment[];
   /** 当前任务 */
   curTask?: model.Environment;
-  /** 已遍历点 */
+  /** 已遍历点（返回数据） */
   curVisitedNodes?: Map<string, { code: string; data: any }>;
-  /** 已遍历边（数据） */
+  /** 已遍历边 */
   curVisitedEdges?: Set<string>;
   /** 前置链接 */
   curPreLink?: ITransfer;
@@ -196,7 +196,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       this.taskList.push(this.curTask);
     }
     this.curPreLink = link;
-    this.command.emitter('main', 'refresh');
+    this.command.emitter('node', 'refresh');
     this.command.emitter('main', 'roots');
   }
 
@@ -368,6 +368,8 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   async visitNode(node: model.Node<any>, preData?: any): Promise<void> {
     this.command.emitter('running', 'start', [node]);
     try {
+      console.log(preData);
+      await sleep(500);
       if (preData) {
         for (const key of Object.keys(preData)) {
           const data = preData[key];
@@ -376,7 +378,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
           }
         }
       }
-      await sleep(Math.random() * 5000);
       for (const script of node.preScripts ?? []) {
         preData = this.running(script.code, preData);
       }

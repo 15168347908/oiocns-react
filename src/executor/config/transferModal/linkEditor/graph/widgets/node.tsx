@@ -237,6 +237,9 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 node.remove();
               }
               break;
+            case 'refresh':
+              setNodeStatus(link.preStatus);
+              break;
           }
           break;
       }

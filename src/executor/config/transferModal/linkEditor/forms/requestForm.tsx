@@ -5,10 +5,10 @@ import {
   ProFormInstance,
   ProTable,
 } from '@ant-design/pro-components';
+import { Button, Space } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { model } from '../../../../../ts/base';
 import { ScriptForm } from './scriptForm';
-import { Space, Button, Modal } from 'antd';
 
 interface IProps {
   transfer: ITransfer;
@@ -21,7 +21,6 @@ export const RequestForm: React.FC<IProps> = ({ transfer, current, finished }) =
   const [open, setOpen] = useState<boolean>();
   const [formType, setFormType] = useState<string>('');
   const [pos, setPos] = useState<model.Pos>();
-  const [scriptNode, setScriptNode] = useState<model.ScriptNode>();
   const ScriptTable: React.FC<{ pos: model.Pos; scripts: model.Script[] }> = ({
     pos,
     scripts,
