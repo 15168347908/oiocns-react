@@ -1020,6 +1020,8 @@ export type Pos = 'pre' | 'post';
 export type Node<T> = {
   // 主键
   id: string;
+  // 编码
+  code: string;
   // 名称
   name: string;
   // 类型

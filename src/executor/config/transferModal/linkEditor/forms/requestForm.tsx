@@ -96,6 +96,13 @@ export const RequestForm: React.FC<IProps> = ({ transfer, current, finished }) =
       },
     },
     {
+      title: '编码',
+      dataIndex: 'code',
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+    },
+    {
       title: '前置脚本',
       dataIndex: 'preScripts',
       valueType: 'select',

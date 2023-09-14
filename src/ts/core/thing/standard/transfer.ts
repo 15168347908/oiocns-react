@@ -14,8 +14,8 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 当前任务 */
   curTask?: model.Environment;
   /** 已遍历点 */
-  curVisitedNodes?: Set<string>;
-  /** 已遍历边 */
+  curVisitedNodes?: Map<string, { code: string; data: any }>;
+  /** 已遍历边（数据） */
   curVisitedEdges?: Set<string>;
   /** 前置链接 */
   curPreLink?: ITransfer;
@@ -77,7 +77,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   preStatus: model.GraphStatus;
   status: model.GraphStatus;
   curTask?: model.Environment;
-  curVisitedNodes?: Set<string>;
+  curVisitedNodes?: Map<string, { code: string; data: any }>;
   curVisitedEdges?: Set<string>;
   curPreLink?: ITransfer;
   getData?: GraphData;
@@ -158,7 +158,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
 
   execute(link?: ITransfer) {
     this.machine('Run');
-    this.curVisitedNodes = new Set();
+    this.curVisitedNodes = new Map();
     this.curVisitedEdges = new Set();
     const env = this.metadata.envs.find((item) => item.id == this.metadata.curEnv);
     if (env) {
@@ -196,11 +196,10 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       }
     }
     let data = (await kernel.httpForward(JSON.parse(json))).data;
-    console.log(data);
     return JSON.parse(data.content);
   }
 
-  running(code: string, args: any): any {
+  running(code: string, args: { [key: string]: any }): any {
     const runtime = {
       environment: this.curTask,
       preData: args,
@@ -339,6 +338,14 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   async visitNode(node: model.Node<any>, preData?: any): Promise<void> {
     this.command.emitter('running', 'start', [node]);
     try {
+      if (preData) {
+        for (const key of Object.keys(preData)) {
+          const data = preData[key];
+          if (data instanceof Error) {
+            throw data;
+          }
+        }
+      }
       await sleep(Math.random() * 5000);
       for (const script of node.preScripts ?? []) {
         preData = this.running(script.code, preData);
@@ -353,7 +360,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
           this.getEntity<ITransfer>((node.data as model.Transfer).id)?.execute(this);
           break;
         case '映射':
-          nextData = await this.mapping(node, preData.array);
+          nextData = await this.mapping(node, preData);
           break;
         case '存储':
           break;
@@ -361,11 +368,13 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       for (const script of node.postScripts ?? []) {
         nextData = this.running(script.code, nextData);
       }
-      this.curVisitedNodes?.add(node.id);
+      this.curVisitedNodes?.set(node.id, { code: node.code, data: nextData });
       this.command.emitter('running', 'completed', [node]);
-      this.command.emitter('main', 'next', [node, nextData]);
+      this.command.emitter('main', 'next', [node]);
     } catch (error) {
-      this.command.emitter('running', 'error', [node, error]);
+      this.curVisitedNodes?.set(node.id, { code: node.code, data: error });
+      this.command.emitter('running', 'error', [node]);
+      this.command.emitter('main', 'next', [node]);
     }
   }
 
@@ -459,16 +468,20 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     }
   }
 
-  private preCheck(node: model.Node<any>): boolean {
-    this.command.emitter('node', 'loading', node);
+  private preCheck(node: model.Node<any>): { s: boolean; d: { [key: string]: any } } {
+    let data: { [key: string]: any } = {};
     for (const edge of this.metadata.edges) {
       if (node.id == edge.end) {
         if (!this.curVisitedEdges?.has(edge.id)) {
-          return false;
+          return { s: false, d: {} };
+        }
+        if (this.curVisitedNodes?.has(edge.start)) {
+          const nodeData = this.curVisitedNodes.get(edge.start)!;
+          data[nodeData.code] = nodeData.data;
         }
       }
     }
-    return true;
+    return { s: true, d: data };
   }
 
   private async handing(cmd: string, args: any) {
@@ -482,8 +495,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         break;
       }
       case 'visitNode': {
-        if (this.preCheck(args)) {
-          await this.visitNode(args);
+        const next = this.preCheck(args[0]);
+        if (next.s) {
+          await this.visitNode(args[0], next.d);
         }
         break;
       }
@@ -500,7 +514,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
             this.curVisitedEdges?.add(edge.id);
             for (const node of this.metadata.nodes) {
               if (node.id == edge.end) {
-                this.command.emitter('main', 'visitNode', node, args[1]);
+                this.command.emitter('main', 'visitNode', [node]);
               }
             }
           }
@@ -514,6 +528,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
 export const getDefaultRequestNode = (): model.RequestNode => {
   return {
     id: common.generateUuid(),
+    code: 'request',
     name: '请求',
     typeName: '请求',
     preScripts: [],
@@ -532,6 +547,7 @@ export const getDefaultRequestNode = (): model.RequestNode => {
 export const getDefaultMappingNode = (): model.MappingNode => {
   return {
     id: common.generateUuid(),
+    code: 'mapping',
     name: '映射',
     typeName: '映射',
     preScripts: [],
@@ -547,6 +563,7 @@ export const getDefaultMappingNode = (): model.MappingNode => {
 export const getDefaultStoreNode = (): model.StoreNode => {
   return {
     id: common.generateUuid(),
+    code: 'store',
     name: '存储',
     typeName: '存储',
     preScripts: [],
@@ -558,9 +575,10 @@ export const getDefaultStoreNode = (): model.StoreNode => {
   };
 };
 
-export const getDefaultLinkNode = (): model.LinkNode => {
+export const getDefaultTransferNode = (): model.LinkNode => {
   return {
     id: common.generateUuid(),
+    code: 'transfer',
     name: '链接',
     typeName: '链接',
     preScripts: [],
