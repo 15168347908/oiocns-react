@@ -1,6 +1,6 @@
-import { IDirectory } from '@/ts/core';
-import { ITransfer } from '@/ts/core';
+import { IDirectory, ITransfer } from '@/ts/core';
 import { Graph } from '@antv/x6';
+import { message } from 'antd';
 import React, { createRef, useEffect, useState } from 'react';
 import cls from './../index.module.less';
 import { LinkStore, createGraph } from './widgets/graph';
@@ -53,11 +53,15 @@ const TransferEditor: React.FC<IProps> = ({ current }) => {
         graph.on('node:click', (a) => current.command.emitter('node', 'click', a));
         graph.on('edge:change:target', async (args) => {
           if ((args.current as any)?.cell) {
-            await current.addEdge({
+            let success: boolean = await current.addEdge({
               id: args.edge.id,
               start: args.edge.getSourceCellId(),
               end: args.edge.getTargetCellId(),
             });
+            if (!success) {
+              message.error('检测到存在环状结构，自动删除！');
+              graph.removeEdge(args.cell.id);
+            }
           }
         });
         graph.on('edge:moved', () => current.update(current.metadata));

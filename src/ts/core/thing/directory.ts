@@ -60,7 +60,7 @@ export interface IDirectory extends IStandardFileInfo<schema.XDirectory> {
   /** 目录下的链接 */
   transfers: ITransfer[];
   /** 新建迁移配置 */
-  createTransfer(data: model.Transfer): Promise<ITransfer | undefined>;
+  createTransfer(data: model.Transfer): Promise<model.Transfer | undefined>;
   /** 加载迁移配置 */
   loadAllTransfer(reload?: boolean): Promise<ITransfer[]>;
   /** 加载文件 */
@@ -313,7 +313,7 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
       return res;
     }
   }
-  async createTransfer(data: model.Transfer): Promise<ITransfer | undefined> {
+  async createTransfer(data: model.Transfer): Promise<model.Transfer | undefined> {
     const res = await this.resource.transferColl.insert({
       ...data,
       envs: [],
@@ -322,10 +322,8 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
       directoryId: this.id,
     });
     if (res) {
-      const link = new Transfer(res, this);
-      this.transfers.push(link);
       await this.notityConetnt(this.resource.transferColl, 'insert', [res]);
-      return link;
+      return res;
     }
   }
   async loadAllApplication(reload: boolean = false): Promise<IApplication[]> {

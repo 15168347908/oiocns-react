@@ -29,6 +29,8 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   getData?: GraphData;
   /** 绑定图 */
   binding(getData: GraphData): void;
+  /** 是否有环 */
+  hasLoop(): boolean;
   /** 获取节点 */
   getNode(id: string): model.Node<any> | undefined;
   /** 增加节点 */
@@ -48,7 +50,7 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 获取边 */
   getEdge(id: string): model.Edge | undefined;
   /** 增加边 */
-  addEdge(edge: model.Edge): Promise<void>;
+  addEdge(edge: model.Edge): Promise<boolean>;
   /** 更新边 */
   updEdge(edge: model.Edge): Promise<void>;
   /** 删除边 */
@@ -96,6 +98,34 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       }
     });
     this.setEntity();
+  }
+
+  hasLoop(): boolean {
+    const hasLoop = (node: model.Node<any>, chain: Set<string>) => {
+      for (const edge of this.metadata.edges) {
+        if (edge.start == node.id) {
+          for (const next of this.metadata.nodes) {
+            if (edge.end == next.id) {
+              if (chain.has(next.id)) {
+                return true;
+              }
+              if (hasLoop(next, new Set([...chain, next.id]))) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+      return false;
+    };
+    const not = this.metadata.edges.map((item) => item.end);
+    const roots = this.metadata.nodes.filter((item) => not.indexOf(item.id) == -1);
+    for (const root of roots) {
+      if (hasLoop(root, new Set<string>([root.id]))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   protected receiveMessage(operate: string, data: model.Transfer): void {
@@ -386,14 +416,19 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     }
   }
 
-  async addEdge(edge: model.Edge): Promise<void> {
+  async addEdge(edge: model.Edge): Promise<boolean> {
     let index = this.metadata.edges.findIndex((item) => edge.id == item.id);
     if (index == -1) {
       this.metadata.edges.push(edge);
+      if (this.hasLoop()) {
+        this.metadata.edges.splice(this.metadata.edges.length - 1, 1);
+        return false;
+      }
       if (await this.update(this.metadata)) {
         this.command.emitter('edge', 'add', edge);
       }
     }
+    return true;
   }
 
   async updEdge(edge: model.Edge): Promise<void> {
@@ -412,6 +447,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       this.metadata.edges.splice(index, 1);
       if (await this.update(this.metadata)) {
         this.command.emitter('edge', 'delete', id);
+        console.log(JSON.stringify(this.metadata.edges));
       }
     }
   }
