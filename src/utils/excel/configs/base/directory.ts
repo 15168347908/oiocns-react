@@ -1,13 +1,13 @@
 import { XDirectory, XProperty, XSpecies, XSpeciesItem } from '@/ts/base/schema';
 import { IDirectory } from '@/ts/core';
 import { assignment } from '../..';
-import { Context, SheetRead, SheetImpl, SheetName } from '../../types';
+import { Context, SheetRead, Sheet, SheetName } from '../../types';
 
 export interface Directory extends XDirectory {
   parentCode?: string;
 }
 
-export class DirectorySheetConfig extends SheetImpl<Directory> {
+export class DirectorySheet extends Sheet<Directory> {
   directory: IDirectory;
 
   constructor(directory: IDirectory) {
@@ -23,12 +23,8 @@ export class DirectorySheetConfig extends SheetImpl<Directory> {
   }
 }
 
-export class DirectoryReadConfig extends SheetRead<
-  Directory,
-  Context,
-  DirectorySheetConfig
-> {
-  constructor(sheetConfig: DirectorySheetConfig) {
+export class DirectorySheetRead extends SheetRead<Directory, Context, DirectorySheet> {
+  constructor(sheetConfig: DirectorySheet) {
     super(sheetConfig);
   }
   /**

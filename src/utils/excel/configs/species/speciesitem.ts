@@ -2,7 +2,7 @@ import { List } from '@/ts/base';
 import { XSpeciesItem } from '@/ts/base/schema';
 import { IDirectory } from '@/ts/core';
 import { assignment } from '../..';
-import { Context, ErrorMessage, SheetRead, SheetImpl, SheetName } from '../../types';
+import { Context, ErrorMessage, SheetRead, Sheet, SheetName } from '../../types';
 
 export interface SpeciesItem extends XSpeciesItem {
   speciesCode: string;
@@ -10,7 +10,7 @@ export interface SpeciesItem extends XSpeciesItem {
   index: number;
 }
 
-export class DictItemSheetConfig extends SheetImpl<SpeciesItem> {
+export class DictItemSheet extends Sheet<SpeciesItem> {
   directory: IDirectory;
 
   constructor(directory: IDirectory) {
@@ -26,7 +26,7 @@ export class DictItemSheetConfig extends SheetImpl<SpeciesItem> {
   }
 }
 
-export class ClassifyItemSheetConfig extends SheetImpl<SpeciesItem> {
+export class ClassifyItemSheet extends Sheet<SpeciesItem> {
   directory: IDirectory;
 
   constructor(directory: IDirectory) {
@@ -45,11 +45,7 @@ export class ClassifyItemSheetConfig extends SheetImpl<SpeciesItem> {
   }
 }
 
-export class DictItemReadConfig extends SheetRead<
-  SpeciesItem,
-  Context,
-  DictItemSheetConfig
-> {
+export class DictItemSheetRead extends SheetRead<SpeciesItem, Context, DictItemSheet> {
   async initContext(c: Context): Promise<void> {
     for (let item of this.sheet.data) {
       if (c.speciesItemMap.has(item.speciesCode)) {
@@ -105,10 +101,10 @@ export class DictItemReadConfig extends SheetRead<
   }
 }
 
-export class ClassifyItemReadConfig extends SheetRead<
+export class ClassifyItemSheetRead extends SheetRead<
   SpeciesItem,
   Context,
-  DictItemSheetConfig
+  ClassifyItemSheet
 > {
   /**
    * 初始化数据

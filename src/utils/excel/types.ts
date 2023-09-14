@@ -59,7 +59,7 @@ export interface ISheet<T> {
 /**
  * Sheet 表抽象的默认实现
  */
-export class SheetImpl<T> implements ISheet<T> {
+export class Sheet<T> implements ISheet<T> {
   sheetName: string;
   headerRows: number;
   metaColumns: MetaColumn[];

@@ -1,13 +1,13 @@
 import { XSpecies } from '@/ts/base/schema';
 import { IDirectory } from '@/ts/core';
 import { assignment } from '../..';
-import { Context, SheetRead, SheetImpl, SheetName } from '../../types';
+import { Context, SheetRead, Sheet, SheetName } from '../../types';
 
 export interface Species extends XSpecies {
   directoryCode: string;
 }
 
-export class DictSheetConfig extends SheetImpl<Species> {
+export class DictSheet extends Sheet<Species> {
   directory: IDirectory;
 
   constructor(directory: IDirectory) {
@@ -23,7 +23,7 @@ export class DictSheetConfig extends SheetImpl<Species> {
   }
 }
 
-export class ClassifySheetConfig extends SheetImpl<Species> {
+export class ClassifySheet extends Sheet<Species> {
   directory: IDirectory;
 
   constructor(directory: IDirectory) {
@@ -39,7 +39,7 @@ export class ClassifySheetConfig extends SheetImpl<Species> {
   }
 }
 
-class CommonReadConfig<S extends DictSheetConfig | ClassifySheetConfig> extends SheetRead<
+class CommonRead<S extends DictSheet | ClassifySheet> extends SheetRead<
   Species,
   Context,
   S
@@ -100,14 +100,14 @@ class CommonReadConfig<S extends DictSheetConfig | ClassifySheetConfig> extends 
   }
 }
 
-export class DictReadConfig extends CommonReadConfig<DictSheetConfig> {
+export class DictSheetRead extends CommonRead<DictSheet> {
   async operating(context: Context, onItemCompleted: () => void): Promise<void> {
     this.sheet.data.forEach((row) => (row.typeName = '字典'));
     await super.operating(context, onItemCompleted);
   }
 }
 
-export class ClassifyReadConfig extends CommonReadConfig<ClassifySheetConfig> {
+export class ClassifySheetRead extends CommonRead<ClassifySheet> {
   async operating(context: Context, onItemCompleted: () => void): Promise<void> {
     this.sheet.data.forEach((row) => (row.typeName = '分类'));
     await super.operating(context, onItemCompleted);

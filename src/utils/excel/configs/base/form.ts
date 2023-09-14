@@ -1,13 +1,13 @@
 import { XForm } from '@/ts/base/schema';
 import { IDirectory } from '@/ts/core';
 import { assignment } from '../..';
-import { Context, SheetRead, SheetImpl, SheetName } from '../../types';
+import { Context, SheetRead, Sheet, SheetName } from '../../types';
 
 export interface Form extends XForm {
   directoryCode: string;
 }
 
-export class FormSheetConfig extends SheetImpl<Form> {
+export class FormSheet extends Sheet<Form> {
   directory: IDirectory;
 
   constructor(directory: IDirectory) {
@@ -24,7 +24,7 @@ export class FormSheetConfig extends SheetImpl<Form> {
   }
 }
 
-export class FormReadConfig extends SheetRead<Form, Context, FormSheetConfig> {
+export class FormSheetRead extends SheetRead<Form, Context, FormSheet> {
   /**
    * 初始化
    * @param c 上下文

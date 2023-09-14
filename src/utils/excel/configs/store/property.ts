@@ -1,14 +1,14 @@
 import { XProperty } from '@/ts/base/schema';
 import { IDirectory, ValueType } from '@/ts/core';
 import { assignment } from '../..';
-import { Context, SheetRead, SheetImpl, SheetName } from '../../types';
+import { Context, SheetRead, Sheet, SheetName } from '../../types';
 
 export interface Property extends XProperty {
   directoryCode: string;
   speciesCode: string;
 }
 
-export class PropSheetConfig extends SheetImpl<Property> {
+export class PropSheet extends Sheet<Property> {
   directory: IDirectory;
 
   constructor(directory: IDirectory) {
@@ -34,7 +34,7 @@ export class PropSheetConfig extends SheetImpl<Property> {
   }
 }
 
-export class PropReadConfig extends SheetRead<Property, Context, PropSheetConfig> {
+export class PropSheetRead extends SheetRead<Property, Context, PropSheet> {
   /**
    * 数据初始化
    * @param context 上下文

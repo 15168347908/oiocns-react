@@ -1,6 +1,6 @@
 import { XAttribute } from '@/ts/base/schema';
 import { IDirectory, orgAuth } from '@/ts/core';
-import { Context, SheetRead, SheetImpl, SheetName } from '../../types';
+import { Context, SheetRead, Sheet, SheetName } from '../../types';
 import { assignment } from '../..';
 import { List } from '@/ts/base';
 
@@ -12,7 +12,7 @@ export interface Attribute extends XAttribute {
   index?: number;
 }
 
-export class AttrSheetConfig extends SheetImpl<Attribute> {
+export class AttrSheet extends Sheet<Attribute> {
   directory: IDirectory;
 
   constructor(directory: IDirectory) {
@@ -29,7 +29,7 @@ export class AttrSheetConfig extends SheetImpl<Attribute> {
   }
 }
 
-export class AttrReadConfig extends SheetRead<Attribute, Context, AttrSheetConfig> {
+export class AttrSheetRead extends SheetRead<Attribute, Context, AttrSheet> {
   /**
    * 初始化
    * @param context 上下文
