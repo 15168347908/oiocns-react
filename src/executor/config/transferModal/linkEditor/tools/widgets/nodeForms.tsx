@@ -104,6 +104,16 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
                 }}
               />
             );
+          case 'updateMapping':
+            return (
+              <forms.MappingForm
+                transfer={current}
+                current={entry[1]}
+                finished={() => {
+                  finished(entry[0]);
+                }}
+              />
+            );
         }
       })}
     </>

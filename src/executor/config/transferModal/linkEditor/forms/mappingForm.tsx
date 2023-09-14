@@ -35,7 +35,7 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
       },
       fieldProps: {
         fieldNames: {
-          label: 'node',
+          label: 'label',
           value: 'key',
           children: 'children',
         },

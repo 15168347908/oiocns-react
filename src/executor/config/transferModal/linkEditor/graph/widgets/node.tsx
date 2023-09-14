@@ -128,24 +128,6 @@ const menus: { [key: string]: MenuItemType } = {
   },
 };
 
-/** 拉出节点可以创建的下一步节点 */
-const getNextMenu = (typeName: string): MenuItemType[] => {
-  switch (typeName) {
-    case '请求':
-    case '脚本':
-      return [menus.script, menus.request, menus.mapping, menus.store, menus.selection];
-    case '映射':
-      return [menus.script, menus.mapping, menus.store];
-    case '实体配置':
-    case '事项配置':
-      return [menus.script];
-    case '选择':
-      return [menus.script, menus.request];
-    default:
-      return [];
-  }
-};
-
 interface Info {
   node: Node;
   graph: Graph;
