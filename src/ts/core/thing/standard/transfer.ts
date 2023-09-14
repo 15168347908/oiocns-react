@@ -225,8 +225,8 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         }
       }
     }
-    let data = (await kernel.httpForward(JSON.parse(json))).data;
-    return JSON.parse(data.content);
+    let res = await kernel.httpForward(JSON.parse(json));
+    return res.data?.content ? JSON.parse(res.data.content) : res;
   }
 
   running(code: string, args: { [key: string]: any }): any {
