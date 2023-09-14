@@ -98,9 +98,7 @@ export class AttrSheetRead extends SheetRead<Attribute, Context, AttrSheet> {
         let result = await this.sheet.directory.resource.formColl.replace(form);
         result?.attributes.forEach((item) => {
           let attr = item as Attribute;
-          if (attr.index) {
-            this.sheet.data[attr.index] = item as Attribute;
-          }
+          this.sheet.data[attr.index!] = item as Attribute;
         });
       }
     }

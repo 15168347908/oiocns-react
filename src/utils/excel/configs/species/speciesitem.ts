@@ -184,8 +184,8 @@ export class ClassifyItemSheetRead extends SheetRead<
     }
     (await this.sheet.directory.resource.speciesItemColl.replaceMany(data))
       .map((item) => item as SpeciesItem)
-      .forEach((item, index) => {
-        let oldItem = this.sheet.data[index];
+      .forEach((item) => {
+        let oldItem = this.sheet.data[item.index];
         Object.assign(oldItem, item);
         context.speciesItemMap.get(item.speciesCode)?.set(item.info, item);
       });

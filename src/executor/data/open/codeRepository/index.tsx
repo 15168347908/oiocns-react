@@ -14,10 +14,10 @@ import {
   Upload,
   Select,
 } from 'antd';
-import FileHome from './components/Content/FileHome';
-import HistoryCommit from './components/Content/HistoryCommit';
-import BranchPage from './components/Content/BranchPage';
-import VersionPage from './components/Content/VersionPage';
+import FileHome from './components/Content/fileHome';
+import HistoryCommit from './components/Content/historyCommit';
+import BranchPage from './components/Content/branchPage';
+import VersionPage from './components/Content/versionPage';
 import {
   BranchesOutlined,
   ClockCircleOutlined,
