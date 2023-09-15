@@ -297,8 +297,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     let index = this.metadata.nodes.findIndex((item) => item.id == node.id);
     if (index != -1) {
       this.metadata.nodes[index] = node;
-      const success = await this.update(this.metadata);
-      if (success) {
+      if (await this.update(this.metadata)) {
         this.command.emitter('node', 'update', node);
       }
     }
