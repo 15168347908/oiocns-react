@@ -1,58 +1,57 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
-import { model } from '@/ts/base';
+import { model, schema } from '@/ts/base';
 import { XAttribute } from '@/ts/base/schema';
-import { IForm } from '@/ts/core';
 import { ITransfer } from '@/ts/core';
 import { Radio, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';
 
 interface IProps {
-  link: ITransfer;
-  current: model.MappingNode;
+  transfer: ITransfer;
+  current: model.Mapping;
   target: 'source' | 'target';
 }
 
-const Fields: React.FC<IProps> = ({ link, current, target }) => {
-  const id = current.data[target];
+const Fields: React.FC<IProps> = ({ transfer, current, target }) => {
   const [attrs, setAttrs] = useState<XAttribute[]>([]);
-  const [initial, setInitial] = useState<boolean>(true);
+  const [value, setValue] = useState<string>();
   useEffect(() => {
-    const subscribeId = link.subscribe(() => {
-      const used = new Set(current.data.mappings.map((item) => item[target]));
-      const form = link.findMetadata<IForm>(id + '*');
+    const subscribeId = transfer.subscribe(() => {
+      const used = new Set(current.mappings.map((item) => item[target]));
+      const form = transfer.findMetadata<schema.XForm>(current[target]);
       if (form) {
-        if (initial) {
-          form.loadContent().then(() => {
-            setAttrs(form.attributes.filter((field) => !used.has(field.id)));
-            setInitial(false);
-            link.command.emitter('fields', 'refresh');
-          });
-        } else {
-          setAttrs(form.attributes.filter((field) => !used.has(field.id)));
+        setAttrs(form.attributes.filter((field) => !used.has(field.id)));
+      }
+    });
+    const id = transfer.command.subscribe((type, cmd) => {
+      if (type == 'fields') {
+        switch (cmd) {
+          case 'clear':
+            setValue(undefined);
+            break;
         }
       }
     });
     return () => {
-      link.unsubscribe(subscribeId);
+      transfer.command.unsubscribe(id);
+      transfer.unsubscribe(subscribeId);
     };
-  }, [link]);
+  }, [transfer]);
   return (
     <div className={cls['flex-column']}>
-      <div>
-        <EntityIcon entity={link.findMetadata(id)} showName />
-      </div>
+      <EntityIcon entity={transfer.findMetadata(current[target])} showName />
       <div className={cls['fields']}>
-        <Radio.Group buttonStyle="outline">
+        <Radio.Group value={value} buttonStyle="outline">
           <Space direction="vertical">
             {attrs
               .sort((f, s) => f.property?.info.localeCompare(s.property?.info ?? '') ?? 0)
-              .map((item, index) => (
+              .map((item) => (
                 <Radio
                   className={cls['field']}
-                  value={item}
-                  onClick={() => {
-                    link.changCallback();
+                  value={item.id}
+                  onChange={(e) => {
+                    setValue(e.target.value);
+                    transfer.command.emitter('fields', 'choose', [target, item]);
                   }}>
                   <Space>
                     <Tag color="cyan">{item.property?.valueType}</Tag>

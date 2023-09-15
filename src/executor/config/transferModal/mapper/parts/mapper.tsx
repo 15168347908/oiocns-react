@@ -1,29 +1,29 @@
-import { MappingNode } from '@/ts/base/model';
 import { ITransfer } from '@/ts/core';
 import { Col, Layout, Row } from 'antd';
 import { Content } from 'antd/lib/layout/layout';
 import React from 'react';
 import Center from './center';
 import Fields from './fields';
+import { model } from '@/ts/base';
 
 interface IProps {
-  link: ITransfer;
-  current: MappingNode;
+  transfer: ITransfer;
+  current: model.Mapping;
 }
 
-const Mapper: React.FC<IProps> = ({ link, current }) => {
+const Mapper: React.FC<IProps> = ({ transfer: transfer, current }) => {
   return (
     <Layout style={{ marginTop: 10 }}>
       <Content>
         <Row>
           <Col span={6}>
-            <Fields key={'source'} target={'source'} link={link} current={current} />
+            <Fields key={'sou'} target={'source'} transfer={transfer} current={current} />
           </Col>
           <Col span={6}>
-            <Fields key={'target'} target={'target'} link={link} current={current} />
+            <Fields key={'tar'} target={'target'} transfer={transfer} current={current} />
           </Col>
           <Col span={12}>
-            <Center key={'center'} link={link} current={current} />
+            <Center key={'cen'} transfer={transfer} current={current} />
           </Col>
         </Row>
       </Content>

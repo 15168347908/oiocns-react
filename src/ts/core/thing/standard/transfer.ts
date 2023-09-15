@@ -297,7 +297,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     if (index != -1) {
       this.metadata.nodes[index] = node;
       const success = await this.update(this.metadata);
-      console.log(success, node);
       if (success) {
         this.command.emitter('node', 'update', node);
       }
@@ -400,7 +399,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       this.metadata.edges.splice(index, 1);
       if (await this.update(this.metadata)) {
         this.command.emitter('edge', 'delete', id);
-        console.log(JSON.stringify(this.metadata.edges));
       }
     }
   }
@@ -539,7 +537,6 @@ export const getDefaultMappingNode = (): model.Mapping => {
     typeName: '映射',
     source: '',
     target: '',
-    coder: '',
     mappings: [],
   };
 };

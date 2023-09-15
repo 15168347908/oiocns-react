@@ -987,10 +987,14 @@ export type Mapping = {
   // 目标
   target: string;
   // 映射
-  mappings: Mapping[];
-  // 获取数据脚本
-  coder: string;
+  mappings: SubMapping[];
 } & Node;
+
+export type SubMapping = {
+  source: string;
+  target: string;
+  mappings?: SubMapping[];
+};
 
 // 存储
 export type Store = {

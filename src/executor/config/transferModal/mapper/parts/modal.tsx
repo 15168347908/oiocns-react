@@ -6,7 +6,7 @@ import { model } from '@/ts/base';
 
 interface IProps {
   link: ITransfer;
-  current: model.MappingNode;
+  current: model.Mapping;
   finished: () => void;
 }
 
@@ -21,7 +21,7 @@ const MappingModal: React.FC<IProps> = ({ link, current, finished }) => {
       destroyOnClose
       title={'映射配置'}
       onCancel={() => finished()}>
-      <Mapper link={link} current={current} />
+      <Mapper transfer={link} current={current} />
     </FullScreenModal>
   );
 };
