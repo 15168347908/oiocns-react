@@ -14,6 +14,7 @@ import cls from './../../index.module.less';
 import { generateEdge } from './edge';
 import { LinkStore } from './graph';
 import { XTarget } from '@/ts/base/schema';
+import { message } from 'antd';
 
 /**
  * 根据起点初始下游节点的位置信息
@@ -61,7 +62,7 @@ const getNextNodePos = (node: Node, graph: Graph, dx = 250, dy = 100) => {
  * @param data 数据
  * @returns 节点
  */
-export const createNode = (data: model.Node<any>): Node.Metadata => {
+export const createNode = (data: model.Node): Node.Metadata => {
   const node: Node.Metadata = {
     id: data.id,
     shape: 'data-processing-dag-node',
@@ -104,7 +105,7 @@ export const createEdge = (source: string, target: string, graph: Graph) => {
 };
 
 // 创建下游的节点和边
-export const createDownstream = (graph: Graph, node: Node, data: model.Node<any>) => {
+export const createDownstream = (graph: Graph, node: Node, data: model.Node) => {
   const position = getNextNodePos(node, graph);
   const nextNode = createNode(data);
   nextNode.x = position.x;
@@ -136,7 +137,7 @@ interface Info {
 export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
   const link = graph.getPlugin<LinkStore>('LinkStore')?.link;
   const status = link?.status ?? 'Editable';
-  const movedNode = node.getData() as model.Node<any>;
+  const movedNode = node.getData() as model.Node;
   const [entity, setEntity] = useState(link?.getNode(node.id) ?? movedNode);
   const [nodeStatus, setNodeStatus] = useState<model.NodeStatus>(status);
   const [visibleClosing, setVisibleClosing] = useState<boolean>(false);
@@ -187,6 +188,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 setNodeStatus('Completed');
                 break;
               case 'error':
+                message.error(args[1]?.message ?? '执行异常');
                 setNodeStatus('Error');
                 break;
             }

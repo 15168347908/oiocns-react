@@ -1,14 +1,15 @@
 import SchemaForm from '@/components/SchemaForm';
 import { model } from '@/ts/base';
-import { IDirectory } from '@/ts/core';
-import { ITransfer } from '@/ts/core';
+import { IDirectory, ITransfer } from '@/ts/core';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
-import React, { useRef, useState } from 'react';
+import { javascript } from '@codemirror/lang-javascript';
+import CodeMirror from '@uiw/react-codemirror';
+import React, { createRef, useState } from 'react';
 import { MenuItem, expand, loadFormsMenu } from '../..';
 
 interface IProps {
   transfer: ITransfer;
-  current: model.MappingNode;
+  current: model.Mapping;
   finished: () => void;
 }
 
@@ -17,14 +18,14 @@ const getExpandKeys = (treeData: MenuItem[]) => {
 };
 
 const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
-  const formRef = useRef<ProFormInstance>();
+  const formRef = createRef<ProFormInstance>();
   const [treeData, setTreeData] = useState<MenuItem[]>([
     loadFormsMenu(transfer.directory),
   ]);
   const selector = (
     title: string,
     dataIndex: string,
-  ): ProFormColumnsType<model.MappingNode> => {
+  ): ProFormColumnsType<model.Mapping> => {
     return {
       title: title,
       dataIndex: dataIndex,
@@ -54,7 +55,7 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
       },
     };
   };
-  const columns: ProFormColumnsType<model.MappingNode>[] = [
+  const columns: ProFormColumnsType<model.Mapping>[] = [
     {
       title: '名称',
       dataIndex: 'name',
@@ -63,17 +64,44 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         rules: [{ required: true, message: '名称为必填项' }],
       },
     },
+    {
+      title: '编码',
+      dataIndex: 'code',
+      colProps: { span: 12 },
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+    },
+    {
+      title: '前置脚本',
+      dataIndex: 'preScripts',
+      colProps: { span: 24 },
+      renderFormItem: () => {
+        return (
+          <CodeMirror
+            value={formRef.current?.getFieldValue('preScripts')}
+            height={'200px'}
+            extensions={[javascript()]}
+            onChange={(code: string) => {
+              console.log(code);
+              formRef.current?.setFieldValue('preScripts', code);
+            }}
+          />
+        );
+      },
+    },
+    selector('源表单', 'source'),
+    selector('目标表单', 'target'),
+    {
+      title: '备注',
+      dataIndex: 'remark',
+      valueType: 'textarea',
+      colProps: { span: 24 },
+    },
   ];
-  columns.push(selector('源表单', 'source'), selector('目标表单', 'target'));
-  columns.push({
-    title: '备注',
-    dataIndex: 'remark',
-    valueType: 'textarea',
-    colProps: { span: 24 },
-  });
   return (
-    <SchemaForm<model.MappingNode>
-      ref={formRef}
+    <SchemaForm<model.Mapping>
+      formRef={formRef}
       open
       title="映射配置"
       width={640}

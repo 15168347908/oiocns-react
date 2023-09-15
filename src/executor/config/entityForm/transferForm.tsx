@@ -70,7 +70,7 @@ const TransferForm: React.FC<IProps> = ({ formType, current, finished }) => {
           }
           case 'updateTransferConfig': {
             let link = current as ITransfer;
-            link.refresh({ ...initialValue, ...values });
+            link.update({ ...initialValue, ...values });
             finished(link);
             break;
           }

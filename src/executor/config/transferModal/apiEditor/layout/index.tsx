@@ -6,7 +6,7 @@ import { model } from '@/ts/base';
 
 interface IProps {
   transfer: ITransfer;
-  current: model.RequestNode;
+  current: model.Request;
   finished: () => void;
 }
 

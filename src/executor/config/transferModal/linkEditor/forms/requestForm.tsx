@@ -1,100 +1,19 @@
 import SchemaForm from '@/components/SchemaForm';
 import { ITransfer } from '@/ts/core';
-import {
-  ProFormColumnsType,
-  ProFormInstance,
-  ProTable,
-} from '@ant-design/pro-components';
-import { Button, Space } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
+import { javascript } from '@codemirror/lang-javascript';
+import CodeMirror from '@uiw/react-codemirror';
+import React, { useEffect, useRef } from 'react';
 import { model } from '../../../../../ts/base';
-import { ScriptForm } from './scriptForm';
 
 interface IProps {
   transfer: ITransfer;
-  current: model.RequestNode;
+  current: model.Request;
   finished: () => void;
 }
 
 export const RequestForm: React.FC<IProps> = ({ transfer, current, finished }) => {
   const formRef = useRef<ProFormInstance>();
-  const [open, setOpen] = useState<boolean>();
-  const [formType, setFormType] = useState<string>('');
-  const [script, setScript] = useState<model.Script>();
-  const [pos, setPos] = useState<model.Pos>();
-  const ScriptTable: React.FC<{ pos: model.Pos; scripts: model.Script[] }> = ({
-    pos,
-    scripts,
-  }) => {
-    const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
-    return (
-      <>
-        <Space>
-          <Button
-            onClick={() => {
-              setOpen(true);
-              setFormType('newScript');
-              setPos(pos);
-            }}>
-            新增
-          </Button>
-          <Button
-            onClick={async () => {
-              for (const script of scripts) {
-                await transfer.delNodeScript(pos, current, script.id);
-              }
-              setSelectedKeys([]);
-            }}>
-            删除
-          </Button>
-        </Space>
-        <ProTable<model.Script>
-          dataSource={scripts}
-          cardProps={{ bodyStyle: { padding: 0, marginTop: 10 } }}
-          scroll={{ y: 300 }}
-          options={false}
-          search={false}
-          rowSelection={{
-            selectedRowKeys: selectedKeys,
-            onChange: setSelectedKeys,
-          }}
-          columns={[
-            {
-              title: '序号',
-              valueType: 'index',
-              width: 50,
-            },
-            {
-              title: '名称',
-              dataIndex: 'name',
-            },
-            {
-              title: '编码',
-              dataIndex: 'code',
-            },
-            {
-              title: '操作',
-              key: 'action',
-              render: (_, record) => {
-                return (
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      setOpen(true);
-                      setScript(record);
-                      setFormType('updateScript');
-                      setPos(pos);
-                    }}>
-                    修改
-                  </Button>
-                );
-              },
-            },
-          ]}
-        />
-      </>
-    );
-  };
   useEffect(() => {
     const id = transfer.command.subscribe((type, cmd, args) => {
       if (type == 'node' && cmd == 'update') {
@@ -105,7 +24,7 @@ export const RequestForm: React.FC<IProps> = ({ transfer, current, finished }) =
       transfer.command.unsubscribe(id);
     };
   });
-  const columns: ProFormColumnsType<model.RequestNode>[] = [
+  const columns: ProFormColumnsType<model.Request>[] = [
     {
       title: '名称',
       dataIndex: 'name',
@@ -127,9 +46,13 @@ export const RequestForm: React.FC<IProps> = ({ transfer, current, finished }) =
       colProps: { span: 24 },
       renderFormItem: () => {
         return (
-          <ScriptTable
-            scripts={formRef.current?.getFieldValue('preScripts')}
-            pos={'pre'}
+          <CodeMirror
+            value={formRef.current?.getFieldValue('preScripts')}
+            height={'200px'}
+            extensions={[javascript()]}
+            onChange={(code: string) => {
+              formRef.current?.setFieldValue('preScripts', code);
+            }}
           />
         );
       },
@@ -141,9 +64,13 @@ export const RequestForm: React.FC<IProps> = ({ transfer, current, finished }) =
       colProps: { span: 24 },
       renderFormItem: () => {
         return (
-          <ScriptTable
-            scripts={formRef.current?.getFieldValue('postScripts')}
-            pos={'post'}
+          <CodeMirror
+            value={formRef.current?.getFieldValue('postScripts')}
+            height={'200px'}
+            extensions={[javascript()]}
+            onChange={(code: string) => {
+              formRef.current?.setFieldValue('postScripts', code);
+            }}
           />
         );
       },
@@ -156,43 +83,27 @@ export const RequestForm: React.FC<IProps> = ({ transfer, current, finished }) =
     },
   ];
   return (
-    <>
-      <SchemaForm<model.RequestNode>
-        open
-        formRef={formRef}
-        title="请求定义"
-        width={800}
-        columns={columns}
-        rowProps={{
-          gutter: [24, 0],
-        }}
-        layoutType="ModalForm"
-        initialValues={current}
-        onOpenChange={(open: boolean) => {
-          if (!open) {
-            finished();
-          }
-        }}
-        onFinish={async (values) => {
-          const node = { ...current, ...values };
-          await transfer.updNode(node);
+    <SchemaForm<model.Request>
+      open
+      formRef={formRef}
+      title="请求定义"
+      width={800}
+      columns={columns}
+      rowProps={{
+        gutter: [24, 0],
+      }}
+      layoutType="ModalForm"
+      initialValues={current}
+      onOpenChange={(open: boolean) => {
+        if (!open) {
           finished();
-        }}
-      />
-      {open && formType && pos && (
-        <ScriptForm
-          formType={formType}
-          transfer={transfer}
-          node={current}
-          pos={pos}
-          current={script}
-          finished={() => {
-            setOpen(false);
-            setFormType('');
-            setPos(undefined);
-          }}
-        />
-      )}
-    </>
+        }
+      }}
+      onFinish={async (values) => {
+        const node = { ...current, ...values };
+        await transfer.updNode(node);
+        finished();
+      }}
+    />
   );
 };

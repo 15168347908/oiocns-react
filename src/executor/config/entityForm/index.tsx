@@ -10,7 +10,7 @@ import PropertyForm from './propertyForm';
 import TargetForm from './targetForm';
 import LabelsForm from './labelsForm';
 import RenameForm from './renameForm';
-import LinkForm from './linkForm';
+import LinkForm from './transferForm';
 interface IProps {
   cmd: string;
   entity: IEntity<schema.XEntity>;

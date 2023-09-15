@@ -32,21 +32,15 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 是否有环 */
   hasLoop(): boolean;
   /** 获取节点 */
-  getNode(id: string): model.Node<any> | undefined;
+  getNode(id: string): model.Node | undefined;
   /** 增加节点 */
-  addNode(node: model.Node<any>): Promise<void>;
+  addNode(node: model.Node): Promise<void>;
   /** 更新节点 */
-  updNode(node: model.Node<any>): Promise<void>;
+  updNode(node: model.Node): Promise<void>;
   /** 删除节点 */
   delNode(id: string): Promise<void>;
-  /** 节点添加脚本 */
-  addNodeScript(p: model.Pos, n: model.Node<any>, s: model.Script): Promise<void>;
-  /** 节点更新脚本 */
-  updNodeScript(p: model.Pos, n: model.Node<any>, s: model.Script): Promise<void>;
-  /** 节点删除脚本 */
-  delNodeScript(p: model.Pos, n: model.Node<any>, id: string): Promise<void>;
   /** 遍历节点 */
-  visitNode(node: model.Node<any>, preData?: any): Promise<void>;
+  visitNode(node: model.Node, preData?: any): Promise<void>;
   /** 获取边 */
   getEdge(id: string): model.Edge | undefined;
   /** 增加边 */
@@ -64,11 +58,11 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 变更环境 */
   changeEnv(id: string): Promise<void>;
   /** 请求 */
-  request(node: model.Node<any>): Promise<model.HttpResponseType>;
+  request(node: model.Node): Promise<model.HttpResponseType>;
   /** 脚本 */
   running(code: string, args: any): any;
   /** 映射 */
-  mapping(node: model.Node<any>, array: any[]): Promise<any[]>;
+  mapping(node: model.Node, array: any[]): Promise<any[]>;
   /** 开始执行 */
   execute(link?: ITransfer): void;
 }
@@ -115,7 +109,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 
   hasLoop(): boolean {
-    const hasLoop = (node: model.Node<any>, chain: Set<string>) => {
+    const hasLoop = (node: model.Node, chain: Set<string>) => {
       for (const edge of this.metadata.edges) {
         if (edge.start == node.id) {
           for (const next of this.metadata.nodes) {
@@ -205,9 +199,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     this.command.emitter('main', 'roots');
   }
 
-  async request(node: model.Node<any>): Promise<model.HttpResponseType> {
-    let request = common.deepClone(node.data as model.HttpRequestType);
-    let json = JSON.stringify(request);
+  async request(node: model.Node): Promise<model.HttpResponseType> {
+    let request = common.deepClone(node as model.Request);
+    let json = JSON.stringify(request.data);
     for (const match of json.matchAll(/\{\{[^{}]*\}\}/g)) {
       for (let index = 0; index < match.length; index++) {
         let matcher = match[index];
@@ -249,9 +243,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     return runtime.nextData;
   }
 
-  async mapping(node: model.Node<any>, array: any[]): Promise<any[]> {
+  async mapping(node: model.Node, array: any[]): Promise<any[]> {
+    const data = node as model.Mapping;
     const ans: any[] = [];
-    const data = node.data as model.Mapping;
     const form = this.findMetadata<XForm>(data.source);
     if (form) {
       const sourceMap = new Map<string, schema.XAttribute>();
@@ -280,7 +274,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     return ans;
   }
 
-  getNode(id: string): model.Node<any> | undefined {
+  getNode(id: string): model.Node | undefined {
     for (const node of this.metadata.nodes) {
       if (node.id == id) {
         return node;
@@ -288,9 +282,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     }
   }
 
-  async addNode(node: model.Node<any>): Promise<void> {
-    node.preScripts = [];
-    node.postScripts = [];
+  async addNode(node: model.Node): Promise<void> {
     let index = this.metadata.nodes.findIndex((item) => item.id == node.id);
     if (index == -1) {
       this.metadata.nodes.push(node);
@@ -300,7 +292,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     }
   }
 
-  async updNode(node: model.Node<any>): Promise<void> {
+  async updNode(node: model.Node): Promise<void> {
     let index = this.metadata.nodes.findIndex((item) => item.id == node.id);
     if (index != -1) {
       this.metadata.nodes[index] = node;
@@ -323,60 +315,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     }
   }
 
-  async addNodeScript(p: model.Pos, n: model.Node<any>, s: model.Script): Promise<void> {
-    s.id = common.generateUuid();
-    switch (p) {
-      case 'pre':
-        n.preScripts.push(s);
-        break;
-      case 'post':
-        n.postScripts.push(s);
-        break;
-    }
-    await this.updNode(n);
-  }
-
-  async updNodeScript(p: model.Pos, n: model.Node<any>, s: model.Script): Promise<void> {
-    switch (p) {
-      case 'pre': {
-        let index = n.preScripts.findIndex((item) => item.id == s.id);
-        if (index != -1) {
-          n.preScripts[index] = s;
-        }
-        break;
-      }
-      case 'post': {
-        let index = n.postScripts.findIndex((item) => item.id == s.id);
-        if (index != -1) {
-          n.postScripts[index] = s;
-        }
-        break;
-      }
-    }
-    await this.updNode(n);
-  }
-
-  async delNodeScript(pos: model.Pos, node: model.Node<any>, id: string): Promise<void> {
-    switch (pos) {
-      case 'pre': {
-        let index = node.preScripts.findIndex((item) => item.id == id);
-        node.preScripts.splice(index, 1);
-        break;
-      }
-      case 'post': {
-        let index = node.postScripts.findIndex((item) => item.id == id);
-        node.postScripts.splice(index, 1);
-        break;
-      }
-    }
-    await this.updNode(node);
-  }
-
-  async visitNode(node: model.Node<any>, preData?: any): Promise<void> {
+  async visitNode(node: model.Node, preData?: any): Promise<void> {
     this.command.emitter('running', 'start', [node]);
     try {
-      console.log(preData);
-      await sleep(500);
       if (preData) {
         for (const key of Object.keys(preData)) {
           const data = preData[key];
@@ -385,8 +326,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
           }
         }
       }
-      for (const script of node.preScripts ?? []) {
-        preData = this.running(script.coder, preData);
+      await sleep(500);
+      if (node.preScripts) {
+        preData = this.running(node.preScripts, preData);
       }
       let nextData: any;
       switch (node.typeName) {
@@ -395,16 +337,19 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
           break;
         case '链接':
           // TODO 替换其它方案
-          this.getEntity<ITransfer>((node.data as model.Transfer).id)?.execute(this);
+          this.getEntity<ITransfer>((node as model.SubTransfer).nextId)?.execute(this);
           break;
         case '映射':
+          if (!Array.isArray(preData.array)) {
+            throw new Error('输入必须是一个数组！');
+          }
           nextData = await this.mapping(node, preData.array);
           break;
         case '存储':
           break;
       }
-      for (const script of node.postScripts ?? []) {
-        nextData = this.running(script.coder, nextData);
+      if (node.postScripts) {
+        nextData = this.running(node.postScripts, nextData);
       }
       this.curVisitedNodes?.set(node.id, { code: node.code, data: nextData });
       this.command.emitter('running', 'completed', [node]);
@@ -512,7 +457,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     }
   }
 
-  private preCheck(node: model.Node<any>): { s: boolean; d: { [key: string]: any } } {
+  private preCheck(node: model.Node): { s: boolean; d: { [key: string]: any } } {
     let data: { [key: string]: any } = {};
     for (const edge of this.metadata.edges) {
       if (node.id == edge.end) {
@@ -569,14 +514,12 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 }
 
-export const getDefaultRequestNode = (): model.RequestNode => {
+export const getDefaultRequestNode = (): model.Request => {
   return {
     id: common.generateUuid(),
     code: 'request',
     name: '请求',
     typeName: '请求',
-    preScripts: [],
-    postScripts: [],
     data: {
       uri: '',
       method: 'GET',
@@ -588,45 +531,36 @@ export const getDefaultRequestNode = (): model.RequestNode => {
   };
 };
 
-export const getDefaultMappingNode = (): model.MappingNode => {
+export const getDefaultMappingNode = (): model.Mapping => {
   return {
     id: common.generateUuid(),
     code: 'mapping',
     name: '映射',
     typeName: '映射',
-    preScripts: [],
-    postScripts: [],
-    data: {
-      source: '',
-      target: '',
-      mappings: [],
-    },
+    source: '',
+    target: '',
+    coder: '',
+    mappings: [],
   };
 };
 
-export const getDefaultStoreNode = (): model.StoreNode => {
+export const getDefaultStoreNode = (): model.Store => {
   return {
     id: common.generateUuid(),
     code: 'store',
     name: '存储',
     typeName: '存储',
-    preScripts: [],
-    postScripts: [],
-    data: {
-      formId: '',
-      directoryId: '',
-    },
+    formId: '',
+    directoryId: '',
   };
 };
 
-export const getDefaultTransferNode = (): model.LinkNode => {
+export const getDefaultTransferNode = (): model.SubTransfer => {
   return {
     id: common.generateUuid(),
     code: 'transfer',
     name: '链接',
     typeName: '链接',
-    preScripts: [],
-    postScripts: [],
-    data: '',
+    nextId: '',
   };
 };

@@ -7,11 +7,12 @@ import { EnvSelector } from '../../linkEditor/tools/widgets/graphTools';
 
 interface IProps {
   transfer: ITransfer;
-  current: model.RequestNode;
+  current: model.Request;
   send: () => void;
 }
 
 const InputBox: React.FC<IProps> = ({ transfer, current, send }) => {
+  console.log(current);
   const [method, setMethod] = useState(current.data.method);
   const [uri, setUri] = useState(current.data.uri);
   useEffect(() => {

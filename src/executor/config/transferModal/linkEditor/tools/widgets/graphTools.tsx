@@ -48,22 +48,18 @@ export const EnvSelector: React.FC<IProps> = ({ current }) => {
         label: (
           <Space>
             {item.name}
-            {status != 'Editable' && (
-              <CloseOutlined
-                onClick={(e) => {
-                  e.preventDefault();
-                  current.delEnv(item.id);
-                }}
-              />
-            )}
-            {status != 'Editable' && (
-              <EditOutlined
-                onClick={(e) => {
-                  e.preventDefault();
-                  current.command.emitter('tools', 'updateEnvironment', item);
-                }}
-              />
-            )}
+            <CloseOutlined
+              onClick={(e) => {
+                e.preventDefault();
+                current.delEnv(item.id);
+              }}
+            />
+            <EditOutlined
+              onClick={(e) => {
+                e.preventDefault();
+                current.command.emitter('tools', 'updateEnvironment', item);
+              }}
+            />
           </Space>
         ),
       };
@@ -86,6 +82,7 @@ export const EnvSelector: React.FC<IProps> = ({ current }) => {
         case 'graph':
           switch (cmd) {
             case 'status':
+              console.log(args);
               setStatus(args);
               setOptions(getOptions(current));
               break;
@@ -99,6 +96,7 @@ export const EnvSelector: React.FC<IProps> = ({ current }) => {
   });
   return (
     <Select
+      disabled={status == 'Running'}
       placeholder="选择运行环境"
       value={curEnv}
       onChange={(value) => current.changeEnv(value)}

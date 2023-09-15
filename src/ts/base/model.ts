@@ -949,6 +949,22 @@ export const badRequest = (
   return { success: false, msg: msg, code: code, data: false };
 };
 
+// 节点
+export type Node = {
+  // 主键
+  id: string;
+  // 编码
+  code: string;
+  // 名称
+  name: string;
+  // 类型
+  typeName: string;
+  // 前置脚本
+  preScripts?: string;
+  // 后置脚本
+  postScripts?: string;
+};
+
 // 边
 export type Edge = {
   // 主键
@@ -959,6 +975,11 @@ export type Edge = {
   end: string;
 };
 
+// 请求
+export type Request = {
+  data: HttpRequestType;
+} & Node;
+
 // 映射
 export type Mapping = {
   // 源
@@ -967,7 +988,9 @@ export type Mapping = {
   target: string;
   // 映射
   mappings: Mapping[];
-};
+  // 获取数据脚本
+  coder: string;
+} & Node;
 
 // 存储
 export type Store = {
@@ -975,7 +998,13 @@ export type Store = {
   formId: string;
   // 目录 ID
   directoryId: string;
-};
+} & Node;
+
+// 子配置
+export type SubTransfer = {
+  // 子配置 ID
+  nextId: string;
+} & Node;
 
 // 选择
 export type Selection = {
@@ -985,7 +1014,7 @@ export type Selection = {
   key: string;
   // 表单 ID
   formId: string;
-};
+} & Node;
 
 // 环境
 export type Environment = {
@@ -1017,41 +1046,8 @@ export type Event = 'Edit' | 'View' | 'Run' | 'Completed' | 'Error';
 // 脚本位置
 export type Pos = 'pre' | 'post';
 
-// 节点
-export type Node<T> = {
-  // 主键
-  id: string;
-  // 编码
-  code: string;
-  // 名称
-  name: string;
-  // 类型
-  typeName: string;
-  // 前置脚本
-  preScripts: Script[];
-  // 后置脚本
-  postScripts: Script[];
-  // 数据（请求、子链接、映射、存储）
-  data: T;
-};
-
 // 运行时
-export type RunNode<T> = NodeStatus & Node<T>;
-
-// 请求节点
-export type RequestNode = Node<HttpRequestType>;
-
-// 链接节点
-export type LinkNode = Node<string>;
-
-// 脚本节点
-export type ScriptNode = Node<Script>;
-
-// 映射节点
-export type MappingNode = Node<Mapping>;
-
-// 存储节点
-export type StoreNode = Node<Store>;
+export type RunNode = NodeStatus & Node;
 
 // 键值对
 export type KeyValue = { [key: string]: string | undefined };
@@ -1065,7 +1061,7 @@ export type Transfer = {
   // 当前环境
   curEnv?: string;
   // 节点集合
-  nodes: Node<any>[];
+  nodes: Node[];
   // 边集合
   edges: Edge[];
   // 图数据

@@ -10,7 +10,7 @@ import ResponsePart from '../parts/response/responsePart';
 
 interface IProps {
   transfer: ITransfer;
-  current: model.RequestNode;
+  current: model.Request;
   finished?: () => void;
 }
 
@@ -25,7 +25,6 @@ const RequestLayout: React.FC<IProps> = ({ transfer, current }) => {
             send={async () => {
               try {
                 let res = await transfer.request(current);
-                console.log(res);
                 transfer.command.emitter('request', 'onValueChange', res);
               } catch (error) {
                 if (error instanceof AxiosError) {

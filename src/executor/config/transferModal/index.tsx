@@ -109,9 +109,6 @@ export const expand = (nodes: MenuItem[], targetTypes: string[]): string[] => {
         ans.push(...children);
       }
     }
-    if (node.itemType == '事项配置' || node.itemType == '实体配置') {
-      console.log(targetTypes, targetTypes.indexOf(node.itemType), node);
-    }
     if (targetTypes.indexOf(node.itemType) != -1) {
       ans.push(node.key);
     }
