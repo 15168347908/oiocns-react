@@ -82,7 +82,6 @@ export const EnvSelector: React.FC<IProps> = ({ current }) => {
         case 'graph':
           switch (cmd) {
             case 'status':
-              console.log(args);
               setStatus(args);
               setOptions(getOptions(current));
               break;
