@@ -33,6 +33,7 @@ const Center: React.FC<IProps> = ({ transfer, current }) => {
         };
         const clear = () => {
           transfer.command.emitter('fields', 'clear');
+          transfer.changCallback();
         };
         const source = choosing.current.source;
         const target = choosing.current.target;
