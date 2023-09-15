@@ -87,6 +87,16 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
                 }}
               />
             );
+          case 'updateStore':
+            return (
+              <forms.StoreForm
+                transfer={current}
+                current={entry[1]}
+                finished={() => {
+                  finished(entry[0]);
+                }}
+              />
+            );
         }
       })}
     </>

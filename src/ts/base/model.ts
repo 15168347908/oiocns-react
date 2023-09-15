@@ -1000,7 +1000,7 @@ export type SubMapping = {
 export type Store = {
   // 表单 ID
   formId: string;
-  // 目录 ID
+  // 存储目录
   directoryId: string;
 } & Node;
 
