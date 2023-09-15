@@ -1,9 +1,7 @@
-import { ITransfer } from '@/ts/core';
-import { Modal } from 'antd';
-import React from 'react';
-import { useState, useEffect } from 'react';
-import * as forms from '../../forms';
 import { generateUuid } from '@/ts/base/common';
+import { ITransfer } from '@/ts/core';
+import React, { useEffect, useState } from 'react';
+import * as forms from '../../forms';
 
 interface IProps {
   current: ITransfer;
@@ -21,7 +19,6 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
           setCommands({ ...commands, [current.id]: cmd });
           break;
         case 'updateEnvironment':
-          console.log(args);
           setEntities({ ...entities, [args.id]: args });
           setCommands({ ...commands, [args.id]: cmd });
           break;
@@ -38,30 +35,6 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
             实体配置: 'updateThingConfig',
           };
           setCommands({ ...commands, [args.id]: mapping[args.typeName] });
-          break;
-        }
-        case 'copy': {
-          const { entity } = args;
-          Modal.confirm({
-            title: '确认复制吗',
-            onOk: async () => {
-              finished();
-            },
-            okText: '确认',
-            cancelText: '取消',
-          });
-          break;
-        }
-        case 'delete': {
-          const { entity } = args;
-          Modal.confirm({
-            title: '确认删除吗',
-            onOk: async () => {
-              finished();
-            },
-            okText: '确认',
-            cancelText: '取消',
-          });
           break;
         }
       }

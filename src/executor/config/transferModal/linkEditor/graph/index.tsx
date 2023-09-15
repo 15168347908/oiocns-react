@@ -4,7 +4,6 @@ import { message } from 'antd';
 import React, { createRef, useEffect, useState } from 'react';
 import cls from './../index.module.less';
 import { LinkStore, createGraph } from './widgets/graph';
-import { createNode } from './widgets/node';
 
 export interface IProps {
   current: ITransfer;
@@ -110,16 +109,6 @@ const TransferEditor: React.FC<IProps> = ({ current }) => {
  */
 const handler = (current: ITransfer, graph: Graph, cmd: string, args: any) => {
   switch (cmd) {
-    case 'insertNode':
-      if (current.status != 'Editable') return;
-      let [x, y, offset] = [0, 0, 20];
-      const node = createNode(args);
-      node.x = x;
-      node.y = y;
-      x += offset;
-      y += offset;
-      graph.addNode(node);
-      break;
     case 'executing':
       current.execute();
       break;

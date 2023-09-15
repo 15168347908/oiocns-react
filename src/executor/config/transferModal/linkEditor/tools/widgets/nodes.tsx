@@ -1,5 +1,5 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
-import { model } from '@/ts/base';
+import { common, model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
 import {
   getDefaultTransferNode,
@@ -36,6 +36,23 @@ const Nodes: React.FC<IProps> = ({ current }) => {
             getDropNode: (node) => node.clone({ keepId: true }),
           });
           break;
+        case 'copy':
+          const newNode: model.Node = common.deepClone(args);
+          console.log(newNode);
+          if (graph.current) {
+            for (let node of graph.current.getNodes()) {
+              let position = node.getPosition();
+              if (node.id == newNode.id) {
+                newNode.id = common.generateUuid();
+                graph.current.addNode({
+                  ...createNode(newNode),
+                  x: position.x + 10,
+                  y: position.y + 10,
+                });
+              }
+            }
+          }
+          break;
       }
     });
     return () => {
@@ -46,7 +63,7 @@ const Nodes: React.FC<IProps> = ({ current }) => {
     e: React.MouseEvent<HTMLDivElement, MouseEvent>,
     name: model.NodeType,
   ) => {
-    let data = {} as model.Node<any>;
+    let data = {} as model.Node;
     switch (name) {
       case '请求':
         data = getDefaultRequestNode();

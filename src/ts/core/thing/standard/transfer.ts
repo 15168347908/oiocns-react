@@ -293,6 +293,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 
   async updNode(node: model.Node): Promise<void> {
+    console.log(node);
     let index = this.metadata.nodes.findIndex((item) => item.id == node.id);
     if (index != -1) {
       this.metadata.nodes[index] = node;
@@ -476,6 +477,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       case 'roots': {
         const not = this.metadata.edges.map((item) => item.end);
         const roots = this.metadata.nodes.filter((item) => not.indexOf(item.id) == -1);
+        console.log(roots);
         for (const root of roots) {
           this.visitNode(root);
         }

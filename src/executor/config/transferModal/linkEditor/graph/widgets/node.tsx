@@ -127,6 +127,12 @@ const menus: { [key: string]: MenuItemType } = {
     itemType: '更新',
     children: [],
   },
+  copy: {
+    key: 'copy',
+    label: '复制',
+    itemType: '复制',
+    children: [],
+  },
 };
 
 interface Info {
@@ -289,7 +295,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
         onContextMenu={(e) => e.stopPropagation()}
         className={`${cls['context-menu']} ${cls['context-border']}`}>
         <ul className={`${cls['dropdown']}`}>
-          {[menus.open, menus.update].map((item) => {
+          {Object.keys(menus).map(key => menus[key]).map((item) => {
             return (
               <li
                 key={item.key}
