@@ -63,6 +63,15 @@ export const StoreForm: React.FC<IProps> = ({ transfer, current, finished }) => 
       },
     },
     {
+      title: '是否直接存入平台',
+      dataIndex: 'directIs',
+      valueType: 'switch',
+      colProps: { span: 12 },
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+    },
+    {
       title: '备注',
       dataIndex: 'remark',
       valueType: 'textarea',

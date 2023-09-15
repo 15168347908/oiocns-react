@@ -1002,6 +1002,8 @@ export type Store = {
   formId: string;
   // 存储目录
   directoryId: string;
+  // 是否直接存入平台
+  directIs: boolean;
 } & Node;
 
 // 子配置

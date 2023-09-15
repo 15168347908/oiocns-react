@@ -5,12 +5,12 @@ import { ITransfer } from '@/ts/core';
 import { model } from '@/ts/base';
 
 interface IProps {
-  link: ITransfer;
+  transfer: ITransfer;
   current: model.Mapping;
   finished: () => void;
 }
 
-const MappingModal: React.FC<IProps> = ({ link, current, finished }) => {
+const MappingModal: React.FC<IProps> = ({ transfer, current, finished }) => {
   return (
     <FullScreenModal
       open
@@ -21,7 +21,7 @@ const MappingModal: React.FC<IProps> = ({ link, current, finished }) => {
       destroyOnClose
       title={'映射配置'}
       onCancel={() => finished()}>
-      <Mapper transfer={link} current={current} />
+      <Mapper transfer={transfer} current={current} />
     </FullScreenModal>
   );
 };

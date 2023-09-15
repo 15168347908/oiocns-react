@@ -2,6 +2,7 @@ import { ITransfer } from '@/ts/core';
 import React, { ReactNode, useEffect, useState } from 'react';
 import RequestModal from './../../../apiEditor/layout';
 import MappingModal from './../../../mapper/parts/modal';
+import DataModal from './dataModal';
 
 interface IProps {
   current: ITransfer;
@@ -28,10 +29,13 @@ const Editable: React.FC<IProps> = ({ current }) => {
               setCenter(
                 <MappingModal
                   finished={() => setCenter(<></>)}
-                  link={current}
+                  transfer={current}
                   current={args}
                 />,
               );
+              break;
+            case '存储':
+              setCenter(<DataModal transfer={current} current={args} />);
               break;
           }
           break;

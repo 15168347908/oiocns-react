@@ -194,6 +194,7 @@ export const ProcessingNode: React.FC<Info> = ({ node, graph }) => {
                 setNodeStatus('Completed');
                 break;
               case 'error':
+                console.log(args);
                 message.error(args[1]?.message ?? '执行异常');
                 setNodeStatus('Error');
                 break;

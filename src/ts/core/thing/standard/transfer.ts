@@ -63,6 +63,8 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   running(code: string, args: any): any;
   /** 映射 */
   mapping(node: model.Node, array: any[]): Promise<any[]>;
+  /** 写入 */
+  writing(node: model.Node, array: any[]): Promise<any[]>;
   /** 开始执行 */
   execute(link?: ITransfer): void;
 }
@@ -243,6 +245,14 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     return runtime.nextData;
   }
 
+  async writing(node: model.Node, array: any[]): Promise<any[]> {
+    const write = node as model.Store;
+    if (write.directIs) {
+      kernel.createThing(this.directory.belongId, [], '');
+    }
+    return [];
+  }
+
   async mapping(node: model.Node, array: any[]): Promise<any[]> {
     const data = node as model.Mapping;
     const ans: any[] = [];
@@ -293,7 +303,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 
   async updNode(node: model.Node): Promise<void> {
-    console.log(node);
     let index = this.metadata.nodes.findIndex((item) => item.id == node.id);
     if (index != -1) {
       this.metadata.nodes[index] = node;
@@ -314,22 +323,34 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     }
   }
 
+  private dataCheck(preData?: any) {
+    if (preData) {
+      if (preData instanceof Error) {
+        throw preData;
+      }
+      for (const key of Object.keys(preData)) {
+        const data = preData[key];
+        if (data instanceof Error) {
+          throw data;
+        }
+      }
+    }
+  }
+
   async visitNode(node: model.Node, preData?: any): Promise<void> {
     this.command.emitter('running', 'start', [node]);
     try {
-      if (preData) {
-        for (const key of Object.keys(preData)) {
-          const data = preData[key];
-          if (data instanceof Error) {
-            throw data;
-          }
-        }
-      }
+      this.dataCheck(preData);
       await sleep(500);
       if (node.preScripts) {
         preData = this.running(node.preScripts, preData);
       }
       let nextData: any;
+      const isArray = (array: any[]) => {
+        if (!Array.isArray(array)) {
+          throw new Error('输入必须是一个数组！');
+        }
+      };
       switch (node.typeName) {
         case '请求':
           nextData = await this.request(node);
@@ -339,12 +360,12 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
           this.getEntity<ITransfer>((node as model.SubTransfer).nextId)?.execute(this);
           break;
         case '映射':
-          if (!Array.isArray(preData.array)) {
-            throw new Error('输入必须是一个数组！');
-          }
+          isArray(preData.array);
           nextData = await this.mapping(node, preData.array);
           break;
         case '存储':
+          isArray(preData);
+          await this.writing(node, preData);
           break;
       }
       if (node.postScripts) {
@@ -355,8 +376,8 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       this.command.emitter('main', 'next', [node]);
     } catch (error) {
       this.curVisitedNodes?.set(node.id, { code: node.code, data: error });
-      this.command.emitter('running', 'error', [node]);
-      this.command.emitter('main', 'next', [node]);
+      this.command.emitter('running', 'error', [node, error]);
+      this.command.emitter('main', 'next', [node, error]);
     }
   }
 
@@ -468,6 +489,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         }
       }
     }
+    if (Object.keys(data).length == 1) {
+      return { s: true, d: data[Object.keys(data)[0]] };
+    }
     return { s: true, d: data };
   }
 
@@ -476,7 +500,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       case 'roots': {
         const not = this.metadata.edges.map((item) => item.end);
         const roots = this.metadata.nodes.filter((item) => not.indexOf(item.id) == -1);
-        console.log(roots);
         for (const root of roots) {
           this.visitNode(root);
         }
@@ -550,6 +573,7 @@ export const getDefaultStoreNode = (): model.Store => {
     typeName: '存储',
     formId: '',
     directoryId: '',
+    directIs: false,
   };
 };
 
