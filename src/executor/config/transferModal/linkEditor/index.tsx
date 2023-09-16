@@ -1,6 +1,6 @@
 import FullScreenModal from '@/executor/tools/fullScreen';
 import { ITransfer } from '@/ts/core';
-import React, { useEffect } from 'react';
+import React from 'react';
 import TransferEditor from './graph';
 import { ToolBar } from './tools';
 
@@ -10,7 +10,6 @@ interface IProps {
 }
 
 const TransferModal: React.FC<IProps> = ({ current, finished }) => {
-  useEffect(() => current.machine('Edit'));
   return (
     <FullScreenModal
       open
@@ -21,8 +20,8 @@ const TransferModal: React.FC<IProps> = ({ current, finished }) => {
       destroyOnClose
       title={'链接配置'}
       onCancel={() => finished()}>
-      <TransferEditor current={current} />
-      <ToolBar current={current} />
+      <TransferEditor current={current} initStatus={'Editable'} initEvent={'EditRun'} />
+      <ToolBar current={current} initStatus={'Editable'} />
     </FullScreenModal>
   );
 };

@@ -1038,25 +1038,40 @@ export type Script = {
 };
 
 // 图状态
-export type GraphStatus = 'Editable' | 'Viewable' | 'Running';
+export type GStatus = 'Editable' | 'Viewable' | 'Running' | 'Completed';
+
+// 图事件
+export type GEvent = 'EditRun' | 'ViewRun' | 'Completed' | 'Edit' | 'View';
 
 // 节点状态
-export type NodeStatus = 'Completed' | 'Error' | GraphStatus;
+export type NStatus = 'Completed' | 'Error' | GStatus;
+
+// 节点事件
+export type NEvent = '';
 
 // 节点类型
 export type NodeType = '请求' | '链接' | '映射' | '存储';
-
-// 事件
-export type Event = 'Edit' | 'View' | 'Run' | 'Completed' | 'Error';
 
 // 脚本位置
 export type Pos = 'pre' | 'post';
 
 // 运行时
-export type RunNode = NodeStatus & Node;
+export type RunNode = {
+  status: NStatus;
+} & Node;
 
 // 键值对
 export type KeyValue = { [key: string]: string | undefined };
+
+// 状态转移
+export type Shift<T, S> = {
+  // 开始
+  start: S;
+  // 事件
+  event: T;
+  // 结束
+  end: S;
+};
 
 // 链接
 export type Transfer = {
@@ -1073,6 +1088,20 @@ export type Transfer = {
   // 图数据
   graph: any;
 } & XStandard;
+
+// 任务
+export type Task = {
+  // 当前状态
+  status: GStatus;
+  // 环境
+  env?: Environment;
+  // 节点
+  nodes: RunNode[];
+  // 边
+  edges: Edge[];
+  // 图数据
+  graph: any;
+};
 
 export type SettingWidget = {
   /** 按钮生成的 schema 的 key 值 */

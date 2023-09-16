@@ -8,10 +8,11 @@ import { model } from '@/ts/base';
 
 interface IProps {
   current: ITransfer;
+  initStatus: 'Editable' | 'Viewable';
 }
 
-const GraphTools: React.FC<IProps> = ({ current }) => {
-  const [status, setStatus] = useState<model.GraphStatus>(current.status);
+const GraphTools: React.FC<IProps> = ({ current, initStatus }) => {
+  const [status, setStatus] = useState<model.GStatus>(initStatus);
   useEffect(() => {
     const id = current.command.subscribe((type, cmd, args) => {
       if (type == 'graph' && cmd == 'status') {
@@ -35,12 +36,12 @@ const GraphTools: React.FC<IProps> = ({ current }) => {
         onClick={() => current.command.emitter('tools', 'newEnvironment')}>
         新增环境
       </Button>
-      <EnvSelector current={current} />
+      <EnvSelector current={current} initStatus={initStatus} />
     </Space>
   );
 };
 
-export const EnvSelector: React.FC<IProps> = ({ current }) => {
+export const EnvSelector: React.FC<IProps> = ({ current, initStatus }) => {
   const getOptions = (current: ITransfer) => {
     return current.metadata.envs.map((item) => {
       return {
@@ -65,7 +66,7 @@ export const EnvSelector: React.FC<IProps> = ({ current }) => {
       };
     });
   };
-  const [status, setStatus] = useState<model.GraphStatus>(current.status);
+  const [status, setStatus] = useState<model.GStatus>(initStatus);
   const [curEnv, setCurEnv] = useState<string | undefined>(current.metadata.curEnv);
   const [options, setOptions] = useState<DefaultOptionType[]>(getOptions(current));
   useEffect(() => {

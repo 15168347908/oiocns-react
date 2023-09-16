@@ -10,21 +10,11 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 触发器 */
   command: Command;
   /** 任务记录 */
-  taskList: model.Environment[];
+  taskList: ITask[];
   /** 当前任务 */
-  curTask?: model.Environment;
-  /** 已遍历点（返回数据） */
-  curVisitedNodes?: Map<string, { code: string; data: any }>;
-  /** 已遍历边 */
-  curVisitedEdges?: Set<string>;
-  /** 前置链接 */
-  curPreLink?: ITransfer;
-  /** 前置状态 */
-  preStatus: model.GraphStatus;
-  /** 状态 */
-  status: model.GraphStatus;
-  /** 状态转移 */
-  machine(event: model.Event): void;
+  curTask?: ITask;
+  /** 获取实体 */
+  getTransfer(id: string): ITransfer | undefined;
   /** 取图数据 */
   getData?: GraphData;
   /** 绑定图 */
@@ -39,8 +29,6 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   updNode(node: model.Node): Promise<void>;
   /** 删除节点 */
   delNode(id: string): Promise<void>;
-  /** 遍历节点 */
-  visitNode(node: model.Node, preData?: any): Promise<void>;
   /** 获取边 */
   getEdge(id: string): model.Edge | undefined;
   /** 增加边 */
@@ -55,45 +43,50 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   updEnv(env: model.Environment): Promise<void>;
   /** 删除环境 */
   delEnv(id: string): Promise<void>;
+  /** 当前环境 */
+  getCurEnv(): model.Environment | undefined;
   /** 变更环境 */
   changeEnv(id: string): Promise<void>;
   /** 请求 */
-  request(node: model.Node): Promise<model.HttpResponseType>;
+  request(node: model.Node, env?: model.KeyValue): Promise<model.HttpResponseType>;
   /** 脚本 */
-  running(code: string, args: any): any;
+  running(code: string, args: any, env?: model.KeyValue): any;
   /** 映射 */
   mapping(node: model.Node, array: any[]): Promise<any[]>;
   /** 写入 */
   writing(node: model.Node, array: any[]): Promise<any[]>;
-  /** 开始执行 */
-  execute(link?: ITransfer): void;
+  /** 创建任务 */
+  execute(status: model.GStatus, event: model.GEvent): ITask;
 }
 
 export class Transfer extends StandardFileInfo<model.Transfer> implements ITransfer {
   command: Command;
-  taskList: model.Environment[];
-  preStatus: model.GraphStatus;
-  status: model.GraphStatus;
-  curTask?: model.Environment;
-  curVisitedNodes?: Map<string, { code: string; data: any }>;
-  curVisitedEdges?: Set<string>;
-  curPreLink?: ITransfer;
+  taskList: ITask[];
+  curTask?: ITask;
   getData?: GraphData;
 
   constructor(metadata: model.Transfer, dir: IDirectory) {
     super(metadata, dir, dir.resource.transferColl);
     this.command = new Command();
     this.taskList = [];
-    this.preStatus = 'Editable';
-    this.status = 'Editable';
+    +this.setEntity();
     this.command.subscribe((type, cmd, args) => {
       switch (type) {
         case 'main':
-          this.handing(cmd, args);
+          this.curTask?.handing(cmd, args);
           break;
       }
     });
-    this.setEntity();
+  }
+
+  execute(status: model.GStatus, event: model.GEvent): ITask {
+    this.curTask = new Task(this, event, status);
+    this.taskList.push(this.curTask);
+    return this.curTask;
+  }
+
+  getTransfer(id: string): ITransfer | undefined {
+    return this.getEntity(id);
   }
 
   async copy(destination: IDirectory): Promise<boolean> {
@@ -138,46 +131,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     return false;
   }
 
-  machine(event: model.Event): void {
-    switch (event) {
-      case 'Edit':
-        if (this.status == 'Running') {
-          return;
-        }
-        this.status = 'Editable';
-        break;
-      case 'View':
-        if (this.status == 'Running') {
-          return;
-        }
-        this.status = 'Viewable';
-        break;
-      case 'Run':
-        if (this.status == 'Running') {
-          return;
-        }
-        this.preStatus = this.status;
-        this.status = 'Running';
-        break;
-      case 'Completed':
-        if (this.status != 'Running') {
-          return;
-        }
-        if (this.metadata.nodes.length != this.curVisitedNodes?.size) {
-          return;
-        }
-        this.status = this.preStatus;
-        break;
-      case 'Error':
-        if (this.status != 'Running') {
-          return;
-        }
-        this.status = this.preStatus;
-        break;
-    }
-    this.command.emitter('graph', 'status', this.status);
-  }
-
   binding(getData: GraphData): void {
     this.getData = getData;
   }
@@ -187,52 +140,23 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     return await super.update(data);
   }
 
-  execute(link?: ITransfer) {
-    this.machine('Run');
-    this.curVisitedNodes = new Map();
-    this.curVisitedEdges = new Set();
-    const env = this.metadata.envs.find((item) => item.id == this.metadata.curEnv);
-    if (env) {
-      this.curTask = common.deepClone(env);
-      this.taskList.push(this.curTask);
-    }
-    this.curPreLink = link;
-    this.command.emitter('node', 'refresh');
-    this.command.emitter('main', 'roots');
-  }
-
-  async request(node: model.Node): Promise<model.HttpResponseType> {
+  async request(node: model.Node, env?: model.KeyValue): Promise<model.HttpResponseType> {
     let request = common.deepClone(node as model.Request);
     let json = JSON.stringify(request.data);
     for (const match of json.matchAll(/\{\{[^{}]*\}\}/g)) {
       for (let index = 0; index < match.length; index++) {
         let matcher = match[index];
         let varName = matcher.substring(2, matcher.length - 2);
-        switch (this.status) {
-          case 'Running':
-            json = json.replaceAll(matcher, this.curTask?.params[varName] ?? '');
-            break;
-          default:
-            if (this.metadata.curEnv) {
-              for (const env of this.metadata.envs) {
-                if (env.id == this.metadata.curEnv) {
-                  json = json.replaceAll(matcher, env.params[varName] ?? '');
-                }
-              }
-            } else {
-              json = json.replaceAll(matcher, '');
-            }
-            break;
-        }
+        json = json.replaceAll(matcher, env?.[varName] ?? '');
       }
     }
     let res = await kernel.httpForward(JSON.parse(json));
     return res.data?.content ? JSON.parse(res.data.content) : res;
   }
 
-  running(code: string, args: { [key: string]: any }): any {
+  running(code: string, args: any, env?: model.KeyValue): any {
     const runtime = {
-      environment: this.curTask,
+      environment: env ?? {},
       preData: args,
       nextData: {},
       decrypt: common.decrypt,
@@ -323,64 +247,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     }
   }
 
-  private dataCheck(preData?: any) {
-    if (preData) {
-      if (preData instanceof Error) {
-        throw preData;
-      }
-      for (const key of Object.keys(preData)) {
-        const data = preData[key];
-        if (data instanceof Error) {
-          throw data;
-        }
-      }
-    }
-  }
-
-  async visitNode(node: model.Node, preData?: any): Promise<void> {
-    this.command.emitter('running', 'start', [node]);
-    try {
-      this.dataCheck(preData);
-      await sleep(500);
-      if (node.preScripts) {
-        preData = this.running(node.preScripts, preData);
-      }
-      let nextData: any;
-      const isArray = (array: any[]) => {
-        if (!Array.isArray(array)) {
-          throw new Error('输入必须是一个数组！');
-        }
-      };
-      switch (node.typeName) {
-        case '请求':
-          nextData = await this.request(node);
-          break;
-        case '链接':
-          // TODO 替换其它方案
-          this.getEntity<ITransfer>((node as model.SubTransfer).nextId)?.execute(this);
-          break;
-        case '映射':
-          isArray(preData.array);
-          nextData = await this.mapping(node, preData.array);
-          break;
-        case '存储':
-          isArray(preData);
-          await this.writing(node, preData);
-          break;
-      }
-      if (node.postScripts) {
-        nextData = this.running(node.postScripts, nextData);
-      }
-      this.curVisitedNodes?.set(node.id, { code: node.code, data: nextData });
-      this.command.emitter('running', 'completed', [node]);
-      this.command.emitter('main', 'next', [node]);
-    } catch (error) {
-      this.curVisitedNodes?.set(node.id, { code: node.code, data: error });
-      this.command.emitter('running', 'error', [node, error]);
-      this.command.emitter('main', 'next', [node, error]);
-    }
-  }
-
   getEdge(id: string): model.Edge | undefined {
     for (let edge of this.metadata.edges) {
       if (edge.id == id) {
@@ -465,6 +331,14 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     }
   }
 
+  getCurEnv(): model.Environment | undefined {
+    for (const env of this.metadata.envs) {
+      if (env.id == this.metadata.curEnv) {
+        return env;
+      }
+    }
+  }
+
   async changeEnv(id: string): Promise<void> {
     for (const item of this.metadata.envs) {
       if (item.id == id) {
@@ -475,16 +349,166 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       }
     }
   }
+}
+
+const Machine: model.Shift<model.GEvent, model.GStatus>[] = [
+  { start: 'Editable', event: 'EditRun', end: 'Running' },
+  { start: 'Viewable', event: 'ViewRun', end: 'Running' },
+  { start: 'Running', event: 'Completed', end: 'Completed' },
+  { start: 'Completed', event: 'Edit', end: 'Editable' },
+  { start: 'Completed', event: 'View', end: 'Viewable' },
+];
+
+export interface ITask {
+  /** 迁移配置 */
+  transfer: ITransfer;
+  /** 元数据 */
+  metadata: model.Task;
+  /** 已遍历点（存储数据） */
+  visitedNodes: Map<string, { code: string; data: any }>;
+  /** 已遍历边 */
+  visitedEdges: Set<string>;
+  /** 前置链接 */
+  preTask?: ITask;
+  /** 启动事件 */
+  initEvent: model.GEvent;
+  /** 启动状态 */
+  initStatus: model.GStatus;
+  /** 状态转移 */
+  machine(event: model.GEvent): void;
+  /** 遍历节点 */
+  visitNode(node: model.Node, preData?: any): Promise<void>;
+  /** 处理事件 */
+  handing(cmd: string, args: any): Promise<void>;
+}
+
+export class Task implements ITask {
+  transfer: ITransfer;
+  metadata: model.Task;
+  visitedNodes: Map<string, { code: string; data: any }>;
+  visitedEdges: Set<string>;
+  initEvent: model.GEvent;
+  initStatus: model.GStatus;
+  preTask?: ITask;
+
+  constructor(
+    transfer: ITransfer,
+    initEvent: model.GEvent,
+    initStatus: model.GStatus,
+    task?: ITask,
+  ) {
+    this.transfer = transfer;
+    this.initEvent = initEvent;
+    this.initStatus = initStatus;
+    this.metadata = common.deepClone({
+      status: initStatus,
+      nodes: transfer.metadata.nodes.map((item) => {
+        return {
+          ...item,
+          status: initStatus,
+        };
+      }),
+      env: transfer.getCurEnv(),
+      edges: transfer.metadata.edges,
+      graph: transfer.metadata.graph,
+    });
+    this.visitedNodes = new Map();
+    this.visitedEdges = new Set();
+    this.machine(initEvent);
+    this.preTask = task;
+    this.metadata.nodes.forEach((item) => this.emitter('node', 'update', item));
+    this.emitter('main', 'roots');
+  }
+
+  machine(event: model.GEvent): void {
+    for (const shift of Machine) {
+      if (shift.start == this.metadata.status && event == shift.event) {
+        this.metadata.status = shift.end;
+        this.emitter('graph', 'status', this.metadata.status);
+      }
+    }
+  }
+
+  emitter(type: string, cmd: string, args?: any) {
+    this.transfer.command.emitter(type, cmd, args);
+  }
+
+  running(code: string, args: any, env?: model.KeyValue) {
+    return this.transfer.running(code, args, env);
+  }
+
+  async request(node: model.Node, env?: model.KeyValue) {
+    return await this.transfer.request(node, env);
+  }
+
+  private dataCheck(preData?: any) {
+    if (preData) {
+      if (preData instanceof Error) {
+        throw preData;
+      }
+      for (const key of Object.keys(preData)) {
+        const data = preData[key];
+        if (data instanceof Error) {
+          throw data;
+        }
+      }
+    }
+  }
+
+  async visitNode(node: model.Node, preData?: any): Promise<void> {
+    this.emitter('running', 'start', [node]);
+    try {
+      this.dataCheck(preData);
+      await sleep(500);
+      if (node.preScripts) {
+        preData = this.running(node.preScripts, preData, this.metadata.env?.params);
+      }
+      let nextData: any;
+      const isArray = (array: any[]) => {
+        if (!Array.isArray(array)) {
+          throw new Error('输入必须是一个数组！');
+        }
+      };
+      switch (node.typeName) {
+        case '请求':
+          nextData = await this.request(node);
+          break;
+        case '链接':
+          // TODO 替换其它方案
+          const nextId = (node as model.SubTransfer).nextId;
+          this.transfer.getTransfer(nextId)?.execute(this.initStatus, this.initEvent);
+          break;
+        case '映射':
+          isArray(preData.array);
+          nextData = await this.transfer.mapping(node, preData.array);
+          break;
+        case '存储':
+          isArray(preData);
+          await this.transfer.writing(node, preData);
+          break;
+      }
+      if (node.postScripts) {
+        nextData = this.running(node.postScripts, nextData);
+      }
+      this.visitedNodes?.set(node.id, { code: node.code, data: nextData });
+      this.emitter('running', 'completed', [node]);
+      this.emitter('main', 'next', [node]);
+    } catch (error) {
+      this.visitedNodes?.set(node.id, { code: node.code, data: error });
+      this.emitter('running', 'error', [node, error]);
+      this.emitter('main', 'next', [node, error]);
+    }
+  }
 
   private preCheck(node: model.Node): { s: boolean; d: { [key: string]: any } } {
     let data: { [key: string]: any } = {};
     for (const edge of this.metadata.edges) {
       if (node.id == edge.end) {
-        if (!this.curVisitedEdges?.has(edge.id)) {
+        if (!this.visitedEdges?.has(edge.id)) {
           return { s: false, d: {} };
         }
-        if (this.curVisitedNodes?.has(edge.start)) {
-          const nodeData = this.curVisitedNodes.get(edge.start)!;
+        if (this.visitedNodes?.has(edge.start)) {
+          const nodeData = this.visitedNodes.get(edge.start)!;
           data[nodeData.code] = nodeData.data;
         }
       }
@@ -495,7 +519,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     return { s: true, d: data };
   }
 
-  private async handing(cmd: string, args: any) {
+  async handing(cmd: string, args: any) {
     switch (cmd) {
       case 'roots': {
         const not = this.metadata.edges.map((item) => item.end);
@@ -513,19 +537,16 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         break;
       }
       case 'next': {
-        if (
-          this.curVisitedNodes &&
-          this.curVisitedNodes.size == this.metadata.nodes.length
-        ) {
+        if (this.visitedNodes && this.visitedNodes.size == this.metadata.nodes.length) {
           this.machine('Completed');
           return;
         }
         for (const edge of this.metadata.edges) {
           if (args[0].id == edge.start) {
-            this.curVisitedEdges?.add(edge.id);
+            this.visitedEdges?.add(edge.id);
             for (const node of this.metadata.nodes) {
               if (node.id == edge.end) {
-                this.command.emitter('main', 'visitNode', [node]);
+                this.emitter('main', 'visitNode', [node]);
               }
             }
           }

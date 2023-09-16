@@ -1,12 +1,13 @@
 import { IDirectory, ITransfer } from '@/ts/core';
-import { Graph } from '@antv/x6';
 import { message } from 'antd';
 import React, { createRef, useEffect, useState } from 'react';
 import cls from './../index.module.less';
-import { LinkStore, createGraph } from './widgets/graph';
+import { TransferStore, createGraph } from './widgets/graph';
 
 export interface IProps {
   current: ITransfer;
+  initStatus: 'Editable' | 'Viewable';
+  initEvent: 'EditRun' | 'ViewRun';
 }
 
 const loadProps = async (current: IDirectory) => {
@@ -20,7 +21,7 @@ const loadProps = async (current: IDirectory) => {
  * 返回一个请求编辑器
  * @returns
  */
-const TransferEditor: React.FC<IProps> = ({ current }) => {
+const TransferEditor: React.FC<IProps> = ({ current, initStatus, initEvent }) => {
   const ref = createRef<HTMLDivElement>();
   const [initializing, setInitializing] = useState<boolean>(true);
   useEffect(() => {
@@ -29,12 +30,12 @@ const TransferEditor: React.FC<IProps> = ({ current }) => {
       loadProps(root).then(() => setInitializing(false));
     } else {
       const graph = createGraph(ref);
-      graph.use(new LinkStore(current));
+      graph.use(new TransferStore(current, initStatus));
       if (current.metadata.graph) {
         graph.fromJSON(current.metadata.graph);
       }
       graph.centerContent();
-      if (current.status == 'Editable') {
+      if (initStatus == 'Editable') {
         graph.on('node:added', async (args) => {
           await current.addNode(args.cell.getData());
         });
@@ -87,9 +88,19 @@ const TransferEditor: React.FC<IProps> = ({ current }) => {
       }
       current.binding(() => graph.toJSON());
       current.command.emitter('tools', 'initialized', graph);
-      const id = current.command.subscribe((type: string, cmd: string, args: any) => {
+      const id = current.command.subscribe((type: string, cmd: string, _: any) => {
         if (type != 'graph') return;
-        handler(current, graph, cmd, args);
+        switch (cmd) {
+          case 'executing':
+            current.execute(initStatus, initEvent);
+            break;
+          case 'center':
+            graph.centerContent();
+            break;
+          case 'refresh':
+            // graph.fromJSON(current.metadata.graph);
+            break;
+        }
       });
       return () => {
         current.command.unsubscribe(id);
@@ -99,26 +110,6 @@ const TransferEditor: React.FC<IProps> = ({ current }) => {
     }
   }, [ref]);
   return <div className={cls.link} ref={ref} />;
-};
-
-/**
- * 数据处理句柄
- * @param graph 画布
- * @param cmd 命令
- * @param args 参数
- */
-const handler = (current: ITransfer, graph: Graph, cmd: string, args: any) => {
-  switch (cmd) {
-    case 'executing':
-      current.execute();
-      break;
-    case 'center':
-      graph.centerContent();
-      break;
-    case 'refresh':
-      // graph.fromJSON(current.metadata.graph);
-      break;
-  }
 };
 
 export default TransferEditor;
