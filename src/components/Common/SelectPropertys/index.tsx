@@ -1,5 +1,4 @@
-import { AiOutlineSearch } from '@/icons/ai';
-import { Input, TreeProps } from 'antd';
+import { TreeProps } from 'antd';
 import React, { useState, Key } from 'react';
 import ShareShowComp from '../ShareShowComp';
 import cls from './index.module.less';
@@ -15,7 +14,6 @@ interface IProps {
 }
 
 const SelectPropertys: React.FC<IProps> = (props) => {
-  const [filter, setFilter] = useState<string>('');
   const [centerTreeData, setCenterTreeData] = useState<any[]>([]);
   const [centerCheckedKeys, setCenterCheckedKeys] = useState<Key[]>(
     props.selected.map((i) => i.id),
@@ -45,7 +43,10 @@ const SelectPropertys: React.FC<IProps> = (props) => {
       props.selected.push(property);
       props.onAdded(property);
     } else {
-      props.selected = props.selected.filter((i) => i.id != property.id);
+      let selectedIndex = props.selected.findIndex((i) => i.id == property.id);
+      if (selectedIndex > -1) {
+        props.selected.splice(selectedIndex, 1);
+      }
       props.onDeleted(property.id);
     }
   };
@@ -66,6 +67,10 @@ const SelectPropertys: React.FC<IProps> = (props) => {
 
   const handelDel = (id: string) => {
     setCenterCheckedKeys(centerCheckedKeys.filter((data) => data != id));
+    let selectedIndex = props.selected.findIndex((i) => i.id == id);
+    if (selectedIndex > -1) {
+      props.selected.splice(selectedIndex, 1);
+    }
     props.onDeleted(id);
   };
 
@@ -73,14 +78,12 @@ const SelectPropertys: React.FC<IProps> = (props) => {
     <div className={cls.layout}>
       <div className={cls.content}>
         <div style={{ width: '33%' }} className={cls.left}>
-          <Input
-            className={cls.leftInput}
-            prefix={<AiOutlineSearch />}
-            placeholder="请设置关键字"
-          />
           <div className={cls.leftContent}>
             <CustomTree
+              searchable
+              showIcon
               checkable={false}
+              isDirectoryTree
               autoExpandParent={true}
               onSelect={onSelectDirectory}
               treeData={buildDirectoryTree([props.target.directory])}
@@ -88,21 +91,14 @@ const SelectPropertys: React.FC<IProps> = (props) => {
           </div>
         </div>
         <div className={cls.center}>
-          <Input
-            className={cls.centerInput}
-            prefix={<AiOutlineSearch />}
-            placeholder="搜索"
-            onChange={(e) => {
-              setFilter(e.target.value);
-            }}
-          />
           <div className={cls.centerContent}>
             <CustomTree
               checkable
+              searchable
               checkedKeys={centerCheckedKeys}
               autoExpandParent={true}
               onCheck={onCheck}
-              treeData={centerTreeData.filter((i: any) => i.title.includes(filter))}
+              treeData={centerTreeData}
             />
           </div>
         </div>

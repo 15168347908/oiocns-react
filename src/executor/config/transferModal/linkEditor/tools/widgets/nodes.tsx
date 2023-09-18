@@ -11,7 +11,7 @@ import { Graph } from '@antv/x6';
 import { Dnd } from '@antv/x6-plugin-dnd';
 import { Space } from 'antd';
 import React, { createRef, useEffect, useRef } from 'react';
-import { createNode } from '../../graph/widgets/node';
+import { createNode } from '../../graph/widgets/graph';
 import cls from './../../index.module.less';
 
 interface IProps {

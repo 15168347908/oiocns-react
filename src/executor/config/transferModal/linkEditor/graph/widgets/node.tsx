@@ -137,42 +137,40 @@ const EditingNode: React.FC<EditingProps> = ({ node, transfer, current }) => {
   const [pos, setPosition] = useState<{ x: number; y: number }>();
   const [visibleClosing, setVisibleClosing] = useState<boolean>(false);
   useEffect(() => {
-    useEffect(() => {
-      const id = transfer?.command.subscribe(async (type, cmd, args) => {
-        switch (type) {
-          case 'blank': {
-            switch (cmd) {
-              case 'click':
-              case 'contextmenu':
-                setVisibleMenu(false);
-                break;
-            }
-            break;
+    const id = transfer?.command.subscribe(async (type, cmd, args) => {
+      switch (type) {
+        case 'blank': {
+          switch (cmd) {
+            case 'click':
+            case 'contextmenu':
+              setVisibleMenu(false);
+              break;
           }
-          case 'node':
-            switch (cmd) {
-              case 'contextmenu':
-                if (args.node.id == node.id) {
-                  const position = node.getPosition();
-                  setVisibleMenu(true);
-                  setPosition({ x: args.x - position.x, y: args.y - position.y });
-                }
-                break;
-              case 'delete':
-                if (args.id == node.id) {
-                  node.remove();
-                }
-                break;
-              case 'refresh':
-                break;
-            }
-            break;
+          break;
         }
-      });
-      return () => {
-        transfer?.command.unsubscribe(id ?? '');
-      };
+        case 'node':
+          switch (cmd) {
+            case 'contextmenu':
+              if (args.node.id == node.id) {
+                const position = node.getPosition();
+                setVisibleMenu(true);
+                setPosition({ x: args.x - position.x, y: args.y - position.y });
+              }
+              break;
+            case 'delete':
+              if (args.id == node.id) {
+                node.remove();
+              }
+              break;
+            case 'refresh':
+              break;
+          }
+          break;
+      }
     });
+    return () => {
+      transfer?.command.unsubscribe(id ?? '');
+    };
   });
   return (
     <div
