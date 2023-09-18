@@ -183,7 +183,10 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   async writing(node: model.Node, array: any[]): Promise<any[]> {
     const write = node as model.Store;
     if (write.directIs) {
-      kernel.createThing(this.directory.belongId, [], '');
+      for (const item of array) {
+        const res = await kernel.createThing(this.directory.belongId, [], '资产卡片');
+        console.log(res);
+      }
     }
     return [];
   }
@@ -505,6 +508,7 @@ export class Task implements ITask {
           nextData = await this.transfer.mapping(node, preData.array);
           break;
         case '存储':
+          console.log(preData);
           isArray(preData);
           await this.transfer.writing(node, preData);
           break;
@@ -585,6 +589,8 @@ export class Task implements ITask {
 
   tryRunning(): boolean {
     if (this.visitedNodes.size == this.metadata.nodes.length) {
+      this.metadata.endTime = new Date();
+      this.command.emitter('tasks', 'refresh', this.transfer.taskList);
       this.machine('Completed');
       this.transfer.completed(this.initStatus, this.initEvent);
       return false;

@@ -85,7 +85,7 @@ const Center: React.FC<IProps> = ({ transfer, current }) => {
               align={'middle'}>
               <Col flex={8} style={{ textAlign: 'right' }}>
                 <Space>
-                  {dataMap.current.get(item.source)?.code}
+                  {dataMap.current.get(item.source)?.property?.info}
                   {dataMap.current.get(item.source)?.name}
                 </Space>
               </Col>
@@ -106,8 +106,8 @@ const Center: React.FC<IProps> = ({ transfer, current }) => {
                 </Col>
               }
               <Col span={8} style={{ textAlign: 'left' }}>
-                <Space>
-                  {dataMap.current.get(item.target)?.code}
+                <Space className={cls.overflow}>
+                  {dataMap.current.get(item.target)?.property?.info}
                   {dataMap.current.get(item.target)?.name}
                 </Space>
               </Col>

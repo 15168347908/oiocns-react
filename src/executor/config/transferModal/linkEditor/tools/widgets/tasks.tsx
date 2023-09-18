@@ -16,8 +16,8 @@ const Tasks: React.FC<IProps> = ({ current }) => {
     const id = current.command.subscribe((type, cmd, args) => {
       if (type == 'tasks') {
         switch (cmd) {
-          case 'push':
-            setTasks(args);
+          case 'refresh':
+            setTasks([...args]);
             break;
           case 'open':
             setOpen(true);

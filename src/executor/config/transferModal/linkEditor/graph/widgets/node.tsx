@@ -46,11 +46,9 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
             switch (cmd) {
               case 'start':
               case 'completed':
-                console.log(node, cmd);
                 setStatus(node.status);
                 break;
               case 'error':
-                console.log(node);
                 setStatus('Error');
                 message.error(error.message);
                 break;
