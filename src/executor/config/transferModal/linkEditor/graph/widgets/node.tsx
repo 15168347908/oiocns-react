@@ -23,7 +23,7 @@ interface IProps {
 
 export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
   const transfer = graph.getPlugin<TransferStore>('TransferStore')?.transfer;
-  const [data, setData] = useState<model.Node>(node.getData());
+  const [data, setData] = useState(transfer?.getNode(node.id) ?? node.getData());
   const [position, setPosition] = useState<{ x: number; y: number }>();
   const [visibleMenu, setVisibleMenu] = useState<boolean>(false);
   const [status, setStatus] = useState<model.NStatus>(data.status ?? 'Editable');
@@ -46,9 +46,11 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
             switch (cmd) {
               case 'start':
               case 'completed':
+                console.log(node, cmd);
                 setStatus(node.status);
                 break;
               case 'error':
+                console.log(node);
                 setStatus('Error');
                 message.error(error.message);
                 break;
@@ -91,16 +93,7 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
       className={`${cls['flex-row']} ${cls['container']} ${cls['border']}`}
       onMouseEnter={() => setVisibleClosing(true)}
       onMouseLeave={() => setVisibleClosing(false)}
-      onDoubleClick={() => {
-        switch (data.typeName) {
-          case '脚本':
-            transfer?.command.emitter('tools', 'update', data);
-            break;
-          default:
-            transfer?.command.emitter('tools', 'edit', data);
-            break;
-        }
-      }}>
+      onDoubleClick={() => transfer?.command.emitter('tools', 'edit', data)}>
       <Tag typeName={data.typeName} transfer={transfer} />
       <Status status={status} />
       <Info name={data.name} />

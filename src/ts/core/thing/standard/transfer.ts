@@ -56,7 +56,9 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 写入 */
   writing(node: model.Node, array: any[]): Promise<any[]>;
   /** 创建任务 */
-  execute(status: model.GStatus, event: model.GEvent): ITask;
+  execute(status: model.GStatus, event: model.GEvent): void;
+  /** 完成任务 */
+  completed(status: model.GStatus, event: model.GEvent): void;
 }
 
 export class Transfer extends StandardFileInfo<model.Transfer> implements ITransfer {
@@ -79,11 +81,19 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     this.setEntity();
   }
 
-  execute(status: model.GStatus, event: model.GEvent): ITask {
+  execute(status: model.GStatus, event: model.GEvent): void {
     this.curTask = new Task(this, event, status);
     this.taskList.push(this.curTask);
     this.curTask.starting();
-    return this.curTask;
+  }
+
+  completed(initStatus: model.GStatus, _: model.GEvent): void {
+    this.curTask = undefined;
+    if (initStatus == 'Editable') {
+      this.command.emitter('graph', 'status', 'Editable');
+    } else if (initStatus == 'Viewable') {
+      this.command.emitter('graph', 'status', 'Viewable');
+    }
   }
 
   getTransfer(id: string): ITransfer | undefined {
@@ -356,8 +366,7 @@ const Machine: model.Shift<model.GEvent, model.GStatus>[] = [
   { start: 'Editable', event: 'EditRun', end: 'Running' },
   { start: 'Viewable', event: 'ViewRun', end: 'Running' },
   { start: 'Running', event: 'Completed', end: 'Completed' },
-  { start: 'Completed', event: 'Edit', end: 'Editable' },
-  { start: 'Completed', event: 'View', end: 'Viewable' },
+  { start: 'Running', event: 'Throw', end: 'Error' },
 ];
 
 export interface ITask {
@@ -434,6 +443,9 @@ export class Task implements ITask {
   }
 
   machine(event: model.GEvent): void {
+    if (this.metadata.status == 'Error') {
+      return;
+    }
     for (const shift of Machine) {
       if (shift.start == this.metadata.status && event == shift.event) {
         this.metadata.status = shift.end;
@@ -500,15 +512,20 @@ export class Task implements ITask {
       if (node.postScripts) {
         nextData = this.running(node.postScripts, nextData);
       }
-      this.visitedNodes?.set(node.id, { code: node.code, data: nextData });
+      this.visitedNodes.set(node.id, { code: node.code, data: nextData });
       node.status = 'Completed';
       this.command.emitter('running', 'completed', [node]);
-      this.command.emitter('main', 'next', [node]);
+      if (this.tryRunning()) {
+        this.command.emitter('main', 'next', [node]);
+      }
     } catch (error) {
-      this.visitedNodes?.set(node.id, { code: node.code, data: error });
+      this.visitedNodes.set(node.id, { code: node.code, data: error });
+      this.machine('Throw');
       node.status = 'Error';
       this.command.emitter('running', 'error', [node, error]);
-      this.command.emitter('main', 'next', [node, error]);
+      if (this.tryRunning()) {
+        this.command.emitter('main', 'next', [node, error]);
+      }
     }
   }
 
@@ -516,10 +533,10 @@ export class Task implements ITask {
     let data: { [key: string]: any } = {};
     for (const edge of this.metadata.edges) {
       if (node.id == edge.end) {
-        if (!this.visitedEdges?.has(edge.id)) {
+        if (!this.visitedEdges.has(edge.id)) {
           return { s: false, d: {} };
         }
-        if (this.visitedNodes?.has(edge.start)) {
+        if (this.visitedNodes.has(edge.start)) {
           const nodeData = this.visitedNodes.get(edge.start)!;
           data[nodeData.code] = nodeData.data;
         }
@@ -534,10 +551,12 @@ export class Task implements ITask {
   async handing(cmd: string, args: any) {
     switch (cmd) {
       case 'roots': {
-        const not = this.metadata.edges.map((item) => item.end);
-        const roots = this.metadata.nodes.filter((item) => not.indexOf(item.id) == -1);
-        for (const root of roots) {
-          this.visitNode(root);
+        if (this.tryRunning()) {
+          const not = this.metadata.edges.map((item) => item.end);
+          const roots = this.metadata.nodes.filter((item) => not.indexOf(item.id) == -1);
+          for (const root of roots) {
+            this.visitNode(root);
+          }
         }
         break;
       }
@@ -549,11 +568,6 @@ export class Task implements ITask {
         break;
       }
       case 'next': {
-        if (this.visitedNodes && this.visitedNodes.size == this.metadata.nodes.length) {
-          this.machine('Completed');
-          this.machine(this.initStatus == 'Editable' ? 'Edit' : 'View');
-          return;
-        }
         for (const edge of this.metadata.edges) {
           if (args[0].id == edge.start) {
             this.visitedEdges?.add(edge.id);
@@ -567,6 +581,15 @@ export class Task implements ITask {
         break;
       }
     }
+  }
+
+  tryRunning(): boolean {
+    if (this.visitedNodes.size == this.metadata.nodes.length) {
+      this.machine('Completed');
+      this.transfer.completed(this.initStatus, this.initEvent);
+      return false;
+    }
+    return true;
   }
 }
 

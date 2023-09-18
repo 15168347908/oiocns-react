@@ -23,6 +23,7 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
           setCommands({ ...commands, [args.id]: cmd });
           break;
         case 'update': {
+          console.log(args);
           setEntities({ ...entities, [args.id]: args });
           let mapping: { [key: string]: string } = {
             请求: 'updateRequest',
