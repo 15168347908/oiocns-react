@@ -9,132 +9,24 @@ import {
   StopOutlined,
 } from '@ant-design/icons';
 import { Graph, Node } from '@antv/x6';
-import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
 import cls from './../../index.module.less';
-import { TransferStore } from './graph';
 import { ITransfer } from '@/ts/core';
+import { TransferStore } from './graph';
+import { message } from 'antd';
 
 interface IProps {
   node: Node;
   graph: Graph;
 }
 
-type ShowType = Exclude<model.GStatus, 'Completed'>;
-
 export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
-  const store = graph.getPlugin<TransferStore>('TransferStore');
-  const [status, setStatus] = useState<ShowType>(store?.initStatus ?? 'Viewable');
-  const [data, setData] = useState<model.Node>(node.getData() as model.Node);
-  useEffect(() => {
-    const id = store?.transfer.subscribe((type, cmd, args) => {
-      switch (type) {
-        case 'graph':
-          switch (cmd) {
-            case 'status':
-              setStatus(args);
-              break;
-          }
-          break;
-        case 'node':
-          switch (cmd) {
-            case 'update':
-              if (args.id == data.id) {
-                setData(args);
-              }
-              break;
-          }
-      }
-    });
-    return () => {
-      return store?.transfer.unsubscribe(id!);
-    };
-  });
-  switch (status) {
-    case 'Editable':
-      return (
-        <EditingNode
-          transfer={store?.transfer}
-          current={data}
-          node={node}
-          graph={graph}
-        />
-      );
-    case 'Viewable':
-      return <ViewNode current={data} />;
-    case 'Running':
-      return (
-        <RunningNode
-          transfer={store?.transfer}
-          current={data}
-          node={node}
-          graph={graph}
-        />
-      );
-  }
-};
-
-interface RunProps extends IProps {
-  transfer?: ITransfer;
-  current: model.Node;
-}
-
-const RunningNode: React.FC<RunProps> = ({ current, transfer }) => {
-  const [status, setStatus] = useState<model.NStatus>((current as model.RunNode).status);
-  useEffect(() => {
-    const id = transfer?.command.subscribe(async (type, cmd, args) => {
-      switch (type) {
-        case 'running':
-          const node = args[0];
-          if (node.id == current.id) {
-            switch (cmd) {
-              case 'status':
-                setStatus(args[0]);
-                if (args[0] == 'Error') {
-                  message.error(args[1]?.message ?? '执行异常');
-                }
-                break;
-            }
-          }
-          break;
-      }
-    });
-    return () => {
-      transfer?.command.unsubscribe(id!);
-    };
-  });
-  return (
-    <div className={`${cls['flex-row']} ${cls['container']} ${cls['border']}`}>
-      <Tag typeName={current.typeName} transfer={transfer} />
-      <Status status={status} />
-      <Info name={current.name} />
-    </div>
-  );
-};
-
-interface ViewProps {
-  current: model.Node;
-}
-
-const ViewNode: React.FC<ViewProps> = ({ current }) => {
-  return (
-    <div className={`${cls['flex-row']} ${cls['container']} ${cls['border']}`}>
-      <Tag typeName={current.typeName} />
-      <Status status={'Viewable'} />
-      <Info name={current.name} />
-    </div>
-  );
-};
-
-interface EditingProps extends IProps {
-  transfer?: ITransfer;
-  current: model.Node;
-}
-
-const EditingNode: React.FC<EditingProps> = ({ node, transfer, current }) => {
+  const transfer = graph.getPlugin<TransferStore>('TransferStore')?.transfer;
+  const [data, setData] = useState<model.Node>(node.getData());
+  const [position, setPosition] = useState<{ x: number; y: number }>();
   const [visibleMenu, setVisibleMenu] = useState<boolean>(false);
-  const [pos, setPosition] = useState<{ x: number; y: number }>();
+  const [status, setStatus] = useState<model.NStatus>(data.status ?? 'Editable');
   const [visibleClosing, setVisibleClosing] = useState<boolean>(false);
   useEffect(() => {
     const id = transfer?.command.subscribe(async (type, cmd, args) => {
@@ -148,7 +40,23 @@ const EditingNode: React.FC<EditingProps> = ({ node, transfer, current }) => {
           }
           break;
         }
-        case 'node':
+        case 'running': {
+          const [node, error] = args;
+          if (node.id == data.id) {
+            switch (cmd) {
+              case 'start':
+              case 'completed':
+                setStatus(node.status);
+                break;
+              case 'error':
+                setStatus('Error');
+                message.error(error.message);
+                break;
+            }
+          }
+          break;
+        }
+        case 'node': {
           switch (cmd) {
             case 'contextmenu':
               if (args.node.id == node.id) {
@@ -162,14 +70,20 @@ const EditingNode: React.FC<EditingProps> = ({ node, transfer, current }) => {
                 node.remove();
               }
               break;
+            case 'update':
+              if (args.id == node.id) {
+                setData(args);
+              }
+              break;
             case 'refresh':
               break;
           }
           break;
+        }
       }
     });
     return () => {
-      transfer?.command.unsubscribe(id ?? '');
+      transfer?.command.unsubscribe(id!);
     };
   });
   return (
@@ -178,20 +92,20 @@ const EditingNode: React.FC<EditingProps> = ({ node, transfer, current }) => {
       onMouseEnter={() => setVisibleClosing(true)}
       onMouseLeave={() => setVisibleClosing(false)}
       onDoubleClick={() => {
-        switch (current.typeName) {
+        switch (data.typeName) {
           case '脚本':
-            transfer?.command.emitter('tools', 'update', current);
+            transfer?.command.emitter('tools', 'update', data);
             break;
           default:
-            transfer?.command.emitter('tools', 'edit', current);
+            transfer?.command.emitter('tools', 'edit', data);
             break;
         }
       }}>
-      <Tag typeName={current.typeName} transfer={transfer} />
-      <Status status={'Editable'} />
-      <Info name={current.name} />
+      <Tag typeName={data.typeName} transfer={transfer} />
+      <Status status={status} />
+      <Info name={data.name} />
       {visibleClosing && <Remove onClick={() => node.remove()} />}
-      {visibleMenu && <ContextMenu transfer={transfer} node={current} pos={pos!} />}
+      {visibleMenu && <ContextMenu transfer={transfer} node={data} pos={position!} />}
     </div>
   );
 };
@@ -211,11 +125,11 @@ const Remove: React.FC<RemoveProps> = ({ onClick }) => {
   );
 };
 
-interface StatusProps {
+export interface StatusProps {
   status: model.NStatus;
 }
 
-const Status: React.FC<StatusProps> = ({ status }) => {
+export const Status: React.FC<StatusProps> = ({ status }) => {
   switch (status) {
     case 'Editable':
       return <PauseCircleOutlined style={{ color: '#9498df', fontSize: 18 }} />;

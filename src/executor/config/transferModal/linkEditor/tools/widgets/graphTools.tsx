@@ -31,6 +31,7 @@ const GraphTools: React.FC<IProps> = ({ current, initStatus }) => {
         onClick={() => current.command.emitter('graph', 'executing')}>
         运行
       </Button>
+      <Button onClick={() => current.command.emitter('tasks', 'open')}>运行记录</Button>
       <Button
         disabled={status != 'Editable'}
         onClick={() => current.command.emitter('tools', 'newEnvironment')}>

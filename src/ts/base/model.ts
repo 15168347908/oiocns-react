@@ -969,6 +969,8 @@ export type Node = {
   preScripts?: string;
   // 后置脚本
   postScripts?: string;
+  // 状态
+  status?: NStatus;
 };
 
 // 边
@@ -1044,13 +1046,13 @@ export type Script = {
 };
 
 // 图状态
-export type GStatus = 'Editable' | 'Viewable' | 'Running' | 'Completed';
+export type GStatus = 'Editable' | 'Viewable' | 'Running' | 'Completed' | 'Error';
 
 // 图事件
 export type GEvent = 'EditRun' | 'ViewRun' | 'Completed' | 'Edit' | 'View';
 
 // 节点状态
-export type NStatus = 'Completed' | 'Error' | GStatus;
+export type NStatus = GStatus;
 
 // 节点事件
 export type NEvent = '';
@@ -1060,11 +1062,6 @@ export type NodeType = '请求' | '链接' | '映射' | '存储';
 
 // 脚本位置
 export type Pos = 'pre' | 'post';
-
-// 运行时
-export type RunNode = {
-  status: NStatus;
-} & Node;
 
 // 键值对
 export type KeyValue = { [key: string]: string | undefined };
@@ -1097,16 +1094,22 @@ export type Transfer = {
 
 // 任务
 export type Task = {
+  // 唯一标识
+  id: string;
   // 当前状态
   status: GStatus;
   // 环境
   env?: Environment;
   // 节点
-  nodes: RunNode[];
+  nodes: Node[];
   // 边
   edges: Edge[];
   // 图数据
   graph: any;
+  // 开始时间
+  startTime: Date;
+  // 结束时间
+  endTime?: Date;
 };
 
 export type SettingWidget = {

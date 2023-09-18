@@ -98,7 +98,7 @@ const TransferEditor: React.FC<IProps> = ({ current, initStatus, initEvent }) =>
             graph.centerContent();
             break;
           case 'refresh':
-            // graph.fromJSON(current.metadata.graph);
+            graph.fromJSON(current.metadata.graph);
             break;
         }
       });

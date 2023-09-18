@@ -67,9 +67,8 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
 
   constructor(metadata: model.Transfer, dir: IDirectory) {
     super(metadata, dir, dir.resource.transferColl);
-    this.command = new Command();
     this.taskList = [];
-    +this.setEntity();
+    this.command = new Command();
     this.command.subscribe((type, cmd, args) => {
       switch (type) {
         case 'main':
@@ -77,11 +76,13 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
           break;
       }
     });
+    this.setEntity();
   }
 
   execute(status: model.GStatus, event: model.GEvent): ITask {
     this.curTask = new Task(this, event, status);
     this.taskList.push(this.curTask);
+    this.curTask.starting();
     return this.curTask;
   }
 
@@ -360,6 +361,8 @@ const Machine: model.Shift<model.GEvent, model.GStatus>[] = [
 ];
 
 export interface ITask {
+  /** 触发器 */
+  command: Command;
   /** 迁移配置 */
   transfer: ITransfer;
   /** 元数据 */
@@ -380,9 +383,12 @@ export interface ITask {
   visitNode(node: model.Node, preData?: any): Promise<void>;
   /** 处理事件 */
   handing(cmd: string, args: any): Promise<void>;
+  /** 开始执行 */
+  starting(): void;
 }
 
 export class Task implements ITask {
+  command: Command;
   transfer: ITransfer;
   metadata: model.Task;
   visitedNodes: Map<string, { code: string; data: any }>;
@@ -401,6 +407,7 @@ export class Task implements ITask {
     this.initEvent = initEvent;
     this.initStatus = initStatus;
     this.metadata = common.deepClone({
+      id: common.generateUuid(),
       status: initStatus,
       nodes: transfer.metadata.nodes.map((item) => {
         return {
@@ -411,26 +418,28 @@ export class Task implements ITask {
       env: transfer.getCurEnv(),
       edges: transfer.metadata.edges,
       graph: transfer.metadata.graph,
+      startTime: new Date(),
     });
     this.visitedNodes = new Map();
     this.visitedEdges = new Set();
-    this.machine(initEvent);
     this.preTask = task;
-    this.metadata.nodes.forEach((item) => this.emitter('node', 'update', item));
-    this.emitter('main', 'roots');
+    this.command = transfer.command;
+  }
+
+  starting(): void {
+    this.machine(this.initEvent);
+    this.command.emitter('environments', 'refresh');
+    this.command.emitter('tasks', 'refresh', this.transfer.taskList);
+    this.command.emitter('main', 'roots');
   }
 
   machine(event: model.GEvent): void {
     for (const shift of Machine) {
       if (shift.start == this.metadata.status && event == shift.event) {
         this.metadata.status = shift.end;
-        this.emitter('graph', 'status', this.metadata.status);
+        this.command.emitter('graph', 'status', this.metadata.status);
       }
     }
-  }
-
-  emitter(type: string, cmd: string, args?: any) {
-    this.transfer.command.emitter(type, cmd, args);
   }
 
   running(code: string, args: any, env?: model.KeyValue) {
@@ -456,7 +465,8 @@ export class Task implements ITask {
   }
 
   async visitNode(node: model.Node, preData?: any): Promise<void> {
-    this.emitter('running', 'start', [node]);
+    node.status = 'Running';
+    this.command.emitter('running', 'start', [node]);
     try {
       this.dataCheck(preData);
       await sleep(500);
@@ -491,12 +501,14 @@ export class Task implements ITask {
         nextData = this.running(node.postScripts, nextData);
       }
       this.visitedNodes?.set(node.id, { code: node.code, data: nextData });
-      this.emitter('running', 'completed', [node]);
-      this.emitter('main', 'next', [node]);
+      node.status = 'Completed';
+      this.command.emitter('running', 'completed', [node]);
+      this.command.emitter('main', 'next', [node]);
     } catch (error) {
       this.visitedNodes?.set(node.id, { code: node.code, data: error });
-      this.emitter('running', 'error', [node, error]);
-      this.emitter('main', 'next', [node, error]);
+      node.status = 'Error';
+      this.command.emitter('running', 'error', [node, error]);
+      this.command.emitter('main', 'next', [node, error]);
     }
   }
 
@@ -539,6 +551,7 @@ export class Task implements ITask {
       case 'next': {
         if (this.visitedNodes && this.visitedNodes.size == this.metadata.nodes.length) {
           this.machine('Completed');
+          this.machine(this.initStatus == 'Editable' ? 'Edit' : 'View');
           return;
         }
         for (const edge of this.metadata.edges) {
@@ -546,7 +559,7 @@ export class Task implements ITask {
             this.visitedEdges?.add(edge.id);
             for (const node of this.metadata.nodes) {
               if (node.id == edge.end) {
-                this.emitter('main', 'visitNode', [node]);
+                this.command.emitter('main', 'visitNode', [node]);
               }
             }
           }
