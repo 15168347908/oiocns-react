@@ -206,7 +206,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
               const res = await kernel.createThing(belongId, [], '资产卡片');
               if (res.success) {
                 const one: model.AnyThingModel = { ...item, ...res.data };
-                editForm.before.push(res.data);
                 editForm.after.push(one);
               }
             }
