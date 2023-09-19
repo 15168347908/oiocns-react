@@ -187,7 +187,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     const write = node as model.Store;
     if (write.directIs) {
       for (const app of await this.directory.target.directory.loadAllApplication()) {
-        console.log(app);
         const works = await app.loadWorks();
         const work = works.find((item) => item.id == write.workId);
         await work?.loadWorkNode();
@@ -212,16 +211,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
               }
             }
             map.set(work.primaryForms[0].id, editForm);
-            const success = await apply.createApply(belongId, '自动写入', map);
-            if (success) {
-              const tasks = await kernel.queryApproveTask({ id: '0' });
-              if (tasks.success) {
-                for (const task of tasks.data.result) {
-                  const workTask = new WorkTask(task, orgCtrl.provider);
-                  await workTask.approvalTask(TaskStatus.ApprovalStart, '同意');
-                }
-              }
-            }
+            await apply.createApply(belongId, '自动写入', map);
           }
         }
       }
