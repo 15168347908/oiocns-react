@@ -2,8 +2,8 @@ import SchemaForm from '@/components/SchemaForm';
 import { model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
-import React, { useRef, useState } from 'react';
-import { MenuItem, loadDirs } from '../..';
+import React, { createRef, useEffect, useRef, useState } from 'react';
+import { MenuItem, loadApplicationsMenu, loadDirs } from '../..';
 
 interface IProps {
   transfer: ITransfer;
@@ -11,16 +11,34 @@ interface IProps {
   finished: () => void;
 }
 
-const getTrees = (transfer: ITransfer): MenuItem[] => {
+const getDirTrees = (transfer: ITransfer): MenuItem[] => {
   const tree = [
     loadDirs(transfer.directory.target.directory, (item) => (item.selectable = true)),
   ];
   return tree;
 };
 
+const getWorkTrees = (transfer: ITransfer): MenuItem[] => {
+  const tree = [loadApplicationsMenu(transfer.directory.target.directory)];
+  return tree;
+};
+
 export const StoreForm: React.FC<IProps> = ({ transfer, current, finished }) => {
-  const formRef = useRef<ProFormInstance>();
-  const [treeData, setTreeData] = useState<MenuItem[]>(getTrees(transfer));
+  const formRef = createRef<ProFormInstance>();
+  const [notInit, setNotInit] = useState<boolean>(true);
+  const [treeData, setTreeData] = useState<MenuItem[]>(getDirTrees(transfer));
+  const [workTree, setWorkTree] = useState<MenuItem[]>([]);
+  useEffect(() => {
+    if (notInit) {
+      transfer.directory.target.directory.loadAllApplication().then(async (apps) => {
+        for (let app of apps) {
+          await app.loadWorks();
+        }
+        setWorkTree(getWorkTrees(transfer));
+        setNotInit(false);
+      });
+    }
+  });
   const columns: ProFormColumnsType<model.Store>[] = [
     {
       title: '名称',
@@ -55,11 +73,35 @@ export const StoreForm: React.FC<IProps> = ({ transfer, current, finished }) => 
         showSearch: true,
         loadData: async (node: MenuItem): Promise<void> => {
           if (!node.isLeaf) {
-            setTreeData(getTrees(transfer));
+            setTreeData(getDirTrees(transfer));
           }
         },
         treeNodeFilterProp: 'label',
         treeData: treeData,
+      },
+    },
+    {
+      title: '应用（办事）',
+      dataIndex: 'workId',
+      valueType: 'treeSelect',
+      colProps: { span: 24 },
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+      fieldProps: {
+        fieldNames: {
+          label: 'label',
+          value: 'key',
+          children: 'children',
+        },
+        showSearch: true,
+        loadData: async (node: MenuItem): Promise<void> => {
+          if (!node.isLeaf) {
+            setWorkTree(getWorkTrees(transfer));
+          }
+        },
+        treeNodeFilterProp: 'label',
+        treeData: workTree,
       },
     },
     {

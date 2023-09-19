@@ -38,6 +38,7 @@ const TransferEditor: React.FC<IProps> = ({ current, initStatus, initEvent }) =>
       if (initStatus == 'Editable') {
         graph.on('node:added', async (args) => {
           await current.addNode(args.cell.getData());
+          current.command.emitter('tools', 'update', args.cell.getData());
         });
         graph.on('node:moved', () => current.update(current.metadata));
         graph.on('node:removed', async (args) => {

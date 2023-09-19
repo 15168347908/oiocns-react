@@ -34,6 +34,19 @@ const loadFiles = (current: IDirectory, typeNames: string[], genLabel?: GenLabel
             .map((entity) => loadEntity(entity, genLabel)),
         );
         break;
+      case '应用':
+        items.push(
+          ...current.applications
+            .filter((item) => item.typeName == typeName)
+            .map((entity) => {
+              const loaded = loadEntity(entity, genLabel);
+              loaded.isLeaf = false;
+              loaded.selectable = false;
+              loaded.children = entity.works.map((item) => loadEntity(item, genLabel));
+              return loaded;
+            }),
+        );
+        break;
     }
   }
   return items;
@@ -81,6 +94,11 @@ export const loadMenus = (
 /** 表单项 */
 export const loadFormsMenu = (current: IDirectory, genLabel?: GenLabel) => {
   return loadMenus(current, ['事项配置', '实体配置'], genLabel);
+};
+
+/** 应用项 */
+export const loadApplicationsMenu = (current: IDirectory, genLabel?: GenLabel) => {
+  return loadMenus(current, ['应用'], genLabel);
 };
 
 /** 文件项菜单 */

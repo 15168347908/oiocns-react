@@ -20,7 +20,7 @@ export class AttrSheet extends Sheet<Attribute> {
       { title: '表单代码', dataIndex: 'formCode', valueType: '描述型' },
       { title: '特性名称', dataIndex: 'name', valueType: '描述型' },
       { title: '特性代码', dataIndex: 'code', valueType: '描述型' },
-      { title: '关联属性代码', dataIndex: 'propInfo', valueType: '描述型' },
+      { title: '关联属性代码/id', dataIndex: 'propInfo', valueType: '描述型' },
       { title: '主键', dataIndex: 'id', valueType: '描述型', hide: true },
       { title: '表单主键', dataIndex: 'formId', valueType: '描述型', hide: true },
       { title: '关联属性主键', dataIndex: 'propId', valueType: '描述型', hide: true },

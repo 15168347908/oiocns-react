@@ -3,6 +3,10 @@ import { Command, common, kernel, model, schema } from '../../../base';
 import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { sleep } from '@/ts/base/common';
+import { formatDate } from 'devextreme/localization';
+import { WorkTask } from '../../work/task';
+import orgCtrl from '@/ts/controller';
+import { TaskStatus } from '../../public';
 
 export type GraphData = () => any;
 
@@ -182,10 +186,54 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
 
   async writing(node: model.Node, array: any[]): Promise<any[]> {
     const write = node as model.Store;
+    console.log(write);
     if (write.directIs) {
-      for (const item of array) {
-        const res = await kernel.createThing(this.directory.belongId, [], '资产卡片');
-        console.log(res);
+      for (const app of this.directory.target.directory.applications) {
+        const works = await app.loadWorks();
+        const work = works.find((item) => item.id == write.workId);
+        await work?.loadWorkNode();
+        console.log(work, works);
+        if (work && work.primaryForms.length > 0 && work.node) {
+          console.log(work);
+          const apply = await work.createApply();
+          if (apply) {
+            console.log(apply);
+            const map = new Map<string, model.FormEditData>();
+            const editForm: model.FormEditData = {
+              before: [],
+              after: [],
+              nodeId: work.node.id,
+              creator: apply.belong.userId,
+              createTime: formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss.S'),
+            };
+            const belongId = this.directory.belongId;
+            for (const item of array) {
+              const res = await kernel.createThing(belongId, [], '资产卡片');
+              if (res.success) {
+                const one: model.AnyThingModel = { ...item, ...res.data };
+                editForm.after.push(one);
+              }
+            }
+            map.set(work.primaryForms[0].id, editForm);
+            console.log(map);
+            const success = await apply.createApply(belongId, '自动写入', map);
+            console.log(success);
+            if (success) {
+              const tasks = await kernel.queryApproveTask({ id: '0' });
+              console.log(tasks);
+              if (tasks.success) {
+                for (const task of tasks.data.result) {
+                  const workTask = new WorkTask(task, orgCtrl.provider);
+                  const res = await workTask.approvalTask(
+                    TaskStatus.ApprovalStart,
+                    '同意',
+                  );
+                  console.log(res);
+                }
+              }
+            }
+          }
+        }
       }
     }
     return [];
@@ -508,7 +556,6 @@ export class Task implements ITask {
           nextData = await this.transfer.mapping(node, preData.array);
           break;
         case '存储':
-          console.log(preData);
           isArray(preData);
           await this.transfer.writing(node, preData);
           break;
@@ -634,8 +681,8 @@ export const getDefaultStoreNode = (): model.Store => {
     code: 'store',
     name: '存储',
     typeName: '存储',
-    formId: '',
     directoryId: '',
+    workId: '',
     directIs: false,
   };
 };

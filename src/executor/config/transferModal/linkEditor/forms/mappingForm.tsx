@@ -72,6 +72,8 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         rules: [{ required: true, message: '编码为必填项' }],
       },
     },
+    selector('源表单', 'source'),
+    selector('目标表单', 'target'),
     {
       title: '前置脚本',
       dataIndex: 'preScripts',
@@ -83,15 +85,29 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
             height={'200px'}
             extensions={[javascript()]}
             onChange={(code: string) => {
-              console.log(code);
               formRef.current?.setFieldValue('preScripts', code);
             }}
           />
         );
       },
     },
-    selector('源表单', 'source'),
-    selector('目标表单', 'target'),
+    {
+      title: '后置脚本',
+      dataIndex: 'postScripts',
+      colProps: { span: 24 },
+      renderFormItem: () => {
+        return (
+          <CodeMirror
+            value={formRef.current?.getFieldValue('postScripts')}
+            height={'200px'}
+            extensions={[javascript()]}
+            onChange={(code: string) => {
+              formRef.current?.setFieldValue('postScripts', code);
+            }}
+          />
+        );
+      },
+    },
     {
       title: '备注',
       dataIndex: 'remark',

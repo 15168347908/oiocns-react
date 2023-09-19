@@ -1006,10 +1006,10 @@ export type SubMapping = {
 
 // 存储
 export type Store = {
-  // 表单 ID
-  formId: string;
   // 存储目录
   directoryId: string;
+  // 办事
+  workId: string;
   // 是否直接存入平台
   directIs: boolean;
 } & Node;
