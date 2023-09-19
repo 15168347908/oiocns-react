@@ -186,8 +186,8 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   async writing(node: model.Node, array: any[]): Promise<any[]> {
     const write = node as model.Store;
     if (write.directIs) {
-      await this.directory.target.directory.loadAllApplication();
-      for (const app of this.directory.target.directory.applications) {
+      for (const app of await this.directory.target.directory.loadAllApplication()) {
+        console.log(app);
         const works = await app.loadWorks();
         const work = works.find((item) => item.id == write.workId);
         await work?.loadWorkNode();
