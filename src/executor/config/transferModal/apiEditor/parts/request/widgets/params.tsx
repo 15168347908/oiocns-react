@@ -6,7 +6,7 @@ import { generateUuid } from '@/ts/base/common';
 
 export interface IProps {
   transfer: ITransfer;
-  current: model.RequestNode;
+  current: model.Request;
 }
 
 export interface Param {

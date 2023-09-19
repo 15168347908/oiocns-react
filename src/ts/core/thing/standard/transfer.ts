@@ -92,7 +92,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 
   completed(initStatus: model.GStatus, _: model.GEvent): void {
-    this.curTask = undefined;
     if (initStatus == 'Editable') {
       this.command.emitter('graph', 'status', 'Editable');
     } else if (initStatus == 'Viewable') {
@@ -186,18 +185,14 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
 
   async writing(node: model.Node, array: any[]): Promise<any[]> {
     const write = node as model.Store;
-    console.log(write);
     if (write.directIs) {
       for (const app of this.directory.target.directory.applications) {
         const works = await app.loadWorks();
         const work = works.find((item) => item.id == write.workId);
         await work?.loadWorkNode();
-        console.log(work, works);
         if (work && work.primaryForms.length > 0 && work.node) {
-          console.log(work);
           const apply = await work.createApply();
           if (apply) {
-            console.log(apply);
             const map = new Map<string, model.FormEditData>();
             const editForm: model.FormEditData = {
               before: [],
@@ -215,20 +210,13 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
               }
             }
             map.set(work.primaryForms[0].id, editForm);
-            console.log(map);
             const success = await apply.createApply(belongId, '自动写入', map);
-            console.log(success);
             if (success) {
               const tasks = await kernel.queryApproveTask({ id: '0' });
-              console.log(tasks);
               if (tasks.success) {
                 for (const task of tasks.data.result) {
                   const workTask = new WorkTask(task, orgCtrl.provider);
-                  const res = await workTask.approvalTask(
-                    TaskStatus.ApprovalStart,
-                    '同意',
-                  );
-                  console.log(res);
+                  await workTask.approvalTask(TaskStatus.ApprovalStart, '同意');
                 }
               }
             }
@@ -558,6 +546,7 @@ export class Task implements ITask {
         case '存储':
           isArray(preData);
           await this.transfer.writing(node, preData);
+          nextData = preData;
           break;
       }
       if (node.postScripts) {
@@ -683,6 +672,7 @@ export const getDefaultStoreNode = (): model.Store => {
     typeName: '存储',
     directoryId: '',
     workId: '',
+    formIds: [],
     directIs: false,
   };
 };

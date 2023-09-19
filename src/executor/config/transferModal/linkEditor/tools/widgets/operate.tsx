@@ -1,10 +1,8 @@
 import OioForm from '@/components/Common/FormDesign/OioFormNext';
-import GenerateThingTable from '@/executor/tools/generate/thingTable';
-import { model, schema } from '@/ts/base';
+import { model } from '@/ts/base';
 import { IBelong, IForm, ITransfer } from '@/ts/core';
 import { ProTable } from '@ant-design/pro-components';
 import { Modal } from 'antd';
-import CustomStore from 'devextreme/data/custom_store';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
 interface IProps {
@@ -21,13 +19,6 @@ interface OpenArgs {
 interface SelectionArgs {
   formId: string;
   selection: model.Selection;
-  data: any[];
-  call: Call;
-}
-
-interface StoreArgs {
-  storeId: string;
-  formId: string;
   data: any[];
   call: Call;
 }
@@ -113,43 +104,6 @@ const Operate: React.FC<IProps> = ({ current }) => {
                   }}
                 />,
               );
-              break;
-          }
-        case 'store':
-          switch (cmd) {
-            case 'open':
-              const storeArgs = args as StoreArgs;
-              const formId = storeArgs.formId;
-              const form = current.findMetadata<IForm>(formId + '*');
-              if (!form) return;
-              await form.loadContent();
-              setCenter(
-                <GenerateThingTable
-                  fields={form.fields}
-                  height={'70vh'}
-                  selection={{
-                    mode: 'multiple',
-                    allowSelectAll: true,
-                    selectAllMode: 'page',
-                    showCheckBoxesMode: 'always',
-                  }}
-                  dataIndex="attribute"
-                  dataSource={
-                    new CustomStore({
-                      key: 'Id',
-                      async load(_) {
-                        return {
-                          data: storeArgs.data,
-                          totalCount: storeArgs.data.length,
-                        };
-                      },
-                    })
-                  }
-                  remoteOperations={true}
-                />,
-              );
-              setName('数据');
-              setOpen(true);
               break;
           }
       }

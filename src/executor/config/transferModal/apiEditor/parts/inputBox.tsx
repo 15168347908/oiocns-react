@@ -64,7 +64,7 @@ const InputBox: React.FC<IProps> = ({ transfer, current, send }) => {
           transfer.command.emitter('node', 'uri', event.target.value);
         }}
       />
-      <EnvSelector current={transfer} />
+      <EnvSelector current={transfer} initStatus={'Editable'} />
       <Button onClick={() => send()}>Send</Button>
     </Space.Compact>
   );

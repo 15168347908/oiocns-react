@@ -11,7 +11,7 @@ interface IProps {
 const Editable: React.FC<IProps> = ({ current }) => {
   const [center, setCenter] = useState<ReactNode>();
   useEffect(() => {
-    const id = current.command.subscribe((type, cmd, args) => {
+    const id = current.command.subscribe(async (type, cmd, args) => {
       if (type != 'tools') return;
       switch (cmd) {
         case 'edit':
@@ -35,7 +35,13 @@ const Editable: React.FC<IProps> = ({ current }) => {
               );
               break;
             case '存储':
-              setCenter(<DataModal transfer={current} current={args} />);
+              setCenter(
+                <DataModal
+                  finished={() => setCenter(<></>)}
+                  transfer={current}
+                  current={args}
+                />,
+              );
               break;
           }
           break;
