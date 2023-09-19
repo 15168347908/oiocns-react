@@ -38,7 +38,6 @@ const Nodes: React.FC<IProps> = ({ current }) => {
           break;
         case 'copy':
           const newNode: model.Node = common.deepClone(args);
-          console.log(newNode);
           if (graph.current) {
             for (let node of graph.current.getNodes()) {
               let position = node.getPosition();
@@ -96,6 +95,7 @@ const Nodes: React.FC<IProps> = ({ current }) => {
   return (
     <div className={`${cls.nodes} ${cls.border}`} ref={dndRef}>
       <Space direction="vertical">
+        <Node name="Excel" />
         <Node name="请求" />
         <Node name="链接" />
         <Node name="映射" />

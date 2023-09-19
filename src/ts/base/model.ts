@@ -1063,7 +1063,7 @@ export type NStatus = GStatus;
 export type NEvent = '';
 
 // 节点类型
-export type NodeType = '请求' | '链接' | '映射' | '存储';
+export type NodeType = 'Excel' | '请求' | '链接' | '映射' | '存储';
 
 // 脚本位置
 export type Pos = 'pre' | 'post';
