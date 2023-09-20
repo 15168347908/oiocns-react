@@ -13,7 +13,7 @@ import { Dnd } from '@antv/x6-plugin-dnd';
 import { Space } from 'antd';
 import React, { createRef, useEffect, useRef } from 'react';
 import { createGraphNode, createNode } from '../cells/graph';
-import cls from './../../index.module.less';
+import cls from './../index.module.less';
 
 interface IProps {
   current: ITransfer;

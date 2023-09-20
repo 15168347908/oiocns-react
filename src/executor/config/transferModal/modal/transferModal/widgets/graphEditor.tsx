@@ -1,7 +1,7 @@
 import { IDirectory, ITransfer } from '@/ts/core';
 import { message } from 'antd';
 import React, { createRef, useEffect, useState } from 'react';
-import cls from './index.module.less';
+import cls from './../index.module.less';
 import { TransferStore, createGraph } from '../cells/graph';
 import { Options } from '@antv/x6/lib/graph/options';
 

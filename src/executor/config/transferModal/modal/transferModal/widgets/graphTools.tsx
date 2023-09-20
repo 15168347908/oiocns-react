@@ -3,7 +3,7 @@ import { ITransfer } from '@/ts/core';
 import { Button, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { EnvSelector } from '../../..';
-import cls from './../../index.module.less';
+import cls from './../index.module.less';
 
 interface IProps {
   current: ITransfer;

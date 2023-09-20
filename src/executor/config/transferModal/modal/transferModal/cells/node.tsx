@@ -11,7 +11,7 @@ import {
 import { Graph, Node } from '@antv/x6';
 import React, { useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
-import cls from './../../index.module.less';
+import cls from './../index.module.less';
 import { ITransfer } from '@/ts/core';
 import { TransferStore } from './graph';
 import { message } from 'antd';

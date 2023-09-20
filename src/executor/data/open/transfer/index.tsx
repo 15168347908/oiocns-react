@@ -1,6 +1,4 @@
-import TransferEditor from '@/executor/config/transferModal/linkEditor/graph';
-import { ToolBar } from '@/executor/config/transferModal/linkEditor/tools';
-import FullScreenModal from '@/executor/tools/fullScreen';
+import { TransferModal } from '@/executor/config/transferModal';
 import { ITransfer } from '@/ts/core';
 import React from 'react';
 
@@ -11,18 +9,13 @@ interface IProps {
 
 const TransferView: React.FC<IProps> = ({ current, finished }) => {
   return (
-    <FullScreenModal
-      open
-      centered
-      fullScreen
-      width={'80vw'}
-      bodyHeight={'80vh'}
-      destroyOnClose
-      title={'迁移查看'}
-      onCancel={() => finished()}>
-      <TransferEditor current={current} initStatus="Viewable" initEvent={'ViewRun'} />
-      <ToolBar current={current} initStatus="Viewable" />
-    </FullScreenModal>
+    <TransferModal
+      title={'数据迁移'}
+      status={'Viewable'}
+      event={'ViewRun'}
+      current={current}
+      finished={finished}
+    />
   );
 };
 

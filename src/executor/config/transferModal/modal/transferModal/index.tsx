@@ -13,13 +13,22 @@ import { FullModal } from '../..';
 interface IProps {
   current: ITransfer;
   finished: () => void;
+  title?: string;
+  status?: 'Editable' | 'Viewable';
+  event?: 'EditRun' | 'ViewRun';
 }
 
-const TransferModal: React.FC<IProps> = ({ current, finished }) => {
+const TransferModal: React.FC<IProps> = ({
+  current,
+  finished,
+  title = '迁移配置',
+  status = 'Editable',
+  event = 'EditRun',
+}) => {
   return (
-    <FullModal title={'迁移配置'} finished={finished}>
-      <GraphEditor current={current} initStatus={'Editable'} initEvent={'EditRun'} />
-      <GraphTools current={current} initStatus={'Editable'} />
+    <FullModal title={title} finished={finished}>
+      <GraphEditor current={current} initStatus={status} initEvent={event} />
+      <GraphTools current={current} initStatus={status} />
       <Settings current={current} />
       <Nodes current={current} />
       <NodeForms current={current} />
