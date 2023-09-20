@@ -26,6 +26,13 @@ const loadFiles = (current: IDirectory, typeNames: string[], genLabel?: GenLabel
             .map((entity) => loadEntity(entity, genLabel)),
         );
         break;
+      case '迁移配置':
+        items.push(
+          ...current.transfers
+            .filter((item) => item.typeName == typeName)
+            .map((entity) => loadEntity(entity, genLabel)),
+        );
+        break;
       case '字典':
       case '分类':
         items.push(
@@ -94,6 +101,11 @@ export const loadMenus = (
 /** 表单项 */
 export const loadFormsMenu = (current: IDirectory, genLabel?: GenLabel) => {
   return loadMenus(current, ['事项配置', '实体配置'], genLabel);
+};
+
+/** 迁移项 */
+export const loadTransfersMenu = (current: IDirectory, genLabel?: GenLabel) => {
+  return loadMenus(current, ['迁移配置'], genLabel);
 };
 
 /** 应用项 */

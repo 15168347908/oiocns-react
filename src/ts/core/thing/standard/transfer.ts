@@ -1,12 +1,9 @@
+import { sleep } from '@/ts/base/common';
 import { XForm } from '@/ts/base/schema';
+import { formatDate } from 'devextreme/localization';
 import { Command, common, kernel, model, schema } from '../../../base';
 import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
-import { sleep } from '@/ts/base/common';
-import { formatDate } from 'devextreme/localization';
-import { WorkTask } from '../../work/task';
-import orgCtrl from '@/ts/controller';
-import { TaskStatus } from '../../public';
 
 export type GraphData = () => any;
 
@@ -685,6 +682,6 @@ export const getDefaultTransferNode = (): model.SubTransfer => {
     name: '子图',
     typeName: '子图',
     nextId: '',
-    isSelfCirculation: false
+    isSelfCirculation: false,
   };
 };

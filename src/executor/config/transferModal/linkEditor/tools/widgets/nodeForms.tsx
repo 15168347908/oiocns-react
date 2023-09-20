@@ -26,6 +26,7 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
           setEntities({ ...entities, [args.id]: args });
           let mapping: { [key: string]: string } = {
             请求: 'updateRequest',
+            子图: 'updateTransfer',
             脚本: 'updateExecutable',
             映射: 'updateMapping',
             选择: 'updateSelection',
@@ -90,6 +91,16 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
           case 'updateStore':
             return (
               <forms.StoreForm
+                transfer={current}
+                current={entry[1]}
+                finished={() => {
+                  finished(entry[0]);
+                }}
+              />
+            );
+          case 'updateTransfer':
+            return (
+              <forms.SubTransferForm
                 transfer={current}
                 current={entry[1]}
                 finished={() => {

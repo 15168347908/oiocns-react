@@ -1,10 +1,12 @@
 import { model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import SchemaForm from '@/components/SchemaForm';
+import { MenuItem, expand, loadTransfersMenu } from '../..';
+import { message } from 'antd';
 
 interface IProps {
   transfer: ITransfer;
@@ -12,8 +14,20 @@ interface IProps {
   finished: () => void;
 }
 
+const getTransferTrees = (transfer: ITransfer): MenuItem[] => {
+  const tree = [loadTransfersMenu(transfer.directory.target.directory)];
+  return tree;
+};
+
+const getExpandKeys = (treeData: MenuItem[]) => {
+  return expand(treeData, ['迁移配置']);
+};
+
 export const SubTransferForm: React.FC<IProps> = ({ transfer, current, finished }) => {
   const formRef = useRef<ProFormInstance>();
+  const [transferTree, setTransferTree] = useState<MenuItem[]>(
+    getTransferTrees(transfer),
+  );
   useEffect(() => {
     const id = transfer.command.subscribe((type, cmd, args) => {
       if (type == 'node' && cmd == 'update') {
@@ -37,6 +51,31 @@ export const SubTransferForm: React.FC<IProps> = ({ transfer, current, finished 
       dataIndex: 'code',
       formItemProps: {
         rules: [{ required: true, message: '编码为必填项' }],
+      },
+    },
+    {
+      title: '绑定子图',
+      dataIndex: 'nextId',
+      valueType: 'treeSelect',
+      colProps: { span: 24 },
+      formItemProps: {
+        rules: [{ required: true, message: '子图为必填项' }],
+      },
+      fieldProps: {
+        fieldNames: {
+          label: 'label',
+          value: 'key',
+          children: 'children',
+        },
+        showSearch: true,
+        loadData: async (node: MenuItem): Promise<void> => {
+          if (!node.isLeaf) {
+            setTransferTree(getTransferTrees(transfer));
+          }
+        },
+        treeDefaultExpandedKeys: getExpandKeys(transferTree),
+        treeNodeFilterProp: 'label',
+        treeData: transferTree,
       },
     },
     {
@@ -101,6 +140,10 @@ export const SubTransferForm: React.FC<IProps> = ({ transfer, current, finished 
       }}
       onFinish={async (values) => {
         const node = { ...current, ...values };
+        if (node.nextId == transfer.id) {
+          message.error('无法嵌入当前配置！');
+          return;
+        }
         await transfer.updNode(node);
         finished();
       }}

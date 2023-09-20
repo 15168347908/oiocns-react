@@ -3,6 +3,8 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import RequestModal from './../../../apiEditor/layout';
 import MappingModal from './../../../mapper/parts/modal';
 import DataModal from './dataModal';
+import TransferModal from '../..';
+import { model } from '@/ts/base';
 
 interface IProps {
   current: ITransfer;
@@ -41,6 +43,21 @@ const Editable: React.FC<IProps> = ({ current }) => {
                   transfer={current}
                   current={args}
                 />,
+              );
+              break;
+            case '子图':
+              const node = args as model.SubTransfer;
+              const nextId = node.nextId;
+              const nextTransfer = current.getTransfer(nextId);
+              setCenter(
+                <>
+                  {nextTransfer && (
+                    <TransferModal
+                      current={nextTransfer}
+                      finished={() => setCenter(<></>)}
+                    />
+                  )}
+                </>,
               );
               break;
           }
