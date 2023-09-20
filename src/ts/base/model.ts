@@ -991,6 +991,9 @@ export type Request = {
   data: HttpRequestType;
 } & Node;
 
+// 表格
+export type Tables = { link: string } & Node;
+
 // 映射
 export type Mapping = {
   // 源
@@ -1001,9 +1004,13 @@ export type Mapping = {
   mappings: SubMapping[];
 } & Node;
 
+// 子映射
 export type SubMapping = {
+  // 源对象
   source: string;
+  // 目标对象
   target: string;
+  // 子映射
   mappings?: SubMapping[];
 };
 
@@ -1063,7 +1070,7 @@ export type NStatus = GStatus;
 export type NEvent = '';
 
 // 节点类型
-export type NodeType = 'Excel' | '请求' | '链接' | '映射' | '存储';
+export type NodeType = '表格' | '请求' | '链接' | '映射' | '存储';
 
 // 脚本位置
 export type Pos = 'pre' | 'post';

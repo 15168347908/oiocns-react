@@ -6,6 +6,7 @@ import {
   getDefaultMappingNode,
   getDefaultRequestNode,
   getDefaultStoreNode,
+  getDefaultTableNode,
 } from '@/ts/core/thing/standard/transfer';
 import { Graph } from '@antv/x6';
 import { Dnd } from '@antv/x6-plugin-dnd';
@@ -64,6 +65,9 @@ const Nodes: React.FC<IProps> = ({ current }) => {
   ) => {
     let data = {} as model.Node;
     switch (name) {
+      case '表格':
+        data = getDefaultTableNode();
+        break;
       case '请求':
         data = getDefaultRequestNode();
         break;
@@ -95,7 +99,7 @@ const Nodes: React.FC<IProps> = ({ current }) => {
   return (
     <div className={`${cls.nodes} ${cls.border}`} ref={dndRef}>
       <Space direction="vertical">
-        <Node name="Excel" />
+        <Node name="表格" />
         <Node name="请求" />
         <Node name="链接" />
         <Node name="映射" />

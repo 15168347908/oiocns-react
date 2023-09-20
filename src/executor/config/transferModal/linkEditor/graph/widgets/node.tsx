@@ -22,11 +22,13 @@ interface IProps {
 }
 
 export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
-  const transfer = graph.getPlugin<TransferStore>('TransferStore')?.transfer;
+  const transferStore = graph.getPlugin<TransferStore>('TransferStore');
+  const transfer = transferStore?.transfer;
   const [data, setData] = useState(transfer?.getNode(node.id) ?? node.getData());
   const [position, setPosition] = useState<{ x: number; y: number }>();
   const [visibleMenu, setVisibleMenu] = useState<boolean>(false);
-  const [status, setStatus] = useState<model.NStatus>(data.status ?? 'Editable');
+  const initStatus = data.status ?? transferStore?.initStatus ?? 'Editable';
+  const [status, setStatus] = useState<model.NStatus>(initStatus);
   const [visibleClosing, setVisibleClosing] = useState<boolean>(false);
   useEffect(() => {
     const id = transfer?.command.subscribe(async (type, cmd, args) => {
@@ -95,8 +97,10 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
       <Tag typeName={data.typeName} transfer={transfer} />
       <Status status={status} />
       <Info name={data.name} />
-      {visibleClosing && <Remove onClick={() => node.remove()} />}
-      {visibleMenu && <ContextMenu transfer={transfer} node={data} pos={position!} />}
+      {status == 'Editable' && visibleClosing && <Remove onClick={() => node.remove()} />}
+      {status == 'Editable' && visibleMenu && (
+        <ContextMenu transfer={transfer} node={data} pos={position!} />
+      )}
     </div>
   );
 };

@@ -626,6 +626,16 @@ export class Task implements ITask {
   }
 }
 
+export const getDefaultTableNode = (): model.Tables => {
+  return {
+    id: common.generateUuid(),
+    code: 'table',
+    name: '表格',
+    typeName: '表格',
+    link: '',
+  };
+};
+
 export const getDefaultRequestNode = (): model.Request => {
   return {
     id: common.generateUuid(),
