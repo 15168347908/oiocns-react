@@ -145,28 +145,3 @@ export const expand = (nodes: MenuItem[], targetTypes: string[]): string[] => {
   }
   return ans;
 };
-
-/** 默认的生成图标 */
-export const defaultGenLabel = (entity: IEntity<XEntity>, types: string[]): ReactNode => {
-  return <></>;
-  // return (
-  //   <Space>
-  //     {entity.name}
-  //     {types.indexOf(entity.typeName) != -1 && (
-  //       <EditOutlined
-  //         onClick={(e) => {
-  //           e.stopPropagation();
-  //           linkCmd.emitter('entity', 'update', { entity });
-  //         }}
-  //       />
-  //     )}
-  //     {entity.typeName == '目录' && (
-  //       <NewEntity
-  //         curDir={entity as IDirectory}
-  //         types={[...types, '目录']}
-  //         size="small"
-  //       />
-  //     )}
-  //   </Space>
-  // );
-};

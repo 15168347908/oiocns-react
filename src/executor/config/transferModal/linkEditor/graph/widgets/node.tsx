@@ -222,6 +222,12 @@ const ContextMenu: React.FC<ContextProps> = ({ transfer, node, pos }) => {
       itemType: '复制',
       children: [],
     },
+    delete: {
+      key: 'delete',
+      label: '删除',
+      itemType: '删除',
+      children: [],
+    },
   };
   return (
     <div
