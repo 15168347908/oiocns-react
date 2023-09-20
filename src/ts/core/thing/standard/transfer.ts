@@ -481,14 +481,6 @@ export class Task implements ITask {
     }
   }
 
-  running(code: string, args: any, env?: model.KeyValue) {
-    return this.transfer.running(code, args, env);
-  }
-
-  async request(node: model.Node, env?: model.KeyValue) {
-    return await this.transfer.request(node, env);
-  }
-
   private dataCheck(preData?: any) {
     if (preData) {
       if (preData instanceof Error) {
@@ -510,7 +502,8 @@ export class Task implements ITask {
       this.dataCheck(preData);
       await sleep(500);
       if (node.preScripts) {
-        preData = this.running(node.preScripts, preData, this.metadata.env?.params);
+        let env = this.metadata.env?.params;
+        preData = this.transfer.running(node.preScripts, preData, env);
       }
       let nextData: any;
       const isArray = (array: any[]) => {
@@ -520,7 +513,7 @@ export class Task implements ITask {
       };
       switch (node.typeName) {
         case '请求':
-          nextData = await this.request(node);
+          nextData = await this.transfer.request(node);
           break;
         case '子图':
           // TODO 替换其它方案
@@ -538,7 +531,7 @@ export class Task implements ITask {
           break;
       }
       if (node.postScripts) {
-        nextData = this.running(node.postScripts, nextData);
+        nextData = this.transfer.running(node.postScripts, nextData);
       }
       this.visitedNodes.set(node.id, { code: node.code, data: nextData });
       node.status = 'Completed';

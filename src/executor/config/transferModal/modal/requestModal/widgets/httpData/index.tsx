@@ -29,7 +29,7 @@ const HttpData: React.FC<IProps> = ({ transfer, current }) => {
           };
         })}
       />
-      <div style={{ height: '100%' }}>{keys[curTab]()}</div>
+      {keys[curTab]()}
     </>
   );
 };

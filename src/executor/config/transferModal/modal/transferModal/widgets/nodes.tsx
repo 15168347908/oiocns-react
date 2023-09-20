@@ -62,6 +62,15 @@ const Nodes: React.FC<IProps> = ({ current }) => {
             }
           }
           break;
+        case 'delete':
+          if (graph.current) {
+            for (let node of graph.current.getNodes()) {
+              if (node.id == args.id) {
+                node.remove();
+              }
+            }
+          }
+          break;
       }
     });
     return () => {
