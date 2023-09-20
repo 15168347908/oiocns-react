@@ -3,11 +3,13 @@ import { message } from 'antd';
 import React, { createRef, useEffect, useState } from 'react';
 import cls from './../index.module.less';
 import { TransferStore, createGraph } from './widgets/graph';
+import { Options } from '@antv/x6/lib/graph/options';
 
 export interface IProps {
   current: ITransfer;
   initStatus: 'Editable' | 'Viewable';
   initEvent: 'EditRun' | 'ViewRun';
+  options?: Partial<Options.Manual>;
 }
 
 const loadProps = async (current: IDirectory) => {
@@ -21,7 +23,12 @@ const loadProps = async (current: IDirectory) => {
  * 返回一个请求编辑器
  * @returns
  */
-const TransferEditor: React.FC<IProps> = ({ current, initStatus, initEvent }) => {
+const TransferEditor: React.FC<IProps> = ({
+  current,
+  initStatus,
+  initEvent,
+  options,
+}) => {
   const ref = createRef<HTMLDivElement>();
   const [initializing, setInitializing] = useState<boolean>(true);
   useEffect(() => {
@@ -29,8 +36,8 @@ const TransferEditor: React.FC<IProps> = ({ current, initStatus, initEvent }) =>
       let root = current.directory.target.directory;
       loadProps(root).then(() => setInitializing(false));
     } else {
-      const graph = createGraph(ref);
-      graph.use(new TransferStore(current, initStatus));
+      const graph = createGraph(ref, options);
+      graph.use(new TransferStore(current, initStatus, initEvent));
       if (current.metadata.graph) {
         graph.fromJSON(current.metadata.graph);
       }

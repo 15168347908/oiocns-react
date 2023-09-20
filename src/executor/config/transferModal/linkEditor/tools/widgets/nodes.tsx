@@ -2,17 +2,17 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { common, model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
 import {
-  getDefaultTransferNode,
   getDefaultMappingNode,
   getDefaultRequestNode,
   getDefaultStoreNode,
   getDefaultTableNode,
+  getDefaultTransferNode,
 } from '@/ts/core/thing/standard/transfer';
 import { Graph } from '@antv/x6';
 import { Dnd } from '@antv/x6-plugin-dnd';
 import { Space } from 'antd';
 import React, { createRef, useEffect, useRef } from 'react';
-import { createNode } from '../../graph/widgets/graph';
+import { createGraphNode, createNode } from '../../graph/widgets/graph';
 import cls from './../../index.module.less';
 
 interface IProps {
@@ -29,13 +29,22 @@ const Nodes: React.FC<IProps> = ({ current }) => {
       switch (cmd) {
         case 'initialized':
           graph.current = args as Graph;
-          dnd.current = new Dnd({
-            target: args,
-            scaled: false,
-            dndContainer: dndRef.current ?? undefined,
-            getDragNode: (node) => node.clone({ keepId: true }),
-            getDropNode: (node) => node.clone({ keepId: true }),
-          });
+          if (graph.current) {
+            dnd.current = new Dnd({
+              target: args,
+              scaled: false,
+              dndContainer: dndRef.current ?? undefined,
+              getDragNode: (node) => node.clone({ keepId: true }),
+              getDropNode: (node) => {
+                const data = node.getData() as model.Node;
+                if (data.typeName == '子图') {
+                  return graph.current!.createNode(createGraphNode(data));
+                } else {
+                  return node.clone({ keepId: true });
+                }
+              },
+            });
+          }
           break;
         case 'copy':
           const newNode: model.Node = common.deepClone(args);
@@ -81,7 +90,7 @@ const Nodes: React.FC<IProps> = ({ current }) => {
         data = getDefaultTransferNode();
         break;
     }
-    const node = graph.current?.createNode(createNode(data));
+    let node = graph.current?.createNode(createNode(data));
     if (node) {
       dnd.current?.start(node, e.nativeEvent as any);
     }

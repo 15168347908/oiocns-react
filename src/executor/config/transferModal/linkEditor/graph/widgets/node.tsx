@@ -15,21 +15,22 @@ import cls from './../../index.module.less';
 import { ITransfer } from '@/ts/core';
 import { TransferStore } from './graph';
 import { message } from 'antd';
+import TransferEditor from '..';
 
 interface IProps {
   node: Node;
   graph: Graph;
 }
 
-export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
-  const transferStore = graph.getPlugin<TransferStore>('TransferStore');
-  const transfer = transferStore?.transfer;
+const useNode = (node: Node, graph: Graph) => {
+  const store = graph.getPlugin<TransferStore>('TransferStore');
+  const transfer = store?.transfer;
+  const [close, setClose] = useState<boolean>(false);
   const [data, setData] = useState(transfer?.getNode(node.id) ?? node.getData());
-  const [position, setPosition] = useState<{ x: number; y: number }>();
-  const [visibleMenu, setVisibleMenu] = useState<boolean>(false);
-  const initStatus = data.status ?? transferStore?.initStatus ?? 'Editable';
+  const [pos, setPos] = useState<{ x: number; y: number }>();
+  const [menu, setMenu] = useState<boolean>(false);
+  const initStatus = data.status ?? store?.initStatus ?? 'Editable';
   const [status, setStatus] = useState<model.NStatus>(initStatus);
-  const [visibleClosing, setVisibleClosing] = useState<boolean>(false);
   useEffect(() => {
     const id = transfer?.command.subscribe(async (type, cmd, args) => {
       switch (type) {
@@ -37,7 +38,7 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
           switch (cmd) {
             case 'click':
             case 'contextmenu':
-              setVisibleMenu(false);
+              setMenu(false);
               break;
           }
           break;
@@ -63,8 +64,8 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
             case 'contextmenu':
               if (args.node.id == node.id) {
                 const position = node.getPosition();
-                setVisibleMenu(true);
-                setPosition({ x: args.x - position.x, y: args.y - position.y });
+                setMenu(true);
+                setPos({ x: args.x - position.x, y: args.y - position.y });
               }
               break;
             case 'delete':
@@ -77,8 +78,6 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
                 setData(args);
               }
               break;
-            case 'refresh':
-              break;
           }
           break;
         }
@@ -88,18 +87,63 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
       transfer?.command.unsubscribe(id!);
     };
   });
+  return {
+    data,
+    setData,
+    pos,
+    setPos,
+    menu,
+    setMenu,
+    close,
+    setClose,
+    status,
+    setStatus,
+    store,
+    transfer,
+  };
+};
+
+export const GraphNode: React.FC<IProps> = ({ node, graph }) => {
+  const { store, pos, transfer, data, close, setClose, menu } = useNode(node, graph);
+  const nextTransfer = transfer?.getTransfer((data as model.SubTransfer).nextId);
+  const status = store?.initStatus ?? 'Editable';
+  const event = store?.initEvent ?? 'EditRun';
+  return (
+    <div
+      className={`${cls.transferNode} ${cls['border']}`}
+      onMouseEnter={() => setClose(true)}
+      onMouseLeave={() => setClose(false)}
+      onDoubleClick={() => transfer?.command.emitter('tools', 'edit', data)}>
+      {nextTransfer && (
+        <TransferEditor
+          current={nextTransfer}
+          options={{ background: { color: '#F2F7FA' } }}
+          initStatus={status}
+          initEvent={event}
+        />
+      )}
+      {status == 'Editable' && close && <Remove onClick={() => node.remove()} />}
+      {status == 'Editable' && menu && (
+        <ContextMenu transfer={transfer} node={data} pos={pos!} />
+      )}
+    </div>
+  );
+};
+
+export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
+  const { data, pos, menu, transfer, status, close, setClose } = useNode(node, graph);
   return (
     <div
       className={`${cls['flex-row']} ${cls['container']} ${cls['border']}`}
-      onMouseEnter={() => setVisibleClosing(true)}
-      onMouseLeave={() => setVisibleClosing(false)}
+      onMouseEnter={() => setClose(true)}
+      onMouseLeave={() => setClose(false)}
       onDoubleClick={() => transfer?.command.emitter('tools', 'edit', data)}>
       <Tag typeName={data.typeName} transfer={transfer} />
       <Status status={status} />
       <Info name={data.name} />
-      {status == 'Editable' && visibleClosing && <Remove onClick={() => node.remove()} />}
-      {status == 'Editable' && visibleMenu && (
-        <ContextMenu transfer={transfer} node={data} pos={position!} />
+      {status == 'Editable' && close && <Remove onClick={() => node.remove()} />}
+      {status == 'Editable' && menu && (
+        <ContextMenu transfer={transfer} node={data} pos={pos!} />
       )}
     </div>
   );
@@ -112,11 +156,7 @@ interface RemoveProps {
 const Remove: React.FC<RemoveProps> = ({ onClick }) => {
   const style = { color: '#9498df', fontSize: 12 };
   return (
-    <CloseCircleOutlined
-      style={style}
-      className={cls['remove']}
-      onClick={() => onClick()}
-    />
+    <CloseCircleOutlined style={style} className={cls.remove} onClick={() => onClick()} />
   );
 };
 

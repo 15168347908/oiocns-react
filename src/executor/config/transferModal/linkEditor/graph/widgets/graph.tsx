@@ -3,9 +3,10 @@ import { Basecoat, Graph, Path, Platform, Node } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
 import { register } from '@antv/x6-react-shape';
 import React from 'react';
-import { ProcessingNode } from './node';
+import { GraphNode, ProcessingNode } from './node';
 import { model } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
+import { Options } from '@antv/x6/lib/graph/options';
 
 /**
  * 创建画布
@@ -13,9 +14,13 @@ import { generateUuid } from '@/ts/base/common';
  * @param link 迁移配置数据
  * @returns
  */
-export const createGraph = (ref: React.RefObject<HTMLDivElement>): Graph => {
+export const createGraph = (
+  ref: React.RefObject<HTMLDivElement>,
+  options?: Partial<Options.Manual>,
+): Graph => {
   const graph: Graph = new Graph({
     container: ref.current!,
+    ...options,
     grid: true,
     autoResize: true,
     panning: true,
@@ -59,9 +64,6 @@ export const createGraph = (ref: React.RefObject<HTMLDivElement>): Graph => {
         return targetMagnet?.getAttribute('port-group') === 'in';
       },
     },
-    background: {
-      color: '#F2F7FA',
-    },
   });
   using(graph);
   registering();
@@ -100,39 +102,47 @@ const registering = () => {
     },
     true,
   );
+  let ports = {
+    groups: {
+      in: {
+        position: 'left',
+        attrs: {
+          circle: {
+            r: 4,
+            magnet: true,
+            stroke: '#C2C8D5',
+            strokeWidth: 1,
+            fill: '#fff',
+          },
+        },
+      },
+      out: {
+        position: 'right',
+        attrs: {
+          circle: {
+            r: 4,
+            magnet: true,
+            stroke: '#C2C8D5',
+            strokeWidth: 1,
+            fill: '#fff',
+          },
+        },
+      },
+    },
+  };
   register({
     shape: 'data-processing-dag-node',
     width: 180,
     height: 48,
     component: ProcessingNode,
-    ports: {
-      groups: {
-        in: {
-          position: 'left',
-          attrs: {
-            circle: {
-              r: 4,
-              magnet: true,
-              stroke: '#C2C8D5',
-              strokeWidth: 1,
-              fill: '#fff',
-            },
-          },
-        },
-        out: {
-          position: 'right',
-          attrs: {
-            circle: {
-              r: 4,
-              magnet: true,
-              stroke: '#C2C8D5',
-              strokeWidth: 1,
-              fill: '#fff',
-            },
-          },
-        },
-      },
-    },
+    ports: ports,
+  });
+  register({
+    shape: 'data-processing-dag-graph-node',
+    width: 600,
+    height: 300,
+    component: GraphNode,
+    ports: ports,
   });
 };
 
@@ -153,17 +163,22 @@ const using = (graph: Graph) => {
   );
 };
 
+type Status = 'Viewable' | 'Editable';
+type Event = 'EditRun' | 'ViewRun';
+
 /** 临时存储插件 */
 export class TransferStore extends Basecoat<{}> implements Graph.Plugin {
   name: string;
   transfer: ITransfer;
-  initStatus: 'Viewable' | 'Editable';
+  initStatus: Status;
+  initEvent: Event;
 
-  constructor(transfer: ITransfer, initStatus: 'Viewable' | 'Editable') {
+  constructor(transfer: ITransfer, initStatus: Status, initEvent: Event) {
     super();
     this.name = 'TransferStore';
     this.transfer = transfer;
     this.initStatus = initStatus;
+    this.initEvent = initEvent;
   }
 
   init(_graph: Graph, ..._: any[]) {}
@@ -239,9 +254,10 @@ export const createNode = (data: model.Node): Node.Metadata => {
  * @param data 数据
  * @returns 容器
  */
-export const createContainer = (data: model.SubTransfer): Node.Metadata => {
+export const createGraphNode = (data: model.Node): Node.Metadata => {
   const node: Node.Metadata = {
     id: data.id,
+    shape: 'data-processing-dag-graph-node',
     data: data,
     ports: [
       {
