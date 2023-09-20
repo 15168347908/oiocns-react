@@ -77,7 +77,7 @@ const Nodes: React.FC<IProps> = ({ current }) => {
       case '映射':
         data = getDefaultMappingNode();
         break;
-      case '链接':
+      case '子图':
         data = getDefaultTransferNode();
         break;
     }
@@ -101,7 +101,7 @@ const Nodes: React.FC<IProps> = ({ current }) => {
       <Space direction="vertical">
         <Node name="表格" />
         <Node name="请求" />
-        <Node name="链接" />
+        <Node name="子图" />
         <Node name="映射" />
         <Node name="存储" />
       </Space>

@@ -10,7 +10,7 @@ import { generateUuid } from '@/ts/base/common';
 /**
  * 创建画布
  * @param ref html 元素引用
- * @param link 链接数据
+ * @param link 迁移配置数据
  * @returns
  */
 export const createGraph = (ref: React.RefObject<HTMLDivElement>): Graph => {
@@ -219,6 +219,29 @@ export const createNode = (data: model.Node): Node.Metadata => {
   const node: Node.Metadata = {
     id: data.id,
     shape: 'data-processing-dag-node',
+    data: data,
+    ports: [
+      {
+        id: `${data.id}-in`,
+        group: 'in',
+      },
+      {
+        id: `${data.id}-out`,
+        group: 'out',
+      },
+    ],
+  };
+  return node;
+};
+
+/**
+ * 创建节点容器
+ * @param data 数据
+ * @returns 容器
+ */
+export const createContainer = (data: model.SubTransfer): Node.Metadata => {
+  const node: Node.Metadata = {
+    id: data.id,
     data: data,
     ports: [
       {

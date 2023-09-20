@@ -1030,6 +1030,8 @@ export type Store = {
 export type SubTransfer = {
   // 子配置 ID
   nextId: string;
+  // 是否自循环
+  isSelfCirculation: boolean;
 } & Node;
 
 // 选择
@@ -1070,7 +1072,7 @@ export type NStatus = GStatus;
 export type NEvent = '';
 
 // 节点类型
-export type NodeType = '表格' | '请求' | '链接' | '映射' | '存储';
+export type NodeType = '表格' | '请求' | '子图' | '映射' | '存储';
 
 // 脚本位置
 export type Pos = 'pre' | 'post';
@@ -1088,7 +1090,7 @@ export type Shift<T, S> = {
   end: S;
 };
 
-// 链接
+// 迁移配置
 export type Transfer = {
   // 目录
   directoryId: string;

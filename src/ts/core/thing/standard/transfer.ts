@@ -410,7 +410,7 @@ export interface ITask {
   visitedNodes: Map<string, { code: string; data: any }>;
   /** 已遍历边 */
   visitedEdges: Set<string>;
-  /** 前置链接 */
+  /** 前置任务 */
   preTask?: ITask;
   /** 启动事件 */
   initEvent: model.GEvent;
@@ -525,7 +525,7 @@ export class Task implements ITask {
         case '请求':
           nextData = await this.request(node);
           break;
-        case '链接':
+        case '子图':
           // TODO 替换其它方案
           const nextId = (node as model.SubTransfer).nextId;
           this.transfer.getTransfer(nextId)?.execute(this.initStatus, this.initEvent);
@@ -682,8 +682,9 @@ export const getDefaultTransferNode = (): model.SubTransfer => {
   return {
     id: common.generateUuid(),
     code: 'transfer',
-    name: '链接',
-    typeName: '链接',
+    name: '子图',
+    typeName: '子图',
     nextId: '',
+    isSelfCirculation: false
   };
 };

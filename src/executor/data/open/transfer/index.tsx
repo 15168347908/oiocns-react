@@ -18,7 +18,7 @@ const TransferView: React.FC<IProps> = ({ current, finished }) => {
       width={'80vw'}
       bodyHeight={'80vh'}
       destroyOnClose
-      title={'链接配置'}
+      title={'迁移查看'}
       onCancel={() => finished()}>
       <TransferEditor current={current} initStatus="Viewable" initEvent={'ViewRun'} />
       <ToolBar current={current} initStatus="Viewable" />
