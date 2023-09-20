@@ -8,7 +8,7 @@ import Params from './widgets/params';
 
 interface IProps {
   transfer: ITransfer;
-  current: model.RequestNode;
+  current: model.Request;
 }
 
 const RequestPart: React.FC<IProps> = ({ transfer, current }) => {

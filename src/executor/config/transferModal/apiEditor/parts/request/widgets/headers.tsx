@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import EditableTable from './editable';
-import { ITransfer } from '@/ts/core';
 import { model } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
+import { ITransfer } from '@/ts/core';
+import React, { useState } from 'react';
+import EditableTable from './editable';
 
 export interface IProps {
   transfer: ITransfer;
-  current: model.RequestNode;
+  current: model.Request;
 }
 
 interface HeaderData {

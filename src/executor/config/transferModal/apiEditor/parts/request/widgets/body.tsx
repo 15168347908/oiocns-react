@@ -5,7 +5,7 @@ import { ITransfer } from '@/ts/core';
 
 export interface IProps {
   current: ITransfer;
-  node: model.RequestNode;
+  node: model.Request;
 }
 
 const Body: React.FC<IProps> = ({ current, node }) => {
