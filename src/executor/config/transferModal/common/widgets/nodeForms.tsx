@@ -85,6 +85,7 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
           case 'updateMapping':
             return (
               <MappingForm
+                key={generateUuid()}
                 transfer={current}
                 current={entry[1]}
                 finished={() => {
@@ -95,6 +96,7 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
           case 'updateStore':
             return (
               <StoreForm
+                key={generateUuid()}
                 transfer={current}
                 current={entry[1]}
                 finished={() => {
@@ -105,6 +107,7 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
           case 'updateTransfer':
             return (
               <SubTransferForm
+                key={generateUuid()}
                 transfer={current}
                 current={entry[1]}
                 finished={() => {

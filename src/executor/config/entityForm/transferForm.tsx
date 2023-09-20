@@ -2,8 +2,10 @@ import SchemaForm from '@/components/SchemaForm';
 import { Transfer } from '@/ts/base/model';
 import { IDirectory } from '@/ts/core';
 import { ITransfer } from '@/ts/core/';
-import { ProFormColumnsType } from '@ant-design/pro-components';
-import React from 'react';
+import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
+import React, { createRef } from 'react';
+import CodeMirror from '@uiw/react-codemirror';
+import { javascript } from '@codemirror/lang-javascript';
 
 interface IProps {
   formType: string;
@@ -18,6 +20,7 @@ const TransferForm: React.FC<IProps> = ({ formType, current, finished }) => {
       initialValue = current.metadata;
       break;
   }
+  const formRef = createRef<ProFormInstance>();
   const columns: ProFormColumnsType<Transfer>[] = [
     {
       title: '名称',
@@ -34,6 +37,35 @@ const TransferForm: React.FC<IProps> = ({ formType, current, finished }) => {
       },
     },
     {
+      title: '是否自循环',
+      dataIndex: 'isSelfCirculation',
+      valueType: 'switch',
+      initialValue: false,
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+    },
+    {
+      title: '循环退出判断',
+      dataIndex: 'judge',
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+      colProps: { span: 24 },
+      renderFormItem: () => {
+        return (
+          <CodeMirror
+            value={formRef.current?.getFieldValue('judge')}
+            height={'200px'}
+            extensions={[javascript()]}
+            onChange={(code: string) => {
+              formRef.current?.setFieldValue('judge', code);
+            }}
+          />
+        );
+      },
+    },
+    {
       title: '备注',
       dataIndex: 'remark',
       valueType: 'textarea',
@@ -45,6 +77,7 @@ const TransferForm: React.FC<IProps> = ({ formType, current, finished }) => {
   ];
   return (
     <SchemaForm<Transfer>
+      formRef={formRef}
       open
       title="迁移配置定义"
       width={640}
@@ -69,9 +102,9 @@ const TransferForm: React.FC<IProps> = ({ formType, current, finished }) => {
             break;
           }
           case 'updateTransferConfig': {
-            let link = current as ITransfer;
-            link.update({ ...initialValue, ...values });
-            finished(link);
+            let transfer = current as ITransfer;
+            transfer.update({ ...initialValue, ...values });
+            finished(transfer);
             break;
           }
         }

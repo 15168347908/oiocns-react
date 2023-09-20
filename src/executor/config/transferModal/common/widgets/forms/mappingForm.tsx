@@ -119,7 +119,7 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
     <SchemaForm<model.Mapping>
       formRef={formRef}
       open
-      title="映射配置"
+      title="映射定义"
       width={640}
       columns={columns}
       initialValues={current}

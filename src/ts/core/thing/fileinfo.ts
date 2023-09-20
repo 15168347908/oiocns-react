@@ -236,6 +236,7 @@ export abstract class StandardFileInfo<T extends schema.XStandard>
     );
   }
   async update(data: T): Promise<boolean> {
+    console.log(JSON.parse(JSON.stringify(data)));
     const res = await this.coll.replace({
       ...this.metadata,
       ...data,
@@ -243,6 +244,7 @@ export abstract class StandardFileInfo<T extends schema.XStandard>
       typeName: this.metadata.typeName,
     });
     if (res) {
+      console.log(res);
       await this.notify('replace', [res]);
       return true;
     }

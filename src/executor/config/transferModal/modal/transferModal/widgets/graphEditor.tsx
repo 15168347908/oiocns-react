@@ -24,6 +24,7 @@ const loadProps = async (current: IDirectory) => {
  * @returns
  */
 const GraphEditor: React.FC<IProps> = ({ current, initStatus, initEvent, options }) => {
+  console.log(JSON.parse(JSON.stringify(current.metadata)));
   const ref = createRef<HTMLDivElement>();
   const [initializing, setInitializing] = useState<boolean>(true);
   useEffect(() => {
@@ -107,6 +108,7 @@ const GraphEditor: React.FC<IProps> = ({ current, initStatus, initEvent, options
       });
       return () => {
         current.command.unsubscribe(id);
+        current.unbinding();
         graph.off();
         graph.dispose();
       };

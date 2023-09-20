@@ -1030,8 +1030,6 @@ export type Store = {
 export type SubTransfer = {
   // 子配置 ID
   nextId: string;
-  // 是否自循环
-  isSelfCirculation: boolean;
 } & Node;
 
 // 选择
@@ -1104,6 +1102,10 @@ export type Transfer = {
   edges: Edge[];
   // 图数据
   graph: any;
+  // 是否自循环
+  isSelfCirculation: boolean;
+  // 退出循环脚本
+  judge: string;
 } & XStandard;
 
 // 任务

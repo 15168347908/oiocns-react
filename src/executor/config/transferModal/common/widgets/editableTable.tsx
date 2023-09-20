@@ -42,11 +42,6 @@ const EditableTable = <T extends Row>({ value, onChange, columns }: IProps<T>) =
           onMouseDown: () => {
             setEditableRowKeys([row.id]);
           },
-          onBlur: () => {
-            if (edited.current) {
-              setEditableRowKeys([]);
-            }
-          },
         };
       }}
       columns={columns}

@@ -20,6 +20,8 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   getData?: GraphData;
   /** 绑定图 */
   binding(getData: GraphData): void;
+  /** 取消绑定 */
+  unbinding(): void;
   /** 是否有环 */
   hasLoop(): boolean;
   /** 获取节点 */
@@ -81,7 +83,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     });
     this.setEntity();
   }
-
   execute(status: model.GStatus, event: model.GEvent): void {
     this.curTask = new Task(this, event, status);
     this.taskList.push(this.curTask);
@@ -146,8 +147,14 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     this.getData = getData;
   }
 
+  unbinding(): void {
+    this.getData = undefined;
+  }
+
   async update(data: model.Transfer): Promise<boolean> {
-    data.graph = this.getData?.();
+    if (this.getData) {
+      data.graph = this.getData();
+    }
     return await super.update(data);
   }
 
@@ -501,8 +508,8 @@ export class Task implements ITask {
     try {
       this.dataCheck(preData);
       await sleep(500);
+      let env = this.metadata.env?.params;
       if (node.preScripts) {
-        let env = this.metadata.env?.params;
         preData = this.transfer.running(node.preScripts, preData, env);
       }
       let nextData: any;
@@ -513,7 +520,8 @@ export class Task implements ITask {
       };
       switch (node.typeName) {
         case '请求':
-          nextData = await this.transfer.request(node);
+          console.log(env);
+          nextData = await this.transfer.request(node, env);
           break;
         case '子图':
           // TODO 替换其它方案
@@ -536,7 +544,7 @@ export class Task implements ITask {
       this.visitedNodes.set(node.id, { code: node.code, data: nextData });
       node.status = 'Completed';
       this.command.emitter('running', 'completed', [node]);
-      if (this.tryRunning()) {
+      if (this.tryRunning(nextData)) {
         this.command.emitter('main', 'next', [node]);
       }
     } catch (error) {
@@ -604,12 +612,22 @@ export class Task implements ITask {
     }
   }
 
-  tryRunning(): boolean {
+  tryRunning(nextData?: any): boolean {
     if (this.visitedNodes.size == this.metadata.nodes.length) {
       this.metadata.endTime = new Date();
       this.command.emitter('tasks', 'refresh', this.transfer.taskList);
       this.machine('Completed');
       this.transfer.completed(this.initStatus, this.initEvent);
+      if (this.transfer.metadata.isSelfCirculation) {
+        let judge = this.transfer.metadata.judge;
+        if (judge) {
+          const res = this.transfer.running(judge, nextData);
+          console.log('res', res, nextData, judge);
+          if (res.success) {
+            this.transfer.execute(this.initStatus, this.initEvent);
+          }
+        }
+      }
       return false;
     }
     return true;
@@ -675,6 +693,5 @@ export const getDefaultTransferNode = (): model.SubTransfer => {
     name: '子图',
     typeName: '子图',
     nextId: '',
-    isSelfCirculation: false,
   };
 };

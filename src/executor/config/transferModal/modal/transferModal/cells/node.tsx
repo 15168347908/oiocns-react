@@ -9,7 +9,7 @@ import {
   StopOutlined,
 } from '@ant-design/icons';
 import { Graph, Node } from '@antv/x6';
-import React, { useEffect, useState } from 'react';
+import React, { createRef, useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
 import cls from './../index.module.less';
 import { ITransfer } from '@/ts/core';
@@ -104,7 +104,10 @@ const useNode = (node: Node, graph: Graph) => {
 };
 
 export const GraphNode: React.FC<IProps> = ({ node, graph }) => {
-  const { store, pos, transfer, data, close, setClose, menu } = useNode(node, graph);
+  const { store, pos, transfer, data, close, setClose, menu, setMenu } = useNode(
+    node,
+    graph,
+  );
   const nextTransfer = transfer?.getTransfer((data as model.SubTransfer).nextId);
   const status = store?.initStatus ?? 'Editable';
   const event = store?.initEvent ?? 'EditRun';
@@ -124,14 +127,24 @@ export const GraphNode: React.FC<IProps> = ({ node, graph }) => {
       )}
       {status == 'Editable' && close && <Remove onClick={() => node.remove()} />}
       {status == 'Editable' && menu && (
-        <ContextMenu transfer={transfer} node={data} pos={pos!} />
+        <ContextMenu
+          transfer={transfer}
+          node={data}
+          pos={pos!}
+          onBlur={() => setMenu(false)}
+        />
       )}
     </div>
   );
 };
 
 export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
-  const { data, pos, menu, transfer, status, close, setClose } = useNode(node, graph);
+  const { data, pos, menu, setMenu, store, transfer, status, close, setClose } = useNode(
+    node,
+    graph,
+  );
+  const initStatus = store?.initStatus;
+  const editStatus = ['Editable', 'Completed', 'Error'];
   return (
     <div
       className={`${cls['flex-row']} ${cls['container']} ${cls['border']}`}
@@ -141,9 +154,16 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
       <Tag typeName={data.typeName} transfer={transfer} />
       <Status status={status} />
       <Info name={data.name} />
-      {status == 'Editable' && close && <Remove onClick={() => node.remove()} />}
-      {status == 'Editable' && menu && (
-        <ContextMenu transfer={transfer} node={data} pos={pos!} />
+      {initStatus == 'Editable' && editStatus.indexOf(status) != -1 && close && (
+        <Remove onClick={() => node.remove()} />
+      )}
+      {initStatus == 'Editable' && editStatus.indexOf(status) != -1 && menu && (
+        <ContextMenu
+          transfer={transfer}
+          node={data}
+          pos={pos!}
+          onBlur={() => setMenu(false)}
+        />
       )}
     </div>
   );
@@ -200,9 +220,10 @@ interface ContextProps {
   transfer?: ITransfer;
   node: model.Node;
   pos: { x: number; y: number };
+  onBlur?: () => void;
 }
 
-const ContextMenu: React.FC<ContextProps> = ({ transfer, node, pos }) => {
+const ContextMenu: React.FC<ContextProps> = ({ transfer, node, pos, onBlur }) => {
   const menus: { [key: string]: MenuItemType } = {
     open: {
       key: 'edit',
@@ -229,11 +250,16 @@ const ContextMenu: React.FC<ContextProps> = ({ transfer, node, pos }) => {
       children: [],
     },
   };
+  const div = createRef<HTMLDivElement>();
+  useEffect(() => div.current?.focus());
   return (
     <div
+      ref={div}
       style={{ left: pos.x, top: pos.y }}
       onContextMenu={(e) => e.stopPropagation()}
-      className={`${cls['context-menu']} ${cls['context-border']}`}>
+      className={`${cls['context-menu']} ${cls['context-border']}`}
+      tabIndex={0}
+      onBlur={onBlur}>
       <ul className={`${cls['dropdown']}`}>
         {Object.keys(menus)
           .map((key) => menus[key])

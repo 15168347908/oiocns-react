@@ -9,14 +9,17 @@ interface IProps {
 
 export const toJsonString = (value: any): string => {
   const typeName = typeof value;
-  console.log(value);
-  if (typeName === 'string') {
-    return JSON.stringify(JSON.parse(value), null, 2);
-  } else if (typeName === 'object') {
-    return JSON.stringify(value, null, 2);
-  } else if (typeName === 'undefined') {
-    return '';
-  } else {
+  try {
+    if (typeName === 'string') {
+      return JSON.stringify(JSON.parse(value), null, 2);
+    } else if (typeName === 'object') {
+      return JSON.stringify(value, null, 2);
+    } else if (typeName === 'undefined') {
+      return '';
+    } else {
+      return `${value}`;
+    }
+  } catch (error) {
     return `${value}`;
   }
 };
