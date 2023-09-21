@@ -67,9 +67,6 @@ const TransferForm: React.FC<IProps> = ({ formType, current, finished }) => {
       dataIndex: 'remark',
       valueType: 'textarea',
       colProps: { span: 24 },
-      formItemProps: {
-        rules: [{ required: true, message: '备注为必填项' }],
-      },
     },
   ];
   return (

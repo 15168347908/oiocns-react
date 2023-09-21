@@ -87,6 +87,7 @@ export const GraphNode: React.FC<IProps> = memo(({ node, graph }) => {
         transfer={transfer}
         style={{ position: 'absolute', left: 40, top: 20 }}
       />
+      <Info name={data.name} style={{ left: 200, top: 16 }} />
       <Remove store={store} node={node} transfer={transfer} data={data} />
       <ContextMenu store={store} node={node} transfer={transfer} data={data} />
     </div>
@@ -345,12 +346,13 @@ const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node, data }) =>
 
 interface InfoProps {
   name: string;
+  style?: CSSProperties;
 }
 
 // 节点信息
-const Info: React.FC<InfoProps> = ({ name }) => {
+const Info: React.FC<InfoProps> = ({ name, style }) => {
   return (
-    <div className={`${cls['flex-row']} ${cls['info']} ${cls['border']}`}>
+    <div style={style} className={`${cls['flex-row']} ${cls['info']} ${cls['border']}`}>
       <EntityIcon entityId={name} />
       <div style={{ marginLeft: 10 }}>{name}</div>
     </div>
