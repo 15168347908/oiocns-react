@@ -15,12 +15,19 @@ interface Kv {
 
 export const getKvs = (current: ITransfer): Kv[] => {
   const kvs: Kv[] = [];
-  const metadata = current.metadata;
-  if (metadata.curEnv) {
-    const curEnv = metadata.envs.find((item) => item.id == metadata.curEnv);
-    if (curEnv) {
-      for (const k in curEnv.params) {
-        kvs.push({ k: k, v: curEnv.params[k] });
+  const curTask = current.curTask?.metadata;
+  if (curTask?.env) {
+    for (const k in curTask.env.params) {
+      kvs.push({ k: k, v: curTask.env.params[k] });
+    }
+  } else {
+    const metadata = current.metadata;
+    if (metadata.curEnv) {
+      const curEnv = metadata.envs.find((item) => item.id == metadata.curEnv);
+      if (curEnv) {
+        for (const k in curEnv.params) {
+          kvs.push({ k: k, v: curEnv.params[k] });
+        }
       }
     }
   }

@@ -60,6 +60,8 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   writing(node: model.Node, array: any[]): Promise<any[]>;
   /** 创建任务 */
   execute(status: model.GStatus, event: model.GEvent): void;
+  /** 创建任务 */
+  nextExecute(preTask: ITask): void;
   /** 完成任务 */
   completed(status: model.GStatus, event: model.GEvent): void;
 }
@@ -83,8 +85,15 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     });
     this.setEntity();
   }
+
   execute(status: model.GStatus, event: model.GEvent): void {
     this.curTask = new Task(this, event, status);
+    this.taskList.push(this.curTask);
+    this.curTask.starting();
+  }
+
+  nextExecute(preTask: ITask): void {
+    this.curTask = new Task(this, preTask.initEvent, preTask.initStatus, preTask);
     this.taskList.push(this.curTask);
     this.curTask.starting();
   }
@@ -449,20 +458,24 @@ export class Task implements ITask {
     this.transfer = transfer;
     this.initEvent = initEvent;
     this.initStatus = initStatus;
-    this.metadata = common.deepClone({
-      id: common.generateUuid(),
-      status: initStatus,
-      nodes: transfer.metadata.nodes.map((item) => {
-        return {
-          ...item,
-          status: initStatus,
-        };
-      }),
-      env: transfer.getCurEnv(),
-      edges: transfer.metadata.edges,
-      graph: transfer.metadata.graph,
-      startTime: new Date(),
-    });
+    if (task) {
+      this.metadata = common.deepClone(task.metadata);
+    } else {
+      this.metadata = common.deepClone({
+        id: common.generateUuid(),
+        status: initStatus,
+        nodes: transfer.metadata.nodes.map((item) => {
+          return {
+            ...item,
+            status: initStatus,
+          };
+        }),
+        env: transfer.getCurEnv(),
+        edges: transfer.metadata.edges,
+        graph: transfer.metadata.graph,
+        startTime: new Date(),
+      });
+    }
     this.visitedNodes = new Map();
     this.visitedEdges = new Set();
     this.preTask = task;
@@ -522,6 +535,7 @@ export class Task implements ITask {
         case '请求':
           console.log(env);
           nextData = await this.transfer.request(node, env);
+          console.log(nextData)
           break;
         case '子图':
           // TODO 替换其它方案
@@ -539,7 +553,7 @@ export class Task implements ITask {
           break;
       }
       if (node.postScripts) {
-        nextData = this.transfer.running(node.postScripts, nextData);
+        nextData = this.transfer.running(node.postScripts, nextData, env);
       }
       this.visitedNodes.set(node.id, { code: node.code, data: nextData });
       node.status = 'Completed';
@@ -556,6 +570,7 @@ export class Task implements ITask {
         this.command.emitter('main', 'next', [node, error]);
       }
     }
+    this.command.emitter('environments', 'refresh');
   }
 
   private preCheck(node: model.Node): { s: boolean; d: { [key: string]: any } } {
@@ -622,9 +637,8 @@ export class Task implements ITask {
         let judge = this.transfer.metadata.judge;
         if (judge) {
           const res = this.transfer.running(judge, nextData);
-          console.log('res', res, nextData, judge);
           if (res.success) {
-            this.transfer.execute(this.initStatus, this.initEvent);
+            this.transfer.nextExecute(this);
           }
         }
       }
