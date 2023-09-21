@@ -13,11 +13,11 @@ const Tasks: React.FC<IProps> = ({ current }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [tasks, setTasks] = useState(current.taskList);
   useEffect(() => {
-    const id = current.command.subscribe((type, cmd, args) => {
+    const id = current.command.subscribe((type, cmd) => {
       if (type == 'tasks') {
         switch (cmd) {
           case 'refresh':
-            setTasks([...args]);
+            setTasks([...current.taskList]);
             break;
           case 'open':
             setOpen(true);

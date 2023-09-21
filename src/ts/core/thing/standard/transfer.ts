@@ -59,9 +59,9 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 写入 */
   writing(node: model.Node, array: any[]): Promise<any[]>;
   /** 创建任务 */
-  execute(status: model.GStatus, event: model.GEvent): void;
+  execute(status: model.GStatus, event: model.GEvent): Promise<void>;
   /** 创建任务 */
-  nextExecute(preTask: ITask): void;
+  nextExecute(preTask: ITask): Promise<void>;
 }
 
 export class Transfer extends StandardFileInfo<model.Transfer> implements ITransfer {
@@ -74,26 +74,19 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     super(metadata, dir, dir.resource.transferColl);
     this.taskList = [];
     this.command = new Command();
-    this.command.subscribe((type, cmd, args) => {
-      switch (type) {
-        case 'main':
-          this.curTask?.handing(cmd, args);
-          break;
-      }
-    });
     this.setEntity();
   }
 
-  execute(status: model.GStatus, event: model.GEvent): void {
+  async execute(status: model.GStatus, event: model.GEvent): Promise<void> {
     this.curTask = new Task(this, event, status);
     this.taskList.push(this.curTask);
-    this.curTask.starting();
+    await this.curTask.starting();
   }
 
-  nextExecute(preTask: ITask): void {
+  async nextExecute(preTask: ITask): Promise<void> {
     this.curTask = new Task(this, preTask.initEvent, preTask.initStatus, preTask);
     this.taskList.push(this.curTask);
-    this.curTask.starting();
+    await this.curTask.starting();
   }
 
   getTransfer(id: string): ITransfer | undefined {
@@ -419,14 +412,8 @@ export interface ITask {
   initEvent: model.GEvent;
   /** 启动状态 */
   initStatus: model.GStatus;
-  /** 状态转移 */
-  machine(event: model.GEvent): void;
-  /** 遍历节点 */
-  visitNode(node: model.Node, preData?: any): Promise<void>;
-  /** 处理事件 */
-  handing(cmd: string, args: any): Promise<void>;
   /** 开始执行 */
-  starting(): void;
+  starting(): Promise<void>;
 }
 
 export class Task implements ITask {
@@ -472,11 +459,19 @@ export class Task implements ITask {
     this.command = transfer.command;
   }
 
-  starting(): void {
+  async starting(): Promise<void> {
     this.machine(this.initEvent);
+    this.refreshEnvs();
+    this.refreshTasks();
+    await this.iterateRoots();
+  }
+
+  refreshEnvs() {
     this.command.emitter('environments', 'refresh');
-    this.command.emitter('tasks', 'refresh', this.transfer.taskList);
-    this.command.emitter('main', 'roots');
+  }
+
+  refreshTasks() {
+    this.command.emitter('tasks', 'refresh');
   }
 
   machine(event: model.GEvent): void {
@@ -523,14 +518,12 @@ export class Task implements ITask {
       };
       switch (node.typeName) {
         case '请求':
-          console.log(env);
           nextData = await this.transfer.request(node, env);
-          console.log(nextData);
           break;
         case '子图':
           // TODO 替换其它方案
           const nextId = (node as model.SubTransfer).nextId;
-          this.transfer.getTransfer(nextId)?.execute(this.initStatus, this.initEvent);
+          await this.transfer.getTransfer(nextId)?.execute(this.initStatus, this.initEvent);
           break;
         case '映射':
           isArray(preData.array);
@@ -548,19 +541,16 @@ export class Task implements ITask {
       this.visitedNodes.set(node.id, { code: node.code, data: nextData });
       node.status = 'Completed';
       this.command.emitter('running', 'completed', [node]);
-      if (this.tryRunning(nextData)) {
-        this.command.emitter('main', 'next', [node]);
-      }
     } catch (error) {
       this.visitedNodes.set(node.id, { code: node.code, data: error });
       this.machine('Throw');
       node.status = 'Error';
       this.command.emitter('running', 'error', [node, error]);
-      if (this.tryRunning()) {
-        this.command.emitter('main', 'next', [node, error]);
-      }
     }
-    this.command.emitter('environments', 'refresh');
+    this.refreshEnvs();
+    if (await this.tryRunning()) {
+      await this.next(node);
+    }
   }
 
   private preCheck(node: model.Node): { s: boolean; d: { [key: string]: any } } {
@@ -582,64 +572,57 @@ export class Task implements ITask {
     return { s: true, d: data };
   }
 
-  async handing(cmd: string, args: any) {
-    switch (cmd) {
-      case 'roots': {
-        if (this.tryRunning()) {
-          const not = this.metadata.edges.map((item) => item.end);
-          const roots = this.metadata.nodes.filter((item) => not.indexOf(item.id) == -1);
-          for (const root of roots) {
-            this.visitNode(root);
-          }
-        }
-        break;
-      }
-      case 'visitNode': {
-        const next = this.preCheck(args[0]);
-        if (next.s) {
-          await this.visitNode(args[0], next.d);
-        }
-        break;
-      }
-      case 'next': {
-        for (const edge of this.metadata.edges) {
-          if (args[0].id == edge.start) {
-            this.visitedEdges?.add(edge.id);
-            for (const node of this.metadata.nodes) {
-              if (node.id == edge.end) {
-                this.command.emitter('main', 'visitNode', [node]);
-              }
+  async iterateRoots(): Promise<void> {
+    if (await this.tryRunning()) {
+      const not = this.metadata.edges.map((item) => item.end);
+      const roots = this.metadata.nodes.filter((item) => not.indexOf(item.id) == -1);
+      await Promise.all(roots.map((root) => this.visitNode(root)));
+    }
+  }
+
+  async next(preNode: model.Node): Promise<void> {
+    for (const edge of this.metadata.edges) {
+      if (preNode.id == edge.start) {
+        this.visitedEdges.add(edge.id);
+        for (const node of this.metadata.nodes) {
+          if (node.id == edge.end) {
+            const next = this.preCheck(node);
+            if (next.s) {
+              await this.visitNode(node, next.d);
             }
           }
         }
-        break;
       }
     }
   }
 
-  tryRunning(nextData?: any): boolean {
+  async tryRunning(nextData?: any): Promise<boolean> {
     if (this.visitedNodes.size == this.metadata.nodes.length) {
       this.metadata.endTime = new Date();
-      this.command.emitter('tasks', 'refresh', this.transfer.taskList);
+      this.refreshTasks();
       this.machine('Completed');
       if (this.initStatus == 'Editable') {
         this.command.emitter('graph', 'status', 'Editable');
       } else if (this.initStatus == 'Viewable') {
         this.command.emitter('graph', 'status', 'Viewable');
       }
-      if (this.transfer.metadata.isSelfCirculation) {
-        let judge = this.transfer.metadata.judge;
-        if (judge) {
-          let params = this.metadata.env?.params;
-          const res = this.transfer.running(judge, nextData, params);
-          if (res.success) {
-            this.transfer.nextExecute(this);
-          }
-        }
-      }
+      await this.selfCircle(nextData);
       return false;
     }
     return true;
+  }
+
+  async selfCircle(nextData?: any) {
+    if (this.transfer.metadata.isSelfCirculation) {
+      let judge = this.transfer.metadata.judge;
+      if (judge) {
+        let params = this.metadata.env?.params;
+        const res = this.transfer.running(judge, nextData, params);
+        if (res.success) {
+          await this.transfer.nextExecute(this);
+        }
+      }
+    }
   }
 }
 

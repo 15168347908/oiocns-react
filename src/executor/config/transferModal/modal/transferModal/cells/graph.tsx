@@ -20,7 +20,6 @@ export const createGraph = (
 ): Graph => {
   const graph: Graph = new Graph({
     container: ref.current!,
-    ...options,
     grid: true,
     autoResize: true,
     panning: true,
@@ -64,6 +63,7 @@ export const createGraph = (
         return targetMagnet?.getAttribute('port-group') === 'in';
       },
     },
+    ...options,
   });
   using(graph);
   registering();
@@ -170,15 +170,15 @@ type Event = 'EditRun' | 'ViewRun';
 export class TransferStore extends Basecoat<{}> implements Graph.Plugin {
   name: string;
   transfer: ITransfer;
-  initStatus: Status;
-  initEvent: Event;
+  graphStatus: Status;
+  graphEvent: Event;
 
-  constructor(transfer: ITransfer, initStatus: Status, initEvent: Event) {
+  constructor(transfer: ITransfer, graphStatus: Status, graphEvent: Event) {
     super();
     this.name = 'TransferStore';
     this.transfer = transfer;
-    this.initStatus = initStatus;
-    this.initEvent = initEvent;
+    this.graphStatus = graphStatus;
+    this.graphEvent = graphEvent;
   }
 
   init(_graph: Graph, ..._: any[]) {}

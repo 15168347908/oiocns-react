@@ -9,7 +9,7 @@ import {
   StopOutlined,
 } from '@ant-design/icons';
 import { Graph, Node } from '@antv/x6';
-import React, { createRef, memo, useEffect, useState } from 'react';
+import React, { CSSProperties, createRef, memo, useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
 import cls from './../index.module.less';
 import { ITransfer } from '@/ts/core';
@@ -26,27 +26,9 @@ const useNode = (node: Node, graph: Graph) => {
   const store = graph.getPlugin<TransferStore>('TransferStore');
   const transfer = store?.transfer;
   const [data, setData] = useState(transfer?.getNode(node.id) ?? node.getData());
-  const initStatus = data.status ?? store?.initStatus ?? 'Editable';
-  const [status, setStatus] = useState<model.NStatus>(initStatus);
   useEffect(() => {
     const id = transfer?.command.subscribe(async (type, cmd, args) => {
       switch (type) {
-        case 'running': {
-          const [node, error] = args;
-          if (node.id == data.id) {
-            switch (cmd) {
-              case 'start':
-              case 'completed':
-                setStatus(node.status);
-                break;
-              case 'error':
-                setStatus('Error');
-                message.error(error.message);
-                break;
-            }
-          }
-          break;
-        }
         case 'node': {
           switch (cmd) {
             case 'delete':
@@ -71,8 +53,6 @@ const useNode = (node: Node, graph: Graph) => {
   return {
     data,
     setData,
-    status,
-    setStatus,
     store,
     transfer,
   };
@@ -81,8 +61,6 @@ const useNode = (node: Node, graph: Graph) => {
 export const GraphNode: React.FC<IProps> = memo(({ node, graph }) => {
   const { store, transfer, data } = useNode(node, graph);
   const nextTransfer = transfer?.getTransfer((data as model.SubTransfer).nextId);
-  const status = store?.initStatus ?? 'Editable';
-  const event = store?.initEvent ?? 'EditRun';
   return (
     <div
       className={`${cls.transferNode} ${cls['border']}`}
@@ -92,21 +70,25 @@ export const GraphNode: React.FC<IProps> = memo(({ node, graph }) => {
       {nextTransfer && (
         <GraphEditor
           current={nextTransfer}
-          options={{ background: { color: '#F2F7FA' } }}
-          initStatus={status}
-          initEvent={event}
+          options={{ background: { color: '#F2F7FA' }, panning: false, mousewheel: true }}
+          initStatus={'Viewable'}
+          initEvent={'ViewRun'}
         />
       )}
-      {status == 'Editable' && <Remove node={node} transfer={transfer} />}
-      {status == 'Editable' && <ContextMenu node={node} transfer={transfer} />}
+      <NodeStatus
+        store={store}
+        transfer={transfer}
+        node={node}
+        style={{ position: 'absolute', left: 4, top: 4 }}
+      />
+      <Remove store={store} node={node} transfer={transfer} />
+      <ContextMenu store={store} node={node} transfer={transfer} />
     </div>
   );
 });
 
 export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
-  const { data, store, transfer, status } = useNode(node, graph);
-  const initStatus = store?.initStatus;
-  const editStatus = ['Editable', 'Completed', 'Error'];
+  const { data, store, transfer } = useNode(node, graph);
   return (
     <div
       className={`${cls['flex-row']} ${cls['container']} ${cls['border']}`}
@@ -114,41 +96,46 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
       onMouseLeave={() => transfer?.command.emitter('node', 'closeRemove', node)}
       onDoubleClick={() => transfer?.command.emitter('tools', 'edit', data)}>
       <Tag typeName={data.typeName} transfer={transfer} />
-      <Status status={status} />
       <Info name={data.name} />
-      {initStatus == 'Editable' && editStatus.indexOf(status) != -1 && (
-        <Remove node={node} transfer={transfer} />
-      )}
-      {initStatus == 'Editable' && editStatus.indexOf(status) != -1 && (
-        <ContextMenu node={node} transfer={transfer} />
-      )}
+      <NodeStatus store={store} transfer={transfer} node={node} />
+      <Remove store={store} transfer={transfer} node={node} />
+      <ContextMenu store={store} transfer={transfer} node={node} />
     </div>
   );
 };
 
 interface RemoveProps {
-  node: Node;
+  store?: TransferStore;
   transfer?: ITransfer;
+  node: Node;
 }
 
-const Remove: React.FC<RemoveProps> = ({ node, transfer }) => {
-  const style = { color: '#9498df', fontSize: 12 };
+const Remove: React.FC<RemoveProps> = ({ store, transfer, node }) => {
   const [show, setShow] = useState<boolean>(false);
+  const data = node.getData() as model.Node;
+  const graphStatus = store?.graphStatus;
+  const dataStatus = data.status ?? graphStatus ?? 'Editable';
+  const [status, setStatus] = useState<model.NStatus>(dataStatus);
   useEffect(() => {
     const id = transfer?.command.subscribe((type, cmd, args) => {
-      if (type == 'node') {
-        switch (cmd) {
-          case 'showRemove':
-            if (args.id == node.id) {
-              setShow(true);
-            }
-            break;
-          case 'closeRemove':
-            if (args.id == node.id) {
-              setShow(false);
-            }
-            break;
-        }
+      switch (type) {
+        case 'node':
+          switch (cmd) {
+            case 'showRemove':
+              if (args.id == node.id) {
+                setShow(true);
+              }
+              break;
+            case 'closeRemove':
+              if (args.id == node.id) {
+                setShow(false);
+              }
+              break;
+          }
+          break;
+        case 'running':
+          setStatus(args[0].status);
+          break;
       }
     });
     return () => {
@@ -157,9 +144,9 @@ const Remove: React.FC<RemoveProps> = ({ node, transfer }) => {
   });
   return (
     <>
-      {show && (
+      {show && graphStatus == 'Editable' && status == 'Editable' && (
         <CloseCircleOutlined
-          style={style}
+          style={{ color: '#9498df', fontSize: 12 }}
           className={cls.remove}
           onClick={() => node.remove()}
         />
@@ -169,21 +156,61 @@ const Remove: React.FC<RemoveProps> = ({ node, transfer }) => {
 };
 
 export interface StatusProps {
-  status: model.NStatus;
+  store?: TransferStore;
+  transfer?: ITransfer;
+  node: Node;
+  style?: CSSProperties;
 }
 
-export const Status: React.FC<StatusProps> = ({ status }) => {
+export const NodeStatus: React.FC<StatusProps> = ({ store, transfer, node, style }) => {
+  const data = node.getData() as model.Node;
+  const dataStatus = data.status ?? store?.graphStatus ?? 'Editable';
+  const [status, setStatus] = useState<model.NStatus>(dataStatus);
+  useEffect(() => {
+    const id = transfer?.command.subscribe((type, cmd, args) => {
+      switch (type) {
+        case 'running': {
+          const [data, error] = args;
+          if (data.id == node.id) {
+            switch (cmd) {
+              case 'start':
+              case 'completed':
+                setStatus(data.status);
+                break;
+              case 'error':
+                setStatus('Error');
+                message.error(error.message);
+                break;
+            }
+          }
+          break;
+        }
+      }
+    });
+    return () => {
+      transfer?.command.unsubscribe(id!);
+    };
+  });
+  return <Status status={status} style={style} />;
+};
+
+interface SProps {
+  status: model.GStatus;
+  style?: CSSProperties;
+}
+
+export const Status: React.FC<SProps> = ({ status, style }) => {
   switch (status) {
     case 'Editable':
-      return <PauseCircleOutlined style={{ color: '#9498df', fontSize: 18 }} />;
+      return <PauseCircleOutlined style={{ color: '#9498df', fontSize: 18, ...style }} />;
     case 'Viewable':
-      return <PauseCircleOutlined style={{ color: '#9498df', fontSize: 18 }} />;
+      return <PauseCircleOutlined style={{ color: '#9498df', fontSize: 18, ...style }} />;
     case 'Running':
-      return <LoadingOutlined style={{ color: '#9498df', fontSize: 18 }} />;
+      return <LoadingOutlined style={{ color: '#9498df', fontSize: 18, ...style }} />;
     case 'Completed':
-      return <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 18 }} />;
+      return <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 18, ...style }} />;
     case 'Error':
-      return <StopOutlined style={{ color: '#ff4d4f', fontSize: 18 }} />;
+      return <StopOutlined style={{ color: '#ff4d4f', fontSize: 18, ...style }} />;
   }
 };
 
@@ -205,11 +232,12 @@ const Tag: React.FC<TagProps> = ({ typeName, transfer }) => {
 };
 
 interface ContextProps {
+  store?: TransferStore;
   transfer?: ITransfer;
   node: Node;
 }
 
-const ContextMenu: React.FC<ContextProps> = ({ transfer, node }) => {
+const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node }) => {
   const menus: { [key: string]: MenuItemType } = {
     open: {
       key: 'edit',
@@ -239,15 +267,28 @@ const ContextMenu: React.FC<ContextProps> = ({ transfer, node }) => {
   const div = createRef<HTMLDivElement>();
   const [menu, setMenu] = useState<boolean>();
   const [pos, setPos] = useState<{ x: number; y: number }>();
+  const data = node.getData() as model.Node;
+  const graphStatus = store?.graphStatus;
+  const dataStatus = data.status ?? graphStatus ?? 'Editable';
+  const [status, setStatus] = useState<model.NStatus>(dataStatus);
   useEffect(() => {
     div.current?.focus();
     const id = transfer?.command.subscribe((type, cmd, args) => {
-      if (type == 'node' && cmd == 'contextmenu') {
-        if (args.node.id == node.id) {
-          const position = node.getPosition();
-          setMenu(true);
-          setPos({ x: args.x - position.x, y: args.y - position.y });
-        }
+      switch (type) {
+        case 'node':
+          switch (cmd) {
+            case 'contextmenu':
+              if (args.node.id == node.id) {
+                const position = node.getPosition();
+                setMenu(true);
+                setPos({ x: args.x - position.x, y: args.y - position.y });
+              }
+              break;
+          }
+          break;
+        case 'running':
+          setStatus(args[0].status);
+          break;
       }
     });
     return () => {
@@ -256,7 +297,7 @@ const ContextMenu: React.FC<ContextProps> = ({ transfer, node }) => {
   });
   return (
     <>
-      {menu && (
+      {menu && graphStatus == 'Editable' && status == 'Editable' && (
         <div
           ref={div}
           style={{ left: pos?.x, top: pos?.y }}
@@ -274,7 +315,7 @@ const ContextMenu: React.FC<ContextProps> = ({ transfer, node }) => {
                     className={`${cls['item']}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      transfer?.command.emitter('tools', item.key, node);
+                      transfer?.command.emitter('tools', item.key, node.getData());
                     }}>
                     {item.label}
                   </li>
