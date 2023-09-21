@@ -503,6 +503,7 @@ export class Task implements ITask {
   async visitNode(node: model.Node, preData?: any): Promise<void> {
     node.status = 'Running';
     this.command.emitter('running', 'start', [node]);
+    let nextData: any;
     try {
       this.dataCheck(preData);
       await sleep(500);
@@ -510,7 +511,6 @@ export class Task implements ITask {
       if (node.preScripts) {
         preData = this.transfer.running(node.preScripts, preData, env);
       }
-      let nextData: any;
       const isArray = (array: any[]) => {
         if (!Array.isArray(array)) {
           throw new Error('输入必须是一个数组！');
@@ -550,7 +550,7 @@ export class Task implements ITask {
       this.command.emitter('running', 'error', [node, error]);
     }
     this.refreshEnvs();
-    if (await this.tryRunning()) {
+    if (await this.tryRunning(nextData)) {
       await this.next(node);
     }
   }

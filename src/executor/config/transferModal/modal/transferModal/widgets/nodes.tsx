@@ -115,10 +115,21 @@ const Nodes: React.FC<IProps> = ({ current }) => {
     );
   };
   return (
-    <div className={`${cls.nodes} ${cls.border}`} ref={dndRef}>
-      <Space direction="vertical">
+    <div className={cls.draggableNodes} ref={dndRef}>
+      <Space
+        className={`${cls.dataSourceNode} ${cls.border}`}
+        direction="vertical"
+        align="center">
+        {'数据源'}
+        <Node name="表单" />
         <Node name="表格" />
         <Node name="请求" />
+      </Space>
+      <Space
+        className={`${cls.operateNode} ${cls.border}`}
+        direction="vertical"
+        align="center">
+        {'数据操作'}
         <Node name="子图" />
         <Node name="映射" />
         <Node name="存储" />

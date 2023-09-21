@@ -6,6 +6,7 @@ import { SubTransferForm } from './forms/subTransferForm';
 import { StoreForm } from './forms/storeForm';
 import { RequestForm } from './forms/requestForm';
 import { MappingForm } from './forms/mappingForm';
+import { ExcelForm } from './forms/excelForm';
 
 interface IProps {
   current: ITransfer;

@@ -1070,7 +1070,7 @@ export type NStatus = GStatus;
 export type NEvent = '';
 
 // 节点类型
-export type NodeType = '表格' | '请求' | '子图' | '映射' | '存储';
+export type NodeType = '表单' | '表格' | '请求' | '子图' | '映射' | '存储';
 
 // 脚本位置
 export type Pos = 'pre' | 'post';
