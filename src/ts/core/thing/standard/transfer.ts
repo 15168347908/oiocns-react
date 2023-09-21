@@ -523,7 +523,9 @@ export class Task implements ITask {
         case '子图':
           // TODO 替换其它方案
           const nextId = (node as model.SubTransfer).nextId;
-          await this.transfer.getTransfer(nextId)?.execute(this.initStatus, this.initEvent);
+          await this.transfer
+            .getTransfer(nextId)
+            ?.execute(this.initStatus, this.initEvent);
           break;
         case '映射':
           isArray(preData.array);

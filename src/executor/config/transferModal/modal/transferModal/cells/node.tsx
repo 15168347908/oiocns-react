@@ -79,10 +79,16 @@ export const GraphNode: React.FC<IProps> = memo(({ node, graph }) => {
         store={store}
         transfer={transfer}
         node={node}
-        style={{ position: 'absolute', left: 4, top: 4 }}
+        data={data}
+        style={{ position: 'absolute', left: 10, top: 22 }}
       />
-      <Remove store={store} node={node} transfer={transfer} />
-      <ContextMenu store={store} node={node} transfer={transfer} />
+      <Tag
+        typeName={data.typeName}
+        transfer={transfer}
+        style={{ position: 'absolute', left: 40, top: 20 }}
+      />
+      <Remove store={store} node={node} transfer={transfer} data={data} />
+      <ContextMenu store={store} node={node} transfer={transfer} data={data} />
     </div>
   );
 });
@@ -97,9 +103,9 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
       onDoubleClick={() => transfer?.command.emitter('tools', 'edit', data)}>
       <Tag typeName={data.typeName} transfer={transfer} />
       <Info name={data.name} />
-      <NodeStatus store={store} transfer={transfer} node={node} />
-      <Remove store={store} transfer={transfer} node={node} />
-      <ContextMenu store={store} transfer={transfer} node={node} />
+      <NodeStatus store={store} transfer={transfer} node={node} data={data} />
+      <Remove store={store} transfer={transfer} node={node} data={data} />
+      <ContextMenu store={store} transfer={transfer} node={node} data={data} />
     </div>
   );
 };
@@ -108,14 +114,15 @@ interface RemoveProps {
   store?: TransferStore;
   transfer?: ITransfer;
   node: Node;
+  data: model.Node;
 }
 
-const Remove: React.FC<RemoveProps> = ({ store, transfer, node }) => {
+const Remove: React.FC<RemoveProps> = ({ store, transfer, node, data }) => {
   const [show, setShow] = useState<boolean>(false);
-  const data = node.getData() as model.Node;
   const graphStatus = store?.graphStatus;
   const dataStatus = data.status ?? graphStatus ?? 'Editable';
   const [status, setStatus] = useState<model.NStatus>(dataStatus);
+  const editableStatus = ['Editable', 'Viewable', 'Completed'];
   useEffect(() => {
     const id = transfer?.command.subscribe((type, cmd, args) => {
       switch (type) {
@@ -144,7 +151,7 @@ const Remove: React.FC<RemoveProps> = ({ store, transfer, node }) => {
   });
   return (
     <>
-      {show && graphStatus == 'Editable' && status == 'Editable' && (
+      {show && graphStatus == 'Editable' && editableStatus.indexOf(status) != -1 && (
         <CloseCircleOutlined
           style={{ color: '#9498df', fontSize: 12 }}
           className={cls.remove}
@@ -159,11 +166,17 @@ export interface StatusProps {
   store?: TransferStore;
   transfer?: ITransfer;
   node: Node;
+  data: model.Node;
   style?: CSSProperties;
 }
 
-export const NodeStatus: React.FC<StatusProps> = ({ store, transfer, node, style }) => {
-  const data = node.getData() as model.Node;
+export const NodeStatus: React.FC<StatusProps> = ({
+  store,
+  transfer,
+  node,
+  data,
+  style,
+}) => {
   const dataStatus = data.status ?? store?.graphStatus ?? 'Editable';
   const [status, setStatus] = useState<model.NStatus>(dataStatus);
   useEffect(() => {
@@ -217,12 +230,13 @@ export const Status: React.FC<SProps> = ({ status, style }) => {
 interface TagProps {
   typeName: string;
   transfer?: ITransfer;
+  style?: CSSProperties;
 }
 
-const Tag: React.FC<TagProps> = ({ typeName, transfer }) => {
+const Tag: React.FC<TagProps> = ({ typeName, transfer, style }) => {
   const belongId = transfer?.metadata.belongId ?? '';
   return (
-    <div className={cls['tag']}>
+    <div style={style} className={cls['tag']}>
       <div className={`${cls['tag-item']} ${cls['text-overflow']}`}>{typeName}</div>
       <div className={`${cls['tag-item']} ${cls['text-overflow']}`}>
         {transfer?.findMetadata<XTarget>(belongId)?.name ?? '归属'}
@@ -235,9 +249,10 @@ interface ContextProps {
   store?: TransferStore;
   transfer?: ITransfer;
   node: Node;
+  data: model.Node;
 }
 
-const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node }) => {
+const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node, data }) => {
   const menus: { [key: string]: MenuItemType } = {
     open: {
       key: 'edit',
@@ -267,10 +282,10 @@ const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node }) => {
   const div = createRef<HTMLDivElement>();
   const [menu, setMenu] = useState<boolean>();
   const [pos, setPos] = useState<{ x: number; y: number }>();
-  const data = node.getData() as model.Node;
   const graphStatus = store?.graphStatus;
   const dataStatus = data.status ?? graphStatus ?? 'Editable';
   const [status, setStatus] = useState<model.NStatus>(dataStatus);
+  const editableStatus = ['Editable', 'Viewable', 'Completed'];
   useEffect(() => {
     div.current?.focus();
     const id = transfer?.command.subscribe((type, cmd, args) => {
@@ -278,7 +293,7 @@ const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node }) => {
         case 'node':
           switch (cmd) {
             case 'contextmenu':
-              if (args.node.id == node.id) {
+              if (args.node.id == data.id) {
                 const position = node.getPosition();
                 setMenu(true);
                 setPos({ x: args.x - position.x, y: args.y - position.y });
@@ -297,7 +312,7 @@ const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node }) => {
   });
   return (
     <>
-      {menu && graphStatus == 'Editable' && status == 'Editable' && (
+      {menu && graphStatus == 'Editable' && editableStatus.indexOf(status) != -1 && (
         <div
           ref={div}
           style={{ left: pos?.x, top: pos?.y }}
@@ -315,7 +330,7 @@ const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node }) => {
                     className={`${cls['item']}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      transfer?.command.emitter('tools', item.key, node.getData());
+                      transfer?.command.emitter('tools', item.key, data);
                     }}>
                     {item.label}
                   </li>
