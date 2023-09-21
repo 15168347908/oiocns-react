@@ -26,22 +26,11 @@ const useNode = (node: Node, graph: Graph) => {
   const store = graph.getPlugin<TransferStore>('TransferStore');
   const transfer = store?.transfer;
   const [data, setData] = useState(transfer?.getNode(node.id) ?? node.getData());
-  const [pos, setPos] = useState<{ x: number; y: number }>();
-  const [menu, setMenu] = useState<boolean>(false);
   const initStatus = data.status ?? store?.initStatus ?? 'Editable';
   const [status, setStatus] = useState<model.NStatus>(initStatus);
   useEffect(() => {
     const id = transfer?.command.subscribe(async (type, cmd, args) => {
       switch (type) {
-        case 'blank': {
-          switch (cmd) {
-            case 'click':
-            case 'contextmenu':
-              setMenu(false);
-              break;
-          }
-          break;
-        }
         case 'running': {
           const [node, error] = args;
           if (node.id == data.id) {
@@ -60,13 +49,6 @@ const useNode = (node: Node, graph: Graph) => {
         }
         case 'node': {
           switch (cmd) {
-            case 'contextmenu':
-              if (args.node.id == node.id) {
-                const position = node.getPosition();
-                setMenu(true);
-                setPos({ x: args.x - position.x, y: args.y - position.y });
-              }
-              break;
             case 'delete':
               if (args.id == node.id) {
                 node.remove();
@@ -89,10 +71,6 @@ const useNode = (node: Node, graph: Graph) => {
   return {
     data,
     setData,
-    pos,
-    setPos,
-    menu,
-    setMenu,
     status,
     setStatus,
     store,
@@ -101,7 +79,7 @@ const useNode = (node: Node, graph: Graph) => {
 };
 
 export const GraphNode: React.FC<IProps> = memo(({ node, graph }) => {
-  const { store, pos, transfer, data, menu, setMenu } = useNode(node, graph);
+  const { store, transfer, data } = useNode(node, graph);
   const nextTransfer = transfer?.getTransfer((data as model.SubTransfer).nextId);
   const status = store?.initStatus ?? 'Editable';
   const event = store?.initEvent ?? 'EditRun';
@@ -120,20 +98,13 @@ export const GraphNode: React.FC<IProps> = memo(({ node, graph }) => {
         />
       )}
       {status == 'Editable' && <Remove node={node} transfer={transfer} />}
-      {status == 'Editable' && menu && (
-        <ContextMenu
-          transfer={transfer}
-          node={data}
-          pos={pos!}
-          onBlur={() => setMenu(false)}
-        />
-      )}
+      {status == 'Editable' && <ContextMenu node={node} transfer={transfer} />}
     </div>
   );
 });
 
 export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
-  const { data, pos, menu, setMenu, store, transfer, status } = useNode(node, graph);
+  const { data, store, transfer, status } = useNode(node, graph);
   const initStatus = store?.initStatus;
   const editStatus = ['Editable', 'Completed', 'Error'];
   return (
@@ -148,13 +119,8 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
       {initStatus == 'Editable' && editStatus.indexOf(status) != -1 && (
         <Remove node={node} transfer={transfer} />
       )}
-      {initStatus == 'Editable' && editStatus.indexOf(status) != -1 && menu && (
-        <ContextMenu
-          transfer={transfer}
-          node={data}
-          pos={pos!}
-          onBlur={() => setMenu(false)}
-        />
+      {initStatus == 'Editable' && editStatus.indexOf(status) != -1 && (
+        <ContextMenu node={node} transfer={transfer} />
       )}
     </div>
   );
@@ -240,12 +206,10 @@ const Tag: React.FC<TagProps> = ({ typeName, transfer }) => {
 
 interface ContextProps {
   transfer?: ITransfer;
-  node: model.Node;
-  pos: { x: number; y: number };
-  onBlur?: () => void;
+  node: Node;
 }
 
-const ContextMenu: React.FC<ContextProps> = ({ transfer, node, pos, onBlur }) => {
+const ContextMenu: React.FC<ContextProps> = ({ transfer, node }) => {
   const menus: { [key: string]: MenuItemType } = {
     open: {
       key: 'edit',
@@ -273,33 +237,53 @@ const ContextMenu: React.FC<ContextProps> = ({ transfer, node, pos, onBlur }) =>
     },
   };
   const div = createRef<HTMLDivElement>();
-  useEffect(() => div.current?.focus());
+  const [menu, setMenu] = useState<boolean>();
+  const [pos, setPos] = useState<{ x: number; y: number }>();
+  useEffect(() => {
+    div.current?.focus();
+    const id = transfer?.command.subscribe((type, cmd, args) => {
+      if (type == 'node' && cmd == 'contextmenu') {
+        if (args.node.id == node.id) {
+          const position = node.getPosition();
+          setMenu(true);
+          setPos({ x: args.x - position.x, y: args.y - position.y });
+        }
+      }
+    });
+    return () => {
+      transfer?.command.unsubscribe(id!);
+    };
+  });
   return (
-    <div
-      ref={div}
-      style={{ left: pos.x, top: pos.y }}
-      onContextMenu={(e) => e.stopPropagation()}
-      className={`${cls['context-menu']} ${cls['context-border']}`}
-      tabIndex={0}
-      onBlur={onBlur}>
-      <ul className={`${cls['dropdown']}`}>
-        {Object.keys(menus)
-          .map((key) => menus[key])
-          .map((item) => {
-            return (
-              <li
-                key={item.key}
-                className={`${cls['item']}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  transfer?.command.emitter('tools', item.key, node);
-                }}>
-                {item.label}
-              </li>
-            );
-          })}
-      </ul>
-    </div>
+    <>
+      {menu && (
+        <div
+          ref={div}
+          style={{ left: pos?.x, top: pos?.y }}
+          onContextMenu={(e) => e.stopPropagation()}
+          className={`${cls['context-menu']} ${cls['context-border']}`}
+          tabIndex={0}
+          onBlur={() => setMenu(false)}>
+          <ul className={`${cls['dropdown']}`}>
+            {Object.keys(menus)
+              .map((key) => menus[key])
+              .map((item) => {
+                return (
+                  <li
+                    key={item.key}
+                    className={`${cls['item']}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      transfer?.command.emitter('tools', item.key, node);
+                    }}>
+                    {item.label}
+                  </li>
+                );
+              })}
+          </ul>
+        </div>
+      )}
+    </>
   );
 };
 
