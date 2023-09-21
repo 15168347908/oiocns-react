@@ -62,8 +62,6 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   execute(status: model.GStatus, event: model.GEvent): void;
   /** 创建任务 */
   nextExecute(preTask: ITask): void;
-  /** 完成任务 */
-  completed(status: model.GStatus, event: model.GEvent): void;
 }
 
 export class Transfer extends StandardFileInfo<model.Transfer> implements ITransfer {
@@ -96,14 +94,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     this.curTask = new Task(this, preTask.initEvent, preTask.initStatus, preTask);
     this.taskList.push(this.curTask);
     this.curTask.starting();
-  }
-
-  completed(initStatus: model.GStatus, _: model.GEvent): void {
-    if (initStatus == 'Editable') {
-      this.command.emitter('graph', 'status', 'Editable');
-    } else if (initStatus == 'Viewable') {
-      this.command.emitter('graph', 'status', 'Viewable');
-    }
   }
 
   getTransfer(id: string): ITransfer | undefined {
@@ -535,7 +525,7 @@ export class Task implements ITask {
         case '请求':
           console.log(env);
           nextData = await this.transfer.request(node, env);
-          console.log(nextData)
+          console.log(nextData);
           break;
         case '子图':
           // TODO 替换其它方案
@@ -632,11 +622,16 @@ export class Task implements ITask {
       this.metadata.endTime = new Date();
       this.command.emitter('tasks', 'refresh', this.transfer.taskList);
       this.machine('Completed');
-      this.transfer.completed(this.initStatus, this.initEvent);
+      if (this.initStatus == 'Editable') {
+        this.command.emitter('graph', 'status', 'Editable');
+      } else if (this.initStatus == 'Viewable') {
+        this.command.emitter('graph', 'status', 'Viewable');
+      }
       if (this.transfer.metadata.isSelfCirculation) {
         let judge = this.transfer.metadata.judge;
         if (judge) {
-          const res = this.transfer.running(judge, nextData);
+          let params = this.metadata.env?.params;
+          const res = this.transfer.running(judge, nextData, params);
           if (res.success) {
             this.transfer.nextExecute(this);
           }

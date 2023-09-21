@@ -48,9 +48,6 @@ const TransferForm: React.FC<IProps> = ({ formType, current, finished }) => {
     {
       title: '循环退出判断',
       dataIndex: 'judge',
-      formItemProps: {
-        rules: [{ required: true, message: '编码为必填项' }],
-      },
       colProps: { span: 24 },
       renderFormItem: () => {
         return (
