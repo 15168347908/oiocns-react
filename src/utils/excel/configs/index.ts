@@ -1,9 +1,14 @@
 import { IDirectory } from '@/ts/core';
-import { ISheetRead, ISheet, SheetName } from '../types';
+import { ISheetRead, SheetName } from '../types';
 import { AttrSheetRead, AttrSheet } from './base/attribute';
 import { DirectorySheetRead, DirectorySheet } from './base/directory';
 import { FormSheetRead, FormSheet } from './base/form';
-import { ClassifySheetRead, ClassifySheet, DictSheetRead, DictSheet } from './species/species';
+import {
+  ClassifySheetRead,
+  ClassifySheet,
+  DictSheetRead,
+  DictSheet,
+} from './species/species';
 import {
   ClassifyItemSheetRead,
   ClassifyItemSheet,
@@ -11,9 +16,10 @@ import {
   DictItemSheet,
 } from './species/speciesitem';
 import { PropSheetRead, PropSheet } from './store/property';
+import { model } from '@/ts/base';
 
 export const getConfigs = (directory: IDirectory) => {
-  let sheets: ISheet<any>[] = [
+  let sheets: model.ISheet<any>[] = [
     new DirectorySheet(directory),
     new DictSheet(directory),
     new DictItemSheet(directory),
@@ -27,9 +33,9 @@ export const getConfigs = (directory: IDirectory) => {
 };
 
 export const getReadConfigs = (directory: IDirectory) => {
-  let readSheets: ISheetRead<any, any, ISheet<any>>[] = [];
+  let readSheets: ISheetRead<any, any, model.ISheet<any>>[] = [];
   for (let config of getConfigs(directory)) {
-    switch (config.sheetName) {
+    switch (config.name) {
       case SheetName.Directory:
         readSheets.push(new DirectorySheetRead(config as DirectorySheet));
         break;

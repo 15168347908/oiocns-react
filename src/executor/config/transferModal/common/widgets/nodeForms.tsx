@@ -37,6 +37,7 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
             选择: 'updateSelection',
             环境: 'updateEnvironment',
             存储: 'updateStore',
+            表格: 'updateTable',
             事项配置: 'updateWorkConfig',
             实体配置: 'updateThingConfig',
           };
@@ -109,6 +110,16 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
             return (
               <SubTransferForm
                 key={generateUuid()}
+                transfer={current}
+                current={entry[1]}
+                finished={() => {
+                  finished(entry[0]);
+                }}
+              />
+            );
+          case 'updateTable':
+            return (
+              <ExcelForm
                 transfer={current}
                 current={entry[1]}
                 finished={() => {

@@ -4,6 +4,7 @@ import { formatDate } from 'devextreme/localization';
 import { Command, common, kernel, model, schema } from '../../../base';
 import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
+import { IForm } from './form';
 
 export type GraphData = () => any;
 
@@ -58,6 +59,8 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   mapping(node: model.Node, array: any[]): Promise<any[]>;
   /** 写入 */
   writing(node: model.Node, array: any[]): Promise<any[]>;
+  /** 模板 */
+  template<T>(node: model.Node): Promise<model.ISheet<T>[]>;
   /** 创建任务 */
   execute(status: model.GStatus, event: model.GEvent): Promise<void>;
   /** 创建任务 */
@@ -240,6 +243,32 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
           }
         }
         ans.push(newItem);
+      }
+    }
+    return ans;
+  }
+
+  async template<T>(node: model.Node): Promise<model.ISheet<T>[]> {
+    const tables = node as model.Tables;
+    const ans: model.ISheet<T>[] = [];
+    for (const formId of tables.formIds) {
+      const form = this.getEntity<IForm>(formId);
+      if (form) {
+        await form.loadContent();
+        const columns: model.Column[] = [];
+        for (const field of form.fields) {
+          columns.push({
+            title: field.name,
+            dataIndex: field.id,
+            valueType: field.valueType,
+          });
+        }
+        ans.push({
+          name: form.name,
+          headers: 1,
+          columns: columns,
+          data: [],
+        });
       }
     }
     return ans;
@@ -601,8 +630,8 @@ export class Task implements ITask {
   async tryRunning(nextData?: any): Promise<boolean> {
     if (this.visitedNodes.size == this.metadata.nodes.length) {
       this.metadata.endTime = new Date();
-      this.refreshTasks();
       this.machine('Completed');
+      this.refreshTasks();
       if (this.initStatus == 'Editable') {
         this.command.emitter('graph', 'status', 'Editable');
       } else if (this.initStatus == 'Viewable') {
@@ -634,7 +663,7 @@ export const getDefaultTableNode = (): model.Tables => {
     code: 'table',
     name: '表格',
     typeName: '表格',
-    link: '',
+    formIds: [],
   };
 };
 

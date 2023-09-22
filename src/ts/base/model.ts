@@ -992,7 +992,33 @@ export type Request = {
 } & Node;
 
 // 表格
-export type Tables = { link: string } & Node;
+export type Tables = { formIds: string[]; file?: FileItemModel } & Node;
+
+// 页
+export type ISheet<T> = {
+  // 名称
+  name: string;
+  // 表头行数
+  headers: number;
+  // 列信息
+  columns: Column[];
+  // 数据
+  data: T[];
+};
+
+/**
+ * 列字段
+ */
+export interface Column {
+  // 字段名称
+  title: string;
+  // 标识符
+  dataIndex: string;
+  // 类型
+  valueType: string;
+  // 是否隐藏
+  hide?: boolean;
+}
 
 // 映射
 export type Mapping = {

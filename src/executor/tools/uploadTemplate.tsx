@@ -8,7 +8,6 @@ import {
   DataHandler,
   ErrorMessage,
   ISheetRead,
-  ISheet,
 } from '@/utils/excel/types';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Modal, Spin, Tabs, Tag, Upload, message } from 'antd';
@@ -72,7 +71,7 @@ export const uploadTemplate = (dir: IDirectory) => {
 
 /** 展示数据 */
 const showData = (
-  configs: ISheetRead<any, any, ISheet<any>>[],
+  configs: ISheetRead<any, any, model.ISheet<any>>[],
   confirm: (modal: any) => void,
   okText: string,
 ) => {
@@ -86,8 +85,9 @@ const showData = (
     content: (
       <Tabs>
         {configs.map((item) => {
+          console.log(item);
           return (
-            <TabPane tab={item.sheet.sheetName} key={item.sheet.sheetName}>
+            <TabPane tab={item.sheet.name} key={item.sheet.name}>
               <ProTable
                 dataSource={item.sheet.data}
                 cardProps={{ bodyStyle: { padding: 0 } }}
@@ -110,7 +110,7 @@ const showData = (
                       );
                     },
                   },
-                  ...item.sheet.metaColumns,
+                  ...item.sheet.columns,
                 ]}
               />
             </TabPane>
@@ -125,7 +125,7 @@ const showData = (
 const generate = async (
   dir: IDirectory,
   name: string,
-  reads: ISheetRead<any, any, ISheet<any>>[],
+  reads: ISheetRead<any, any, model.ISheet<any>>[],
   context: Context,
 ) => {
   let errors = reads.flatMap((item) => item.checkData(context));

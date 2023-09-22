@@ -92,7 +92,7 @@ export const StoreForm: React.FC<IProps> = ({ transfer, current, finished }) => 
       valueType: 'treeSelect',
       colProps: { span: 24 },
       formItemProps: {
-        rules: [{ required: true, message: '编码为必填项' }],
+        rules: [{ required: true, message: '应用（办事）为必填项' }],
       },
       fieldProps: {
         fieldNames: {
