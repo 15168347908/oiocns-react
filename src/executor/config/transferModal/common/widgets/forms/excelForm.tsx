@@ -1,13 +1,13 @@
 import SchemaForm from '@/components/SchemaForm';
-import { model, schema } from '@/ts/base';
-import { IDirectory, ITransfer } from '@/ts/core';
-import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
-import { javascript } from '@codemirror/lang-javascript';
+import {model, schema} from '@/ts/base';
+import {IDirectory, ITransfer} from '@/ts/core';
+import {ProFormColumnsType} from '@ant-design/pro-components';
+import {javascript} from '@codemirror/lang-javascript';
 import CodeMirror from '@uiw/react-codemirror';
-import React, { createRef, useState } from 'react';
-import { MenuItem, expand, loadFormsMenu } from '../menus';
-import { Button, Space, Spin, TreeSelect, Upload, message } from 'antd';
-import { generateXlsx } from '@/utils/excel';
+import React, {useState} from 'react';
+import {expand, loadFormsMenu, MenuItem} from '../menus';
+import {Button, message, Space, Spin, TreeSelect, Upload} from 'antd';
+import {generateXlsx} from "@/ts/base/common";
 
 interface IProps {
   transfer: ITransfer;
