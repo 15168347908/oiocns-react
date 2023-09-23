@@ -41,7 +41,7 @@ export interface ErrorMessage {
 /**
  * Sheet 表抽象的默认实现
  */
-export class Sheet<T> implements model.ISheet<T> {
+export class Sheet<T> implements model.Sheet<T> {
   name: string;
   headers: number;
   columns: model.Column[];
@@ -69,7 +69,7 @@ export interface DataHandler {
 /**
  * 读取 Excel Sheet 配置
  */
-export interface ISheetRead<T, C, S extends model.ISheet<T>> {
+export interface ISheetHandler<T, C, S extends model.Sheet<T>> {
   sheet: S;
   errors: ErrorMessage[];
 
@@ -77,14 +77,14 @@ export interface ISheetRead<T, C, S extends model.ISheet<T>> {
   pushError(index: number, error: string): void;
   checkData(context?: C): ErrorMessage[];
   operating(context: C, onItemCompleted: () => void): Promise<void>;
-  completed?(sheets: ISheetRead<any, any, model.ISheet<any>>[], context: C): void;
+  completed?(sheets: ISheetHandler<any, any, model.Sheet<any>>[], context: C): void;
 }
 
 /**
  * 读取 Excel Sheet 配置默认实现
  */
-export abstract class SheetRead<T, C, S extends model.ISheet<T>>
-  implements ISheetRead<T, C, S>
+export abstract class SheetHandler<T, C, S extends model.Sheet<T>>
+  implements ISheetHandler<T, C, S>
 {
   sheet: S;
   errors: ErrorMessage[];
@@ -105,5 +105,5 @@ export abstract class SheetRead<T, C, S extends model.ISheet<T>>
   initContext?(context: C): Promise<void>;
   abstract checkData(context: C): ErrorMessage[];
   abstract operating(context: C, onItemCompleted: () => void): Promise<void>;
-  completed?(sheets: ISheetRead<any, any, model.ISheet<any>>[], context: C): void;
+  completed?(sheets: ISheetHandler<any, any, model.Sheet<any>>[], context: C): void;
 }

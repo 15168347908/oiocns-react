@@ -1,10 +1,11 @@
-import { sleep } from '@/ts/base/common';
+import { readXlsx, sleep } from '@/ts/base/common';
 import { XForm } from '@/ts/base/schema';
 import { formatDate } from 'devextreme/localization';
 import { Command, common, kernel, model, schema } from '../../../base';
 import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { IForm } from './form';
+import axios from 'axios';
 
 export type GraphData = () => any;
 
@@ -60,7 +61,9 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 写入 */
   writing(node: model.Node, array: any[]): Promise<any[]>;
   /** 模板 */
-  template<T>(node: model.Node): Promise<model.ISheet<T>[]>;
+  template<T>(node: model.Node): Promise<model.Sheet<T>[]>;
+  /** 读取 */
+  reading(node: model.Node): Promise<any>;
   /** 创建任务 */
   execute(status: model.GStatus, event: model.GEvent): Promise<void>;
   /** 创建任务 */
@@ -248,9 +251,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     return ans;
   }
 
-  async template<T>(node: model.Node): Promise<model.ISheet<T>[]> {
+  async template<T>(node: model.Node): Promise<model.Sheet<T>[]> {
     const tables = node as model.Tables;
-    const ans: model.ISheet<T>[] = [];
+    const ans: model.Sheet<T>[] = [];
     for (const formId of tables.formIds) {
       const form = this.getEntity<IForm>(formId);
       if (form) {
@@ -272,6 +275,21 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       }
     }
     return ans;
+  }
+
+  async reading(node: model.Node): Promise<boolean> {
+    const table = node as model.Tables;
+    if (table.file) {
+      const url = `/orginone/kernel/load/${table.file.shareLink}?download=1`;
+      const res = await axios.request({
+        method: 'GET',
+        url: url,
+        responseType: 'blob',
+      });
+      const sheets = await this.template<any>(node);
+      readXlsx(res.data as Blob, sheets);
+    }
+    return false;
   }
 
   getNode(id: string): model.Node | undefined {
@@ -564,6 +582,9 @@ export class Task implements ITask {
           isArray(preData);
           await this.transfer.writing(node, preData);
           nextData = preData;
+          break;
+        case '表格':
+          await this.transfer.reading(node);
           break;
       }
       if (node.postScripts) {

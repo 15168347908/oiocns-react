@@ -1,6 +1,6 @@
 import { XAttribute } from '@/ts/base/schema';
 import { IDirectory, orgAuth } from '@/ts/core';
-import { Context, SheetRead, Sheet, SheetName } from '../../types';
+import { Context, SheetHandler, Sheet, SheetName } from '../../types';
 import { assignment } from '../..';
 import { List } from '@/ts/base';
 
@@ -29,7 +29,7 @@ export class AttrSheet extends Sheet<Attribute> {
   }
 }
 
-export class AttrSheetRead extends SheetRead<Attribute, Context, AttrSheet> {
+export class AttrHandler extends SheetHandler<Attribute, Context, AttrSheet> {
   /**
    * 初始化
    * @param context 上下文

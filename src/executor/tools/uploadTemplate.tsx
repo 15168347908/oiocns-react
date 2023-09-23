@@ -1,14 +1,10 @@
 import { command, model } from '@/ts/base';
+import { generateXlsx, readXlsx } from '@/ts/base/common';
 import { IDirectory } from '@/ts/core';
 import { formatDate } from '@/utils';
-import { dataHandling, generateXlsx, readXlsx } from '@/utils/excel';
-import { getConfigs, getReadConfigs } from '@/utils/excel/configs/index';
-import {
-  Context,
-  DataHandler,
-  ErrorMessage,
-  ISheetRead,
-} from '@/utils/excel/types';
+import { dataHandling } from '@/utils/excel';
+import { getSheets, getSheetsHandler } from '@/utils/excel/configs/index';
+import { Context, DataHandler, ErrorMessage, ISheetHandler } from '@/utils/excel/types';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Modal, Spin, Tabs, Tag, Upload, message } from 'antd';
 import TabPane from 'antd/lib/tabs/TabPane';
@@ -21,7 +17,7 @@ export const uploadTemplate = (dir: IDirectory) => {
     return (
       <>
         <div style={{ marginTop: 20 }}>
-          <Button onClick={async () => generateXlsx(getConfigs(dir), '导入模板')}>
+          <Button onClick={async () => generateXlsx(getSheets(dir), '导入模板')}>
             导入模板下载
           </Button>
           {loading && <span style={{ marginLeft: 20 }}>正在加载数据中，请稍后...</span>}
@@ -35,23 +31,23 @@ export const uploadTemplate = (dir: IDirectory) => {
             customRequest={async (options) => {
               setLoading(true);
               let excelFile = options.file as Blob;
-              let readConfigs = getReadConfigs(dir);
-              readXlsx(excelFile, readConfigs, async () => {
-                let context = new Context();
-                for (let config of readConfigs) {
-                  await config.initContext?.apply(config, [context]);
-                }
-                setLoading(false);
-                modal.destroy();
-                showData(
-                  readConfigs,
-                  (modal) => {
-                    modal.destroy();
-                    generate(dir, excelFile.name, readConfigs, context);
-                  },
-                  '开始导入',
-                );
-              });
+              let handler = getSheetsHandler(dir);
+              let sheets = handler.map((item) => item.sheet);
+              await readXlsx(excelFile, sheets);
+              let context = new Context();
+              for (let config of handler) {
+                await config.initContext?.apply(config, [context]);
+              }
+              setLoading(false);
+              modal.destroy();
+              showData(
+                handler,
+                (modal) => {
+                  modal.destroy();
+                  generate(dir, excelFile.name, handler, context);
+                },
+                '开始导入',
+              );
             }}>
             <div style={{ color: 'limegreen', fontSize: 22 }}>点击或拖拽至此处上传</div>
           </Upload>
@@ -71,7 +67,7 @@ export const uploadTemplate = (dir: IDirectory) => {
 
 /** 展示数据 */
 const showData = (
-  configs: ISheetRead<any, any, model.ISheet<any>>[],
+  configs: ISheetHandler<any, any, model.Sheet<any>>[],
   confirm: (modal: any) => void,
   okText: string,
 ) => {
@@ -125,7 +121,7 @@ const showData = (
 const generate = async (
   dir: IDirectory,
   name: string,
-  reads: ISheetRead<any, any, model.ISheet<any>>[],
+  reads: ISheetHandler<any, any, model.Sheet<any>>[],
   context: Context,
 ) => {
   let errors = reads.flatMap((item) => item.checkData(context));

@@ -995,7 +995,7 @@ export type Request = {
 export type Tables = { formIds: string[]; file?: FileItemModel } & Node;
 
 // 页
-export type ISheet<T> = {
+export type Sheet<T> = {
   // 名称
   name: string;
   // 表头行数

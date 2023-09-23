@@ -1,62 +1,5 @@
-import * as XLSX from 'xlsx';
-import { DataHandler, ISheetRead } from './types';
 import { model } from '@/ts/base';
-
-/**
- * 生成一份 Excel 文件
- * @param sheetConfigs 表格信息
- * @param filename 文件信息
- */
-const generateXlsx = (sheetConfigs: model.ISheet<any>[], filename: string) => {
-  try {
-    let workbook = XLSX.utils.book_new();
-    for (let sheetConfig of sheetConfigs) {
-      let headers = sheetConfig.columns
-        .filter((item) => !item.hide)
-        .map((item) => item.title);
-
-      let converted = [];
-      for (let item of sheetConfig.data) {
-        let newItem: { [key: string]: any } = {};
-        sheetConfig.columns.forEach((column) => {
-          newItem[column.title] = item[column.dataIndex];
-        });
-        converted.push(newItem);
-      }
-
-      let sheet = XLSX.utils.json_to_sheet(converted, {
-        header: headers,
-        skipHeader: false,
-      });
-      XLSX.utils.book_append_sheet(workbook, sheet, sheetConfig.name);
-    }
-    XLSX.writeFileXLSX(workbook, filename + '.xlsx');
-    return true;
-  } catch (err) {
-    return false;
-  }
-};
-
-/**
- * 收集 Excel 数据
- */
-const readXlsx = (
-  file: Blob,
-  readConfigs: ISheetRead<any, any, model.ISheet<any>>[],
-  completed: () => void,
-) => {
-  let reader = new FileReader();
-  reader.onload = async (e) => {
-    let workbook = XLSX.read(e.target?.result, { type: 'binary' });
-    let keys = Object.keys(workbook.Sheets);
-
-    for (let index = 0; index < keys.length; index++)
-      collecting(keys[index], workbook.Sheets, readConfigs);
-
-    completed();
-  };
-  reader.readAsArrayBuffer(file);
-};
+import { DataHandler, ISheetHandler } from './types';
 
 /**
  * 处理一份 Excel
@@ -67,7 +10,7 @@ const readXlsx = (
 const dataHandling = async <T>(
   context: T,
   dataHandler: DataHandler,
-  readConfigs: ISheetRead<any, any, model.ISheet<any>>[],
+  readConfigs: ISheetHandler<any, any, model.Sheet<any>>[],
 ) => {
   try {
     // 总行数
@@ -94,35 +37,7 @@ const dataHandling = async <T>(
   } catch (error: any) {
     // 错误处理
     console.log(error);
-    dataHandler.onError?.apply(dataHandler, ['数据处理异常']);
-  }
-};
-
-/**
- * 数据收集，将中文名称转换为英文名称
- */
-const collecting = (
-  key: string,
-  sheets: { [sheet: string]: XLSX.WorkSheet },
-  readConfigs: ISheetRead<any, any, model.ISheet<any>>[],
-): void => {
-  for (let readConfig of readConfigs) {
-    let sheetConfig = readConfig.sheet;
-    if (sheetConfig.name == key) {
-      let ansData: any[] = [];
-      let data = XLSX.utils.sheet_to_json(sheets[key]);
-      data.forEach((item: any) => {
-        let ansItem: any = {};
-        sheetConfig.columns.forEach((column) => {
-          let value = item[column.title];
-          if (value || value === 0) {
-            ansItem[column.dataIndex] = String(value);
-          }
-        });
-        ansData.push(ansItem);
-      });
-      sheetConfig.data = ansData;
-    }
+    dataHandler.onError?.('数据处理异常');
   }
 };
 
@@ -134,7 +49,7 @@ let operating = async (
   key: string,
   context: any,
   dataHandler: DataHandler,
-  readConfigs: ISheetRead<any, any, model.ISheet<any>>[],
+  readConfigs: ISheetHandler<any, any, model.Sheet<any>>[],
 ) => {
   for (let readConfig of readConfigs) {
     if (readConfig.sheet.name == key) {
@@ -158,4 +73,4 @@ function assignment(oldObj: { [key: string]: any }, newObj: { [key: string]: any
   });
 }
 
-export { assignment, dataHandling, generateXlsx, readXlsx };
+export { assignment, dataHandling };
