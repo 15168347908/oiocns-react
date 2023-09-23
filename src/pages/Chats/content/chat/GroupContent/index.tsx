@@ -1,11 +1,10 @@
-/* eslint-disable no-unused-vars */
-import { Button, message, Popover, Spin, Badge, Tooltip } from 'antd';
+import { message, Popover, Spin, Badge, Tooltip } from 'antd';
 import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import TeamIcon from '@/components/Common/GlobalComps/entityIcon';
 import Information from './information';
-import { showChatTime, downloadByUrl } from '@/utils/tools';
+import { showChatTime, downloadByUrl, shareOpenLink } from '@/utils/tools';
 import { IMessage, ISession, MessageType } from '@/ts/core';
 import { parseAvatar } from '@/ts/base';
 import css from './index.module.less';
@@ -40,9 +39,9 @@ const GroupContent = (props: Iprops) => {
   const { handleReWrites } = props;
   const body = useRef<HTMLDivElement>(null);
   const [beforescrollHeight, setBeforescrollHeight] = useState(0);
-  const [forwardOpen, setForwardOpen] = useState(false); // 设置转发打开窗口
-  const [formwardCode, setFormwardCode] = useState<IMessage>(); // 转发时用户
-  const [ismousewheel, setIsMousewheel] = useState(false);
+  // const [forwardOpen, setForwardOpen] = useState(false); // 设置转发打开窗口
+  // const [formwardCode, setFormwardCode] = useState<IMessage>(); // 转发时用户
+  // const [ismousewheel, setIsMousewheel] = useState(false);
   useEffect(() => {
     props.chat.onMessage((ms) => {
       setMessages([...ms]);
@@ -64,7 +63,7 @@ const GroupContent = (props: Iprops) => {
   }, [messages]);
   function createWheelStopListener(callback: () => void, timeout?: number) {
     var handle: ReturnType<typeof setTimeout>;
-    setIsMousewheel(true);
+    // setIsMousewheel(true);
     var onScroll = function () {
       if (handle) {
         clearTimeout(handle);
@@ -90,14 +89,14 @@ const GroupContent = (props: Iprops) => {
       setMessages([...props.chat.messages]);
     }
     createWheelStopListener(() => {
-      setIsMousewheel(false);
+      // setIsMousewheel(false);
     });
   };
 
   /** 转发消息 */
   const forward = (item: IMessage) => {
-    setForwardOpen(true);
-    setFormwardCode(item);
+    // setForwardOpen(true);
+    // setFormwardCode(item);
   };
 
   const viewMsg = (item: IMessage) => {
@@ -232,14 +231,53 @@ const GroupContent = (props: Iprops) => {
               size={22}
               className={css.actionIconStyl}
               onClick={() => {
-                const url = parseAvatar(item.msgBody).shareLink;
-                downloadByUrl(`/orginone/kernel/load/${url}?download=1`);
+                downloadByUrl(shareOpenLink(parseAvatar(item.msgBody).shareLink, true));
               }}
             />
           </Tooltip>
         )}
       </div>
     );
+  };
+
+  const renderMessage = (item: IMessage) => {
+    switch (item.msgType) {
+      case MessageType.Recall:
+        return (
+          <div className={`${css.group_content_left} ${css.con} ${css.recall}`}>
+            {item.msgBody}
+            {item.allowEdit && (
+              <span
+                className={css.reWrite}
+                onClick={() => {
+                  handleReWrites(item.msgSource);
+                }}>
+                重新编辑
+              </span>
+            )}
+          </div>
+        );
+      case MessageType.Notify:
+        return (
+          <div className={`${css.group_content_left} ${css.con} ${css.recall}`}>
+            {item.msgBody}
+          </div>
+        );
+      default:
+        if (item.isMySend) {
+          return (
+            <div className={`${css.group_content_right} ${css.con}`}>
+              {loadMsgItem(item)}
+            </div>
+          );
+        } else {
+          return (
+            <div className={`${css.group_content_left} ${css.con}`}>
+              {loadMsgItem(item)}
+            </div>
+          );
+        }
+    }
   };
 
   return (
@@ -262,33 +300,7 @@ const GroupContent = (props: Iprops) => {
                   ) : (
                     ''
                   )}
-                  {/* 重新编辑 */}
-                  {item.msgType === MessageType.Recall && (
-                    <div className={`${css.group_content_left} ${css.con} ${css.recall}`}>
-                      {item.msgBody}
-                      {item.allowEdit && (
-                        <span
-                          className={css.reWrite}
-                          onClick={() => {
-                            handleReWrites(item.msgSource);
-                          }}>
-                          重新编辑
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  {/* 左侧聊天内容显示 */}
-                  {!item.isMySend && item.msgType != MessageType.Recall && (
-                    <div className={`${css.group_content_left} ${css.con}`}>
-                      {loadMsgItem(item)}
-                    </div>
-                  )}
-                  {/* 右侧聊天内容显示 */}
-                  {item.isMySend && item.msgType != MessageType.Recall && (
-                    <div className={`${css.group_content_right} ${css.con}`}>
-                      {loadMsgItem(item)}
-                    </div>
-                  )}
+                  {renderMessage(item)}
                 </React.Fragment>
               );
             })}

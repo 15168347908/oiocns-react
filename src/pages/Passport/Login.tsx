@@ -10,7 +10,18 @@ const PassportLogin: React.FC<RouteComponentProps> = (props) => {
   const [loading, setLoading] = useState(false);
   return (
     <div>
-      <Tabs size="large" items={[{ label: '账号密码登录', key: 'account' }]} />
+      <div className={cls.header}>
+        <img src="/img/logo/logo3.jpg" alt="" />
+        <div>使用奥集能登录</div>
+      </div>
+      {/*<div className={cls.DivideLine}></div>*/}
+      <Tabs
+        size="large"
+        items={[
+          { label: '账号密码登录', key: 'account' },
+          { label: '扫码登录', key: 'qrCode' },
+        ]}
+      />
       <Form
         onFinish={async ({ account, password }) => {
           if (account && password) {
@@ -45,10 +56,10 @@ const PassportLogin: React.FC<RouteComponentProps> = (props) => {
             登录
           </Button>
         </Form.Item>
-        <Link className={cls.text} to="/passport/register">
-          注册用户
-        </Link>
       </Form>
+      <Link className={cls.text} to="/passport/register">
+        注册用户
+      </Link>
     </div>
   );
 };
