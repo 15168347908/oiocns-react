@@ -7,7 +7,6 @@ import { getSheets, getSheetsHandler } from '@/utils/excel/configs/index';
 import { Context, DataHandler, ErrorMessage, ISheetHandler } from '@/utils/excel/types';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Modal, Spin, Tabs, Tag, Upload, message } from 'antd';
-import TabPane from 'antd/lib/tabs/TabPane';
 import React, { useState } from 'react';
 
 /** 上传导入模板 */
@@ -67,7 +66,7 @@ export const uploadTemplate = (dir: IDirectory) => {
 
 /** 展示数据 */
 const showData = (
-  configs: ISheetHandler<any, any, model.Sheet<any>>[],
+  sheet: ISheetHandler<any, any, model.Sheet<any>>[],
   confirm: (modal: any) => void,
   okText: string,
 ) => {
@@ -79,12 +78,14 @@ const showData = (
     title: '数据',
     maskClosable: true,
     content: (
-      <Tabs>
-        {configs.map((item) => {
-          console.log(item);
-          return (
-            <TabPane tab={item.sheet.name} key={item.sheet.name}>
+      <Tabs
+        items={sheet.map((item) => {
+          return {
+            label: item.sheet.name,
+            key: item.sheet.name,
+            children: (
               <ProTable
+                key={item.sheet.name}
                 dataSource={item.sheet.data}
                 cardProps={{ bodyStyle: { padding: 0 } }}
                 scroll={{ y: 400 }}
@@ -109,10 +110,10 @@ const showData = (
                   ...item.sheet.columns,
                 ]}
               />
-            </TabPane>
-          );
+            ),
+          };
         })}
-      </Tabs>
+      />
     ),
   });
 };
@@ -160,7 +161,10 @@ const generate = async (
         },
         '生成数据模板',
       );
-      dir.notify('refresh', [dir.metadata]);
+      const dirSheet = reads.find((item) => item.sheet.name == '目录');
+      if (dirSheet) {
+        dir.notify('refresh', dirSheet.sheet.data);
+      }
     },
     onReadError: (errors) => {
       showErrors(errors);
