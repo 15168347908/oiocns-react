@@ -1,11 +1,10 @@
-import { readXlsx, sleep } from '@/ts/base/common';
+import { sleep } from '@/ts/base/common';
 import { XForm } from '@/ts/base/schema';
 import { formatDate } from 'devextreme/localization';
 import { Command, common, kernel, model, schema } from '../../../base';
 import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { IForm } from './form';
-import axios from 'axios';
 
 export type GraphData = () => any;
 
@@ -280,14 +279,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   async reading(node: model.Node): Promise<boolean> {
     const table = node as model.Tables;
     if (table.file) {
-      const url = `/orginone/kernel/load/${table.file.shareLink}?download=1`;
-      const res = await axios.request({
-        method: 'GET',
-        url: url,
-        responseType: 'blob',
-      });
-      const sheets = await this.template<any>(node);
-      readXlsx(res.data as Blob, sheets);
     }
     return false;
   }

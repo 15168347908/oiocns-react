@@ -1,8 +1,7 @@
 import { command, model } from '@/ts/base';
-import { generateXlsx, readXlsx } from '@/ts/base/common';
 import { IDirectory } from '@/ts/core';
 import { formatDate } from '@/utils';
-import { dataHandling } from '@/utils/excel';
+import { dataHandling, generateXlsx, readXlsx } from '@/utils/excel';
 import { getSheets, getSheetsHandler } from '@/utils/excel/configs/index';
 import { Context, DataHandler, ErrorMessage, ISheetHandler } from '@/utils/excel/types';
 import { ProTable } from '@ant-design/pro-components';

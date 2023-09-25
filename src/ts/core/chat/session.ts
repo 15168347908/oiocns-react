@@ -3,7 +3,7 @@ import { Entity, IEntity, MessageType, TargetType } from '../public';
 import { ITarget } from '../target/base/target';
 import { XCollection } from '../public/collection';
 import { IMessage, Message } from './message';
-import { IActivity, Activity } from './activity';
+import { Activity, IActivity } from './activity';
 // 空时间
 const nullTime = new Date('2022-07-01').getTime();
 // 消息变更推送
@@ -46,6 +46,7 @@ export interface ISession extends IEntity<schema.XEntity> {
     text: string,
     mentions: string[],
     cite?: IMessage,
+    forward?: IMessage[],
   ): Promise<boolean>;
   /** 撤回消息 */
   recallMessage(id: string): Promise<void>;
@@ -149,6 +150,7 @@ export class Session extends Entity<schema.XEntity> implements ISession {
   get canDeleteMessage(): boolean {
     return this.target.id === this.userId || this.target.hasRelationAuth();
   }
+
   async moreMessage(): Promise<number> {
     const data = await this.coll.loadSpace({
       take: 30,
@@ -195,9 +197,16 @@ export class Session extends Entity<schema.XEntity> implements ISession {
     text: string,
     mentions: string[],
     cite?: IMessage | undefined,
+    forward?: IMessage[] | undefined,
   ): Promise<boolean> {
     if (cite) {
       cite.metadata.comments = [];
+    }
+    if (forward) {
+      forward = forward.map((item: IMessage) => {
+        item.metadata.comments = [];
+        return item;
+      });
     }
     const data = await this.coll.insert(
       {
@@ -211,6 +220,7 @@ export class Session extends Entity<schema.XEntity> implements ISession {
               body: text,
               mentions: mentions,
               cite: cite?.metadata,
+              forward: forward?.map((item) => item.metadata),
             }),
         ),
       } as unknown as model.ChatMessageType,

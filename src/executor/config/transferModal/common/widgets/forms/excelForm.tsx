@@ -7,7 +7,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import React, {useState} from 'react';
 import {expand, loadFormsMenu, MenuItem} from '../menus';
 import {Button, message, Space, Spin, TreeSelect, Upload} from 'antd';
-import {generateXlsx} from "@/ts/base/common";
+import { generateXlsx } from '@/utils/excel';
 
 interface IProps {
   transfer: ITransfer;
@@ -148,7 +148,6 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         rules: [{ required: true, message: '表格文件为必填项' }],
       },
       renderFormItem: (_, __, form) => {
-        console.log(form.getFieldValue('file'));
         return (
           <Uploader
             transfer={transfer}
