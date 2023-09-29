@@ -1,4 +1,4 @@
-import { schema, kernel, model } from '../../../base';
+import { schema, kernel, model, command } from '../../../base';
 import { OperateType, TargetType } from '../../public/enums';
 import { PageAll, orgAuth } from '../../public/consts';
 import { IBelong } from './belong';
@@ -271,8 +271,8 @@ export abstract class Team extends Entity<schema.XTarget> implements ITeam {
       if (data.operater.id != this.user.id) {
         logger.info(message);
       }
-      msgChatNotify.changCallback();
       this.space.directory.structCallback();
+      command.emitterFlag();
     }
   }
   async _removeJoinTarget(_: schema.XTarget): Promise<string> {
