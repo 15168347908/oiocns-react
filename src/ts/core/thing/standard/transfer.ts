@@ -269,7 +269,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         }
         ans.push({
           name: form.name,
-          headers: 1,
           columns: columns,
           data: [],
         });
