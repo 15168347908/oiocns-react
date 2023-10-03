@@ -299,14 +299,14 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
           throw new Error('未获取到表单信息！');
         }
         const id = this.command.subscribe((type, cmd, args) => {
-          const { value, formNode } = args;
-          if (formNode.id != node.id) return;
           if (type == 'data' && cmd == 'inputCall') {
+            const { value, formNode } = args;
+            if (formNode.id != node.id) return;
             const data: { [key: string]: any } = {};
             for (const key in value) {
               for (const field of form.fields) {
                 if (field.id == key) {
-                  data[field.code] = value[key];
+                  data[field.name] = value[key];
                 }
               }
             }
@@ -314,7 +314,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
             resolve(data);
           }
         });
-        this.command.emitter('data', 'input', { form, node });
+        this.command.emitter('data', 'input', { form, formNode });
       } catch (error) {
         reject(error);
       }
@@ -618,7 +618,7 @@ export class Task implements ITask {
           await this.transfer.reading(node);
           break;
         case '表单':
-          await this.transfer.inputting(node);
+          nextData = await this.transfer.inputting(node);
           break;
       }
       if (node.postScripts) {

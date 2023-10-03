@@ -98,9 +98,10 @@ const Center: React.FC<IProps> = ({ current }) => {
               setCenter(
                 <InputModal
                   current={form}
-                  finished={(value) =>
-                    current.command.emitter('data', 'inputCall', { value, formNode })
-                  }
+                  finished={(value) => {
+                    setEmpty();
+                    current.command.emitter('data', 'inputCall', { value, formNode });
+                  }}
                 />,
               );
               break;
