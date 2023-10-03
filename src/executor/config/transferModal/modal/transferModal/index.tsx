@@ -5,8 +5,7 @@ import GraphTools from './widgets/graphTools';
 import Settings from './widgets/settings';
 import Nodes from './widgets/nodes';
 import NodeForms from '../../common/widgets/nodeForms';
-import Operate from './widgets/operate';
-import Editable from '../../common/widgets/center';
+import Center from '../../common/widgets/center';
 import Tasks from './widgets/tasks';
 import { FullModal } from '../..';
 
@@ -32,8 +31,7 @@ const TransferModal: React.FC<IProps> = ({
       <Settings current={current} />
       <Nodes current={current} />
       <NodeForms current={current} />
-      <Operate current={current} />
-      <Editable current={current} />
+      <Center current={current} />
       <Tasks current={current} />
     </FullModal>
   );

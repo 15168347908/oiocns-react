@@ -5,6 +5,7 @@ import { Command, common, kernel, model, schema } from '../../../base';
 import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { IForm } from './form';
+import { ShareIdSet } from '../../public/entity';
 
 export type GraphData = () => any;
 
@@ -63,6 +64,8 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   template<T>(node: model.Node): Promise<model.Sheet<T>[]>;
   /** 读取 */
   reading(node: model.Node): Promise<any>;
+  /** 输入 */
+  inputting(node: model.Node): Promise<any>;
   /** 创建任务 */
   execute(status: model.GStatus, event: model.GEvent): Promise<void>;
   /** 创建任务 */
@@ -81,9 +84,11 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     this.command = new Command();
     this.setEntity();
   }
+
   get cacheFlag(): string {
     return 'transfers';
   }
+
   async execute(status: model.GStatus, event: model.GEvent): Promise<void> {
     this.curTask = new Task(this, event, status);
     this.taskList.push(this.curTask);
@@ -281,6 +286,39 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     // const table = node as model.Tables;
     // if (table.file) { }
     return false;
+  }
+
+  async inputting(node: model.Node): Promise<any> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const formNode = node as model.Form;
+        const form = ShareIdSet.get(formNode.formId + '*') as IForm;
+        if (form) {
+          await form.loadContent();
+        } else {
+          throw new Error('未获取到表单信息！');
+        }
+        const id = this.command.subscribe((type, cmd, args) => {
+          const { value, formNode } = args;
+          if (formNode.id != node.id) return;
+          if (type == 'data' && cmd == 'inputCall') {
+            const data: { [key: string]: any } = {};
+            for (const key in value) {
+              for (const field of form.fields) {
+                if (field.id == key) {
+                  data[field.code] = value[key];
+                }
+              }
+            }
+            this.command.unsubscribe(id);
+            resolve(data);
+          }
+        });
+        this.command.emitter('data', 'input', { form, node });
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
   getNode(id: string): model.Node | undefined {
@@ -578,6 +616,9 @@ export class Task implements ITask {
           break;
         case '表格':
           await this.transfer.reading(node);
+          break;
+        case '表单':
+          await this.transfer.inputting(node);
           break;
       }
       if (node.postScripts) {
