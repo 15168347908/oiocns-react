@@ -20,7 +20,7 @@ const getExpandKeys = (treeData: MenuItem[]) => {
 const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
   const formRef = createRef<ProFormInstance>();
   const [treeData, setTreeData] = useState<MenuItem[]>([
-    loadFormsMenu(transfer.directory),
+    loadFormsMenu(transfer.directory.target.directory),
   ]);
   const selector = (
     title: string,
@@ -43,7 +43,7 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         showSearch: true,
         loadData: async (node: MenuItem): Promise<void> => {
           if (!node.isLeaf) {
-            let forms = await (node.item as IDirectory).forms;
+            let forms = (node.item as IDirectory).forms;
             if (forms.length > 0) {
               setTreeData([loadFormsMenu(transfer.directory)]);
             }

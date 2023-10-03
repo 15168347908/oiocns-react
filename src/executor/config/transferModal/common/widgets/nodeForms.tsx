@@ -7,6 +7,7 @@ import { StoreForm } from './forms/storeForm';
 import { RequestForm } from './forms/requestForm';
 import { MappingForm } from './forms/mappingForm';
 import { ExcelForm } from './forms/excelForm';
+import { EnterForm } from './forms/enterForm';
 
 interface IProps {
   current: ITransfer;
@@ -31,6 +32,7 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
           setEntities({ ...entities, [args.id]: args });
           let mapping: { [key: string]: string } = {
             请求: 'updateRequest',
+            表单: 'updateForm',
             子图: 'updateTransfer',
             脚本: 'updateExecutable',
             映射: 'updateMapping',
@@ -120,6 +122,18 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
           case 'updateTable':
             return (
               <ExcelForm
+                key={generateUuid()}
+                transfer={current}
+                current={entry[1]}
+                finished={() => {
+                  finished(entry[0]);
+                }}
+              />
+            );
+          case 'updateForm':
+            return (
+              <EnterForm
+                key={generateUuid()}
                 transfer={current}
                 current={entry[1]}
                 finished={() => {

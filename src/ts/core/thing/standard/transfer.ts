@@ -671,6 +671,16 @@ export class Task implements ITask {
   }
 }
 
+export const getDefaultFormNode = (): model.Form => {
+  return {
+    id: common.generateUuid(),
+    code: 'form',
+    name: '表单',
+    typeName: '表单',
+    formId: '',
+  };
+};
+
 export const getDefaultTableNode = (): model.Tables => {
   return {
     id: common.generateUuid(),

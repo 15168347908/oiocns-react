@@ -2,6 +2,7 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { common, model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
 import {
+  getDefaultFormNode,
   getDefaultMappingNode,
   getDefaultRequestNode,
   getDefaultStoreNode,
@@ -83,6 +84,9 @@ const Nodes: React.FC<IProps> = ({ current }) => {
   ) => {
     let data = {} as model.Node;
     switch (name) {
+      case '表单':
+        data = getDefaultFormNode();
+        break;
       case '表格':
         data = getDefaultTableNode();
         break;

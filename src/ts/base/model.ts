@@ -1071,6 +1071,12 @@ export type SubTransfer = {
   nextId: string;
 } & Node;
 
+// 表单
+export type Form = {
+  // 表单 ID
+  formId: string;
+} & Node;
+
 // 选择
 export type Selection = {
   // 类型
