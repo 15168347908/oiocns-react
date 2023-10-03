@@ -4,6 +4,8 @@ import { model } from '@/ts/base';
 import { MappingModal, RequestModal, StoreModal, TransferModal } from '../..';
 import OfficeView from '@/executor/data/open/office';
 import { message } from 'antd';
+import LabelsModal from '@/executor/config/operateModal/labelsModal';
+import { ShareIdSet } from '@/ts/core/public/entity';
 
 interface IProps {
   current: ITransfer;
@@ -49,10 +51,23 @@ const Editable: React.FC<IProps> = ({ current }) => {
               const tables = args as model.Tables;
               if (tables.file) {
                 setCenter(
-                  <OfficeView share={tables.file} finished={setEmpty} current={args} />,
+                  <OfficeView
+                    share={tables.file}
+                    finished={setEmpty}
+                    current={current.directory}
+                  />,
                 );
               } else {
                 message.error('未上传文件');
+              }
+              break;
+            case '表单':
+              const formNode = args as model.Form;
+              const form = ShareIdSet.get(formNode.formId + '*');
+              if (form) {
+                setCenter(<LabelsModal current={form} finished={setEmpty} />);
+              } else {
+                message.error('未绑定表单');
               }
               break;
           }
