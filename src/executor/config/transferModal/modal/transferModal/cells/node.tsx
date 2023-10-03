@@ -1,5 +1,5 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
-import { model } from '@/ts/base';
+import { model, schema } from '@/ts/base';
 import { XTarget } from '@/ts/base/schema';
 import {
   CheckCircleOutlined,
@@ -87,7 +87,7 @@ export const GraphNode: React.FC<IProps> = memo(({ node, graph }) => {
         transfer={transfer}
         style={{ position: 'absolute', left: 40, top: 20 }}
       />
-      <Info name={data.name} style={{ left: 200, top: 16 }} />
+      <Info node={data} style={{ left: 200, top: 16 }} />
       <Remove store={store} node={node} transfer={transfer} data={data} />
       <ContextMenu store={store} node={node} transfer={transfer} data={data} />
     </div>
@@ -103,7 +103,7 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
       onMouseLeave={() => transfer?.command.emitter('node', 'closeRemove', node)}
       onDoubleClick={() => transfer?.command.emitter('tools', 'edit', data)}>
       <Tag typeName={data.typeName} transfer={transfer} />
-      <Info name={data.name} />
+      <Info node={data} />
       <NodeStatus store={store} transfer={transfer} node={node} data={data} />
       <Remove store={store} transfer={transfer} node={node} data={data} />
       <ContextMenu store={store} transfer={transfer} node={node} data={data} />
@@ -345,16 +345,17 @@ const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node, data }) =>
 };
 
 interface InfoProps {
-  name: string;
+  node: model.Node;
   style?: CSSProperties;
 }
 
 // 节点信息
-const Info: React.FC<InfoProps> = ({ name, style }) => {
+const Info: React.FC<InfoProps> = ({ node, style }) => {
+  const entity = { name: node.name, typeName: node.typeName } as schema.XEntity;
   return (
     <div style={style} className={`${cls['flex-row']} ${cls['info']} ${cls['border']}`}>
-      <EntityIcon entityId={name} />
-      <div style={{ marginLeft: 10 }}>{name}</div>
+      <EntityIcon entity={entity} />
+      <div style={{ marginLeft: 10 }}>{node.name}</div>
     </div>
   );
 };
