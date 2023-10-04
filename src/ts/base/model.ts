@@ -1063,8 +1063,6 @@ export type Store = {
   directoryId: string;
   // 办事
   workId: string;
-  // 表单
-  formIds: string[];
   // 是否直接存入平台
   directIs: boolean;
 } & Node;

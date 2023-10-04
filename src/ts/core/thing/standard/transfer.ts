@@ -211,7 +211,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
             };
             const belongId = this.directory.belongId;
             const allForms = [...work.primaryForms, ...work.detailForms];
-            console.log(allForms);
             for (const key of Object.keys(array)) {
               for (const form of allForms) {
                 if (key == form.id) {
@@ -778,7 +777,6 @@ export const getDefaultStoreNode = (): model.Store => {
     typeName: '存储',
     directoryId: '',
     workId: '',
-    formIds: [],
     directIs: false,
   };
 };
