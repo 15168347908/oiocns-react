@@ -13,9 +13,9 @@ import React, { CSSProperties, createRef, memo, useEffect, useState } from 'reac
 import { MenuItemType } from 'typings/globelType';
 import cls from './../index.module.less';
 import { ITransfer } from '@/ts/core';
-import { TransferStore } from './graph';
+import { Store } from './graph';
 import { message } from 'antd';
-import GraphEditor from './../widgets/graphEditor';
+import GraphEditor from '../config/graphEditor';
 
 interface IProps {
   node: Node;
@@ -23,7 +23,7 @@ interface IProps {
 }
 
 const useNode = (node: Node, graph: Graph) => {
-  const store = graph.getPlugin<TransferStore>('TransferStore');
+  const store = graph.getPlugin<Store>('TransferStore');
   const transfer = store?.transfer;
   const [data, setData] = useState(transfer?.getNode(node.id) ?? node.getData());
   useEffect(() => {
@@ -112,7 +112,7 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
 };
 
 interface RemoveProps {
-  store?: TransferStore;
+  store?: Store;
   transfer?: ITransfer;
   node: Node;
   data: model.Node;
@@ -120,7 +120,7 @@ interface RemoveProps {
 
 const Remove: React.FC<RemoveProps> = ({ store, transfer, node, data }) => {
   const [show, setShow] = useState<boolean>(false);
-  const graphStatus = store?.graphStatus;
+  const graphStatus = store?.status;
   const dataStatus = data.status ?? graphStatus ?? 'Editable';
   const [status, setStatus] = useState<model.NStatus>(dataStatus);
   const editableStatus = ['Editable', 'Viewable', 'Completed'];
@@ -164,7 +164,7 @@ const Remove: React.FC<RemoveProps> = ({ store, transfer, node, data }) => {
 };
 
 export interface StatusProps {
-  store?: TransferStore;
+  store?: Store;
   transfer?: ITransfer;
   node: Node;
   data: model.Node;
@@ -178,7 +178,7 @@ export const NodeStatus: React.FC<StatusProps> = ({
   data,
   style,
 }) => {
-  const dataStatus = data.status ?? store?.graphStatus ?? 'Editable';
+  const dataStatus = data.status ?? store?.status ?? 'Editable';
   const [status, setStatus] = useState<model.NStatus>(dataStatus);
   useEffect(() => {
     const id = transfer?.command.subscribe((type, cmd, args) => {
@@ -247,7 +247,7 @@ const Tag: React.FC<TagProps> = ({ typeName, transfer, style }) => {
 };
 
 interface ContextProps {
-  store?: TransferStore;
+  store?: Store;
   transfer?: ITransfer;
   node: Node;
   data: model.Node;
@@ -283,7 +283,7 @@ const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node, data }) =>
   const div = createRef<HTMLDivElement>();
   const [menu, setMenu] = useState<boolean>();
   const [pos, setPos] = useState<{ x: number; y: number }>();
-  const graphStatus = store?.graphStatus;
+  const graphStatus = store?.status;
   const dataStatus = data.status ?? graphStatus ?? 'Editable';
   const [status, setStatus] = useState<model.NStatus>(dataStatus);
   const editableStatus = ['Editable', 'Viewable', 'Completed'];

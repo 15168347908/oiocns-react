@@ -1,16 +1,15 @@
-import { model } from "@/ts/base";
-import { ITransfer } from "@/ts/core";
-import { CloseOutlined, EditOutlined } from "@ant-design/icons";
-import { Space, Select } from "antd";
-import { DefaultOptionType } from "antd/lib/select";
-import React, { useState, useEffect } from "react";
+import { model } from '@/ts/base';
+import { ITransfer } from '@/ts/core';
+import { CloseOutlined, EditOutlined } from '@ant-design/icons';
+import { Space, Select } from 'antd';
+import { DefaultOptionType } from 'antd/lib/select';
+import React, { useState, useEffect } from 'react';
 
 interface IProps {
   current: ITransfer;
-  initStatus: 'Editable' | 'Viewable';
 }
 
-export const EnvSelector: React.FC<IProps> = ({ current, initStatus }) => {
+export const EnvSelector: React.FC<IProps> = ({ current }) => {
   const getOptions = (current: ITransfer) => {
     return current.metadata.envs.map((item) => {
       return {
@@ -35,7 +34,7 @@ export const EnvSelector: React.FC<IProps> = ({ current, initStatus }) => {
       };
     });
   };
-  const [status, setStatus] = useState<model.GStatus>(initStatus);
+  const [status, setStatus] = useState<model.GStatus>('Editable');
   const [curEnv, setCurEnv] = useState<string | undefined>(current.metadata.curEnv);
   const [options, setOptions] = useState<DefaultOptionType[]>(getOptions(current));
   useEffect(() => {

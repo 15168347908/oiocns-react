@@ -13,7 +13,7 @@ interface IProps {
   current: ITransfer;
 }
 
-const NodeForms: React.FC<IProps> = ({ current }) => {
+export const NodeForms: React.FC<IProps> = ({ current }) => {
   const [entities, setEntities] = useState<{ [key: string]: any }>({});
   const [commands, setCommands] = useState<{ [key: string]: string }>({});
   useEffect(() => {
@@ -146,5 +146,3 @@ const NodeForms: React.FC<IProps> = ({ current }) => {
     </>
   );
 };
-
-export default NodeForms;

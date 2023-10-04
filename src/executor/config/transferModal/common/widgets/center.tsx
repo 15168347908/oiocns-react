@@ -5,7 +5,7 @@ import {
   MappingModal,
   RequestModal,
   StoreModal,
-  TransferModal,
+  TransferRunning,
   InputModal,
   SelectionModal,
 } from '../..';
@@ -18,7 +18,7 @@ interface IProps {
   current: ITransfer;
 }
 
-const Center: React.FC<IProps> = ({ current }) => {
+export const Center: React.FC<IProps> = ({ current }) => {
   const [center, setCenter] = useState<ReactNode>();
   const setEmpty = () => setCenter(<></>);
   useEffect(() => {
@@ -53,15 +53,14 @@ const Center: React.FC<IProps> = ({ current }) => {
                   break;
                 case '子图':
                   const subTransfer = args as model.SubTransfer;
-                  const nextId = subTransfer.nextId;
-                  const nextTransfer = current.getTransfer(nextId);
-                  setCenter(
-                    <>
-                      {nextTransfer && (
-                        <TransferModal current={nextTransfer} finished={setEmpty} />
-                      )}
-                    </>,
-                  );
+                  const nextTransfer = current.getTransfer(subTransfer.nextId);
+                  if (nextTransfer) {
+                    setCenter(
+                      <TransferRunning current={nextTransfer} finished={setEmpty} />,
+                    );
+                  } else {
+                    message.error('未绑定迁移配置');
+                  }
                   break;
                 case '表格':
                   const tables = args as model.Tables;
@@ -133,5 +132,3 @@ const Center: React.FC<IProps> = ({ current }) => {
   });
   return <>{center}</>;
 };
-
-export default Center;
