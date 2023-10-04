@@ -1,6 +1,7 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { model, schema } from '@/ts/base';
 import { XTarget } from '@/ts/base/schema';
+import { ITransfer } from '@/ts/core';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -9,13 +10,12 @@ import {
   StopOutlined,
 } from '@ant-design/icons';
 import { Graph, Node } from '@antv/x6';
+import { message } from 'antd';
 import React, { CSSProperties, createRef, memo, useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
+import { GraphView } from '../running/graphView';
 import cls from './../index.module.less';
-import { ITransfer } from '@/ts/core';
 import { Store } from './graph';
-import { message } from 'antd';
-import GraphEditor from '../config/graphEditor';
 
 interface IProps {
   node: Node;
@@ -68,11 +68,9 @@ export const GraphNode: React.FC<IProps> = memo(({ node, graph }) => {
       onMouseLeave={() => transfer?.command.emitter('node', 'closeRemove', node)}
       onDoubleClick={() => transfer?.command.emitter('tools', 'edit', data)}>
       {nextTransfer && (
-        <GraphEditor
+        <GraphView
           current={nextTransfer}
           options={{ background: { color: '#F2F7FA' }, panning: false, mousewheel: true }}
-          initStatus={'Viewable'}
-          initEvent={'ViewRun'}
         />
       )}
       <NodeStatus
@@ -286,7 +284,7 @@ const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node, data }) =>
   const graphStatus = store?.status;
   const dataStatus = data.status ?? graphStatus ?? 'Editable';
   const [status, setStatus] = useState<model.NStatus>(dataStatus);
-  const editableStatus = ['Editable', 'Viewable', 'Completed'];
+  const editableStatus = ['Editable', 'Viewable', 'Completed', 'Error'];
   useEffect(() => {
     div.current?.focus();
     const id = transfer?.command.subscribe((type, cmd, args) => {
