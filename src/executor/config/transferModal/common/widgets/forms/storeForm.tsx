@@ -3,7 +3,7 @@ import { model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import React, { createRef, useEffect, useState } from 'react';
-import { MenuItem, loadApplicationsMenu, loadDirs, loadFormsMenu } from '../menus';
+import { MenuItem, expand, loadApplicationsMenu } from '../menus';
 
 interface IProps {
   transfer: ITransfer;
@@ -11,29 +11,15 @@ interface IProps {
   finished: () => void;
 }
 
-const getDirTrees = (transfer: ITransfer): MenuItem[] => {
-  const tree = [
-    loadDirs(transfer.directory.target.directory, (item) => (item.selectable = true)),
-  ];
-  return tree;
-};
-
 const getWorkTrees = (transfer: ITransfer): MenuItem[] => {
   const tree = [loadApplicationsMenu(transfer.directory.target.directory)];
-  return tree;
-};
-
-const getFormTrees = (transfer: ITransfer): MenuItem[] => {
-  const tree = [loadFormsMenu(transfer.directory.target.directory)];
   return tree;
 };
 
 export const StoreForm: React.FC<IProps> = ({ transfer, current, finished }) => {
   const formRef = createRef<ProFormInstance>();
   const [notInit, setNotInit] = useState<boolean>(true);
-  const [treeData, setTreeData] = useState<MenuItem[]>(getDirTrees(transfer));
   const [workTree, setWorkTree] = useState<MenuItem[]>([]);
-  const [formTree, setFormTree] = useState<MenuItem[]>(getFormTrees(transfer));
   useEffect(() => {
     if (notInit) {
       transfer.directory.target.directory.loadAllApplication().then(async (apps) => {
@@ -63,30 +49,6 @@ export const StoreForm: React.FC<IProps> = ({ transfer, current, finished }) => 
       },
     },
     {
-      title: '存储目录',
-      dataIndex: 'directoryId',
-      valueType: 'treeSelect',
-      colProps: { span: 24 },
-      formItemProps: {
-        rules: [{ required: true, message: '编码为必填项' }],
-      },
-      fieldProps: {
-        fieldNames: {
-          label: 'label',
-          value: 'key',
-          children: 'children',
-        },
-        showSearch: true,
-        loadData: async (node: MenuItem): Promise<void> => {
-          if (!node.isLeaf) {
-            setTreeData(getDirTrees(transfer));
-          }
-        },
-        treeNodeFilterProp: 'label',
-        treeData: treeData,
-      },
-    },
-    {
       title: '应用（办事）',
       dataIndex: 'workId',
       valueType: 'treeSelect',
@@ -107,32 +69,8 @@ export const StoreForm: React.FC<IProps> = ({ transfer, current, finished }) => 
           }
         },
         treeNodeFilterProp: 'label',
+        treeDefaultExpandedKeys: expand(workTree, ['办事']),
         treeData: workTree,
-      },
-    },
-    {
-      title: '绑定表单',
-      dataIndex: 'formIds',
-      valueType: 'treeSelect',
-      colProps: { span: 24 },
-      formItemProps: {
-        rules: [{ required: true, message: '编码为必填项' }],
-      },
-      fieldProps: {
-        fieldNames: {
-          label: 'label',
-          value: 'key',
-          children: 'children',
-        },
-        showSearch: true,
-        loadData: async (node: MenuItem): Promise<void> => {
-          if (!node.isLeaf) {
-            setFormTree(getFormTrees(transfer));
-          }
-        },
-        multiple: true,
-        treeNodeFilterProp: 'label',
-        treeData: formTree,
       },
     },
     {

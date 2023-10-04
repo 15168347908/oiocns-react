@@ -92,6 +92,20 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
       },
     },
     {
+      title: '原 Id 字段名称',
+      dataIndex: 'idName',
+      formItemProps: {
+        rules: [{ required: true, message: '原 Id 字段名称为必填项' }],
+      },
+    },
+    {
+      title: '原 Name 字段名称',
+      dataIndex: 'nameName',
+      formItemProps: {
+        rules: [{ required: true, message: '原 Name 字段名称为必填项' }],
+      },
+    },
+    {
       title: '后置脚本',
       dataIndex: 'postScripts',
       colProps: { span: 24 },

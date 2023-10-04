@@ -57,9 +57,9 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 脚本 */
   running(code: string, args: any, env?: model.KeyValue): any;
   /** 映射 */
-  mapping(node: model.Node, array: any[]): Promise<any[]>;
+  mapping(node: model.Node, array: any[]): Promise<{ [key: string]: any[] }>;
   /** 写入 */
-  writing(node: model.Node, array: any[]): Promise<any[]>;
+  writing(node: model.Node, array: { [key: string]: any[] }): Promise<any[]>;
   /** 模板 */
   template<T>(node: model.Node): Promise<model.Sheet<T>[]>;
   /** 读取 */
@@ -191,14 +191,14 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     return runtime.nextData;
   }
 
-  async writing(node: model.Node, array: any[]): Promise<any[]> {
+  async writing(node: model.Node, array: { [key: string]: any[] }): Promise<any[]> {
     const write = node as model.Store;
     if (write.directIs) {
       for (const app of await this.directory.target.directory.loadAllApplication()) {
         const works = await app.loadWorks();
         const work = works.find((item) => item.id == write.workId);
         await work?.loadWorkNode();
-        if (work && work.primaryForms.length > 0 && work.node) {
+        if (work && work.node) {
           const apply = await work.createApply();
           if (apply) {
             const map = new Map<string, model.FormEditData>();
@@ -210,11 +210,18 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
               createTime: formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss.S'),
             };
             const belongId = this.directory.belongId;
-            for (const item of array) {
-              const res = await kernel.createThing(belongId, [], '资产卡片');
-              if (res.success) {
-                const one: model.AnyThingModel = { ...item, ...res.data };
-                editForm.after.push(one);
+            const allForms = [...work.primaryForms, ...work.detailForms];
+            console.log(allForms);
+            for (const key of Object.keys(array)) {
+              for (const form of allForms) {
+                if (key == form.id) {
+                  for (const item of array[key]) {
+                    const res = await kernel.createThing(belongId, [], '资产卡片');
+                    if (res.success) {
+                      editForm.after.push({ ...item, ...res.data });
+                    }
+                  }
+                }
               }
             }
             map.set(work.primaryForms[0].id, editForm);
@@ -226,9 +233,9 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     return [];
   }
 
-  async mapping(node: model.Node, array: any[]): Promise<any[]> {
+  async mapping(node: model.Node, array: any[]): Promise<{ [key: string]: any[] }> {
     const data = node as model.Mapping;
-    const ans: any[] = [];
+    const ans: model.AnyThingModel[] = [];
     const form = this.findMetadata<XForm>(data.source);
     if (form) {
       const sourceMap = new Map<string, schema.XAttribute>();
@@ -239,7 +246,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       });
       for (let item of array) {
         let oldItem: { [key: string]: any } = {};
-        let newItem: { [key: string]: any } = { Id: common.generateUuid() };
+        let newItem: any = { Id: item[data.idName], Name: item[data.nameName] };
         Object.keys(item).forEach((key) => {
           if (sourceMap.has(key)) {
             const attr = sourceMap.get(key)!;
@@ -254,7 +261,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         ans.push(newItem);
       }
     }
-    return ans;
+    return { [data.target]: ans };
   }
 
   async template<T>(node: model.Node): Promise<model.Sheet<T>[]> {
@@ -610,7 +617,7 @@ export class Task implements ITask {
           nextData = await this.transfer.mapping(node, preData.array);
           break;
         case '存储':
-          isArray(preData);
+          Object.keys(preData).forEach((key) => isArray(preData[key]));
           await this.transfer.writing(node, preData);
           nextData = preData;
           break;
@@ -755,6 +762,8 @@ export const getDefaultMappingNode = (): model.Mapping => {
     code: 'mapping',
     name: '映射',
     typeName: '映射',
+    idName: 'id',
+    nameName: 'name',
     source: '',
     target: '',
     mappings: [],
