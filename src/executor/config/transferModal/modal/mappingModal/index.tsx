@@ -3,6 +3,7 @@ import { ITransfer } from '@/ts/core';
 import { Mapper } from './widgets/mapper';
 import React from 'react';
 import { FullModal } from '../..';
+import { generateUuid } from '@/ts/base/common';
 
 interface IProps {
   transfer: ITransfer;
@@ -15,7 +16,7 @@ const MappingModal: React.FC<IProps> = ({ transfer, current, finished }) => {
     <FullModal
       title={'数据映射'}
       finished={finished}
-      children={<Mapper transfer={transfer} current={current} />}
+      children={<Mapper key={generateUuid()} transfer={transfer} current={current} />}
     />
   );
 };

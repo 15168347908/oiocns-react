@@ -13,6 +13,7 @@ import OfficeView from '@/executor/data/open/office';
 import { message } from 'antd';
 import LabelsModal from '@/executor/config/operateModal/labelsModal';
 import { ShareIdSet } from '@/ts/core/public/entity';
+import { generateUuid } from '@/ts/base/common';
 
 interface IProps {
   current: ITransfer;
@@ -31,6 +32,7 @@ export const Center: React.FC<IProps> = ({ current }) => {
                 case '请求':
                   setCenter(
                     <RequestModal
+                      key={generateUuid()}
                       finished={setEmpty}
                       transfer={current}
                       current={args}
@@ -40,6 +42,7 @@ export const Center: React.FC<IProps> = ({ current }) => {
                 case '映射':
                   setCenter(
                     <MappingModal
+                      key={generateUuid()}
                       finished={setEmpty}
                       transfer={current}
                       current={args}
@@ -48,15 +51,23 @@ export const Center: React.FC<IProps> = ({ current }) => {
                   break;
                 case '存储':
                   setCenter(
-                    <StoreModal finished={setEmpty} transfer={current} current={args} />,
+                    <StoreModal
+                      key={generateUuid()}
+                      finished={setEmpty}
+                      transfer={current}
+                      current={args}
+                    />,
                   );
                   break;
                 case '子图':
-                  const subTransfer = args as model.SubTransfer;
-                  const nextTransfer = current.getTransfer(subTransfer.nextId);
+                  const nextTransfer = current.getTransfer(args.nextId);
                   if (nextTransfer) {
                     setCenter(
-                      <TransferRunning current={nextTransfer} finished={setEmpty} />,
+                      <TransferRunning
+                        key={generateUuid()}
+                        current={nextTransfer}
+                        finished={setEmpty}
+                      />,
                     );
                   } else {
                     message.error('未绑定迁移配置');
@@ -67,6 +78,7 @@ export const Center: React.FC<IProps> = ({ current }) => {
                   if (tables.file) {
                     setCenter(
                       <OfficeView
+                        key={generateUuid()}
                         share={tables.file}
                         finished={setEmpty}
                         current={current.directory}
@@ -80,7 +92,13 @@ export const Center: React.FC<IProps> = ({ current }) => {
                   const formNode = args as model.Form;
                   const form = ShareIdSet.get(formNode.formId + '*');
                   if (form) {
-                    setCenter(<LabelsModal current={form} finished={setEmpty} />);
+                    setCenter(
+                      <LabelsModal
+                        key={generateUuid()}
+                        current={form}
+                        finished={setEmpty}
+                      />,
+                    );
                   } else {
                     message.error('未绑定表单');
                   }
@@ -96,6 +114,7 @@ export const Center: React.FC<IProps> = ({ current }) => {
               const { form, formNode } = args;
               setCenter(
                 <InputModal
+                  key={generateUuid()}
                   current={form}
                   finished={(value) => {
                     setEmpty();
@@ -109,6 +128,7 @@ export const Center: React.FC<IProps> = ({ current }) => {
               const { form, data, selectionNode } = args;
               setCenter(
                 <SelectionModal
+                  key={generateUuid()}
                   form={form}
                   data={data}
                   node={selectionNode}

@@ -5,25 +5,36 @@ import Center from './center';
 import Fields from './fields';
 import { model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
+import { generateUuid } from '@/ts/base/common';
 
 interface IProps {
   transfer: ITransfer;
   current: model.Mapping;
 }
 
-const Mapper: React.FC<IProps> = ({ transfer: transfer, current }) => {
+const Mapper: React.FC<IProps> = ({ transfer, current }) => {
   return (
     <Layout style={{ marginTop: 10 }}>
       <Content>
         <Row>
           <Col span={6}>
-            <Fields key={'sou'} target={'source'} transfer={transfer} current={current} />
+            <Fields
+              key={generateUuid()}
+              target={'source'}
+              transfer={transfer}
+              current={current}
+            />
           </Col>
           <Col span={6}>
-            <Fields key={'tar'} target={'target'} transfer={transfer} current={current} />
+            <Fields
+              key={generateUuid()}
+              target={'target'}
+              transfer={transfer}
+              current={current}
+            />
           </Col>
           <Col span={12}>
-            <Center key={'cen'} transfer={transfer} current={current} />
+            <Center key={generateUuid()} transfer={transfer} current={current} />
           </Col>
         </Row>
       </Content>

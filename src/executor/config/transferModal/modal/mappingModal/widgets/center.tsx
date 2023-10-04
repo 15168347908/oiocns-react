@@ -26,52 +26,46 @@ const Center: React.FC<IProps> = ({ transfer, current }) => {
   setDataMap('source');
   setDataMap('target');
   useEffect(() => {
-    const id = transfer.subscribe(() => {
-      if (choosing.current.source && choosing.current.target) {
-        const finished = (mapping: model.SubMapping) => {
-          current.mappings.unshift(mapping);
-          transfer.updNode(current);
-        };
-        const clear = () => {
-          transfer.command.emitter('fields', 'clear');
-          transfer.changCallback();
-        };
-        const source = choosing.current.source;
-        const target = choosing.current.target;
-        if (source?.property?.valueType != target?.property?.valueType) {
-          message.warning('字段类型必须相同！');
-          clear();
-          return;
-        }
-        finished({
-          source: choosing.current.source.id,
-          target: choosing.current.target.id,
-        });
-        clear();
-      }
-      setMappings([...current.mappings]);
-    });
-    const cmdId = transfer.command.subscribe((type, cmd, args) => {
-      if (type == 'fields') {
-        switch (cmd) {
-          case 'refresh':
-            setMappings([...current.mappings]);
-            break;
-          case 'choose':
-            const pos = args[0] as 'source' | 'target';
-            choosing.current[pos] = args[1];
-            transfer.changCallback();
-            break;
-          case 'clear':
-            choosing.current.source = undefined;
-            choosing.current.target = undefined;
-            break;
-        }
+    const cmdId = transfer.command.subscribe(async (type, cmd, args) => {
+      if (type != 'fields') return;
+      switch (cmd) {
+        case 'refresh':
+          setMappings([...current.mappings]);
+          break;
+        case 'choose':
+          const pos = args[0] as 'source' | 'target';
+          choosing.current[pos] = args[1];
+          if (choosing.current.source && choosing.current.target) {
+            const finished = async (mapping: model.SubMapping) => {
+              current.mappings.unshift(mapping);
+              await transfer.updNode(current);
+            };
+            const clear = () => {
+              transfer.command.emitter('fields', 'clear');
+              transfer.command.emitter('fields', 'refresh');
+            };
+            const source = choosing.current.source;
+            const target = choosing.current.target;
+            if (source?.property?.valueType != target?.property?.valueType) {
+              message.warning('字段类型必须相同！');
+              clear();
+              return;
+            }
+            await finished({
+              source: choosing.current.source.id,
+              target: choosing.current.target.id,
+            });
+            clear();
+          }
+          break;
+        case 'clear':
+          choosing.current.source = undefined;
+          choosing.current.target = undefined;
+          break;
       }
     });
     return () => {
       transfer.command.unsubscribe(cmdId);
-      transfer.unsubscribe(id);
     };
   }, [current]);
   return (
@@ -99,7 +93,7 @@ const Center: React.FC<IProps> = ({ transfer, current }) => {
                       onClick={async () => {
                         current.mappings.splice(index, 1);
                         await transfer.updNode(current);
-                        transfer.changCallback();
+                        transfer.command.emitter('fields', 'refresh');
                       }}>
                       删除
                     </Button>
