@@ -6,6 +6,7 @@ import { ShareIdSet } from '@/ts/core/public/entity';
 import { Radio, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';
+import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 
 interface IProps {
   transfer: ITransfer;
@@ -44,8 +45,8 @@ const Fields: React.FC<IProps> = ({ transfer, current, target }) => {
     };
   });
   return (
-    <div className={cls['flex-column']}>
-      <div>{form?.name}</div>
+    <div style={{ flex: 1 }} className={cls['flex-column']}>
+      <EntityIcon entityId={form?.name} showName />
       <div className={cls['fields']}>
         <Radio.Group value={value} buttonStyle="outline">
           <Space direction="vertical">

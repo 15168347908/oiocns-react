@@ -12,13 +12,12 @@ import orgCtrl from '@/ts/controller';
 
 interface IProps {
   mode: number;
-  current: IDirectory | undefined | 'disk';
+  current: IDirectory | 'disk';
 }
 /**
  * 存储-文件系统
  */
 const Directory: React.FC<IProps> = ({ mode, current }: IProps) => {
-  if (!current) return <></>;
   const [dircetory] = useState<IDirectory>(
     current === 'disk' ? orgCtrl.user.directory : current,
   );

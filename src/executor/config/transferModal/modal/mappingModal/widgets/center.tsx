@@ -2,7 +2,7 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { model, schema } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
 import { ShareIdSet } from '@/ts/core/public/entity';
-import { Button, Col, Row, Space, message } from 'antd';
+import { Button, Space, Table, message } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import cls from './../index.module.less';
 
@@ -69,47 +69,62 @@ const Center: React.FC<IProps> = ({ transfer, current }) => {
     };
   }, [current]);
   return (
-    <div className={cls['flex-column']}>
+    <div style={{ flex: 2 }} className={cls['flex-column']}>
       <EntityIcon entityId={'映射关系'} showName />
-      <div className={cls['center']}>
-        {mappings.map((item, index) => {
-          return (
-            <Row
-              key={item.source + item.target}
-              style={{ width: '100%', height: 50 }}
-              align={'middle'}>
-              <Col flex={8} style={{ textAlign: 'right' }}>
+      <Table
+        style={{ width: '100%' }}
+        dataSource={mappings}
+        columns={[
+          {
+            title: '原字段',
+            dataIndex: 'source',
+            width: '40%',
+            render: (value) => {
+              const item = dataMap.current.get(value);
+              return (
                 <Space>
-                  {dataMap.current.get(item.source)?.property?.info}
-                  {dataMap.current.get(item.source)?.name}
+                  {item?.property?.info}
+                  {item?.name}
                 </Space>
-              </Col>
-              {
-                <Col span={8} style={{ textAlign: 'center' }}>
-                  <Space align={'center'}>
-                    <Button
-                      type="primary"
-                      size="small"
-                      onClick={async () => {
-                        current.mappings.splice(index, 1);
-                        await transfer.updNode(current);
-                        transfer.command.emitter('fields', 'refresh');
-                      }}>
-                      删除
-                    </Button>
-                  </Space>
-                </Col>
-              }
-              <Col span={8} style={{ textAlign: 'left' }}>
-                <Space className={cls.overflow}>
-                  {dataMap.current.get(item.target)?.property?.info}
-                  {dataMap.current.get(item.target)?.name}
+              );
+            },
+          },
+          {
+            title: '目标字段',
+            dataIndex: 'target',
+            width: '40%',
+            render: (value) => {
+              const item = dataMap.current.get(value);
+              return (
+                <Space>
+                  {item?.property?.info}
+                  {item?.name}
                 </Space>
-              </Col>
-            </Row>
-          );
-        })}
-      </div>
+              );
+            },
+          },
+          {
+            title: '操作',
+            dataIndex: 'action',
+            render: (_v, _, index) => {
+              return (
+                <Space align={'center'}>
+                  <Button
+                    type="primary"
+                    size="small"
+                    onClick={async () => {
+                      current.mappings.splice(index, 1);
+                      await transfer.updNode(current);
+                      transfer.command.emitter('fields', 'refresh');
+                    }}>
+                    删除
+                  </Button>
+                </Space>
+              );
+            },
+          },
+        ]}
+      />
     </div>
   );
 };
