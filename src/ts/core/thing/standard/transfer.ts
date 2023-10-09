@@ -215,15 +215,12 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
               for (const form of allForms) {
                 if (key == form.id) {
                   for (const item of array[key]) {
-                    const res = await kernel.createThing(belongId, [], '资产卡片');
-                    if (res.success) {
-                      editForm.after.push({ ...item, ...res.data });
-                    }
+                    editForm.after.push({ ...item });
                   }
                 }
               }
+              map.set(key, editForm);
             }
-            map.set(work.primaryForms[0].id, editForm);
             await apply.createApply(belongId, '自动写入', map);
           }
         }
@@ -245,7 +242,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       });
       for (let item of array) {
         let oldItem: { [key: string]: any } = {};
-        let newItem: any = { Id: item[data.idName], Name: item[data.nameName] };
+        let newItem: any = { id: item[data.idName] };
         Object.keys(item).forEach((key) => {
           if (sourceMap.has(key)) {
             const attr = sourceMap.get(key)!;
