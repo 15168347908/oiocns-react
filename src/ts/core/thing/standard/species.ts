@@ -20,6 +20,7 @@ export interface ISpecies extends IStandardFileInfo<schema.XSpecies> {
 export class Species extends StandardFileInfo<schema.XSpecies> implements ISpecies {
   constructor(_metadata: schema.XSpecies, _directory: IDirectory) {
     super(_metadata, _directory, _directory.resource.speciesColl);
+    this.setEntity();
   }
   items: schema.XSpeciesItem[] = [];
   private _itemLoaded: boolean = false;

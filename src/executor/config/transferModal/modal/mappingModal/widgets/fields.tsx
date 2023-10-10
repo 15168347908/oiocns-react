@@ -1,12 +1,12 @@
-import { model, schema } from '@/ts/base';
+import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
+import { model } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
 import { XAttribute } from '@/ts/base/schema';
-import { ITransfer } from '@/ts/core';
+import { IForm, ITransfer } from '@/ts/core';
 import { ShareIdSet } from '@/ts/core/public/entity';
 import { Radio, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';
-import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 
 interface IProps {
   transfer: ITransfer;
@@ -15,7 +15,7 @@ interface IProps {
 }
 
 const getForm = (current: model.Mapping, target: 'source' | 'target') => {
-  return ShareIdSet.get(current[target]) as schema.XForm;
+  return ShareIdSet.get(current[target] + '*') as IForm | undefined;
 };
 
 const getAttrs = (current: model.Mapping, target: 'source' | 'target') => {

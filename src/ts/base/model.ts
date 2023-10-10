@@ -1053,6 +1053,8 @@ export type SubMapping = {
   source: string;
   // 目标对象
   target: string;
+  // 类型
+  typeName?: string;
   // 子映射
   mappings?: SubMapping[];
 };
