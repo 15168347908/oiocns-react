@@ -232,14 +232,10 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   async mapping(node: model.Node, array: any[]): Promise<{ [key: string]: any[] }> {
     const data = node as model.Mapping;
     const ans: model.AnyThingModel[] = [];
-    const form = this.findMetadata<XForm>(data.source);
-    if (form) {
+    const sourceForm = this.findMetadata<XForm>(data.source);
+    if (sourceForm) {
       const sourceMap = new Map<string, schema.XAttribute>();
-      form.attributes.forEach((attr) => {
-        if (attr.property?.info) {
-          sourceMap.set(attr.property.info, attr);
-        }
-      });
+      sourceForm.attributes.forEach((attr) => sourceMap.set(attr.code, attr));
       for (let item of array) {
         let oldItem: { [key: string]: any } = {};
         let newItem: any = { id: item[data.idName] };
@@ -251,7 +247,17 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         });
         for (const mapping of data.mappings) {
           if (mapping.source in oldItem) {
-            newItem[mapping.target] = oldItem[mapping.source];
+            if (mapping.typeName && ['选择型', '分类型'].includes(mapping.typeName)) {
+              const oldValue = oldItem[mapping.source];
+              for (const mappingItem of mapping.mappings ?? []) {
+                if (mappingItem.source == oldValue) {
+                  newItem[mapping.target] = mappingItem.target;
+                  break;
+                }
+              }
+            } else {
+              newItem[mapping.target] = oldItem[mapping.source];
+            }
           }
         }
         ans.push(newItem);
@@ -762,6 +768,7 @@ export const getDefaultMappingNode = (): model.Mapping => {
     nameName: 'name',
     source: '',
     target: '',
+    mappingType: 'OToI',
     mappings: [],
   };
 };

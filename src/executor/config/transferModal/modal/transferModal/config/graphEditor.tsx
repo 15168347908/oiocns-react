@@ -74,7 +74,7 @@ const GraphEditor: React.FC<IProps> = ({ current, options }) => {
       current.command.emitter('blank', 'contextmenu', a),
     );
     current.binding(() => graph.toJSON());
-    current.command.emitter('tools', 'initialized', graph);
+    setTimeout(() => current.command.emitter('tools', 'initialized', graph), 200);
     const id = current.command.subscribe((type: string, cmd: string, _: any) => {
       if (type != 'graph') return;
       switch (cmd) {

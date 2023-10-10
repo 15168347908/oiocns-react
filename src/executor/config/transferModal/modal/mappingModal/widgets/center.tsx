@@ -9,6 +9,7 @@ import { FullModal } from '../../../common';
 import cls from './../index.module.less';
 import { getSpecies } from './dict';
 import { DictMapper } from './mapper';
+import { getMappingField } from './util';
 
 interface IProps {
   transfer: ITransfer;
@@ -116,6 +117,16 @@ const Center: React.FC<IProps> = ({ transfer, current }) => {
             render: (_v, item, index) => {
               return (
                 <Space align={'center'}>
+                  <Button
+                    type="primary"
+                    size="small"
+                    onClick={async () => {
+                      current.mappings.splice(index, 1);
+                      await transfer.updNode(current);
+                      transfer.command.emitter('fields', 'refresh');
+                    }}>
+                    删除
+                  </Button>
                   {item.typeName && ['选择型', '分类型'].includes(item.typeName) && (
                     <Button
                       type="primary"
@@ -139,16 +150,6 @@ const Center: React.FC<IProps> = ({ transfer, current }) => {
                       映射
                     </Button>
                   )}
-                  <Button
-                    type="primary"
-                    size="small"
-                    onClick={async () => {
-                      current.mappings.splice(index, 1);
-                      await transfer.updNode(current);
-                      transfer.command.emitter('fields', 'refresh');
-                    }}>
-                    删除
-                  </Button>
                 </Space>
               );
             },
@@ -169,6 +170,7 @@ interface DictProps {
 type DicMappingType = { source?: schema.XSpeciesItem; target?: schema.XSpeciesItem };
 
 export const DictCenter: React.FC<DictProps> = ({ transfer, node, current }) => {
+  const { sourceField, targetField } = getMappingField(node.mappingType);
   const [mappings, setMappings] = useState<model.SubMapping[]>(current.mappings ?? []);
   const [sources, setSources] = useState<{ [key: string]: schema.XSpeciesItem }>({});
   const [targets, setTargets] = useState<{ [key: string]: schema.XSpeciesItem }>({});
@@ -179,7 +181,16 @@ export const DictCenter: React.FC<DictProps> = ({ transfer, node, current }) => 
   ) => {
     const species = await getSpecies(node, current, target);
     const data: { [key: string]: schema.XSpeciesItem } = {};
-    species?.items.forEach((item) => (data[item.id] = item));
+    species?.items.forEach((item) => {
+      switch (target) {
+        case 'source':
+          data[item[sourceField]] = item;
+          break;
+        case 'target':
+          data[item[targetField]] = item;
+          break;
+      }
+    });
     setData(data);
   };
   useEffect(() => {
@@ -205,8 +216,8 @@ export const DictCenter: React.FC<DictProps> = ({ transfer, node, current }) => 
               transfer.command.emitter('items', 'refresh');
             };
             await finished({
-              source: choosing.current.source.id,
-              target: choosing.current.target.id,
+              source: choosing.current.source[sourceField],
+              target: choosing.current.target[targetField],
             });
             clear();
           }

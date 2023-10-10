@@ -79,7 +79,7 @@ export class DictItemHandler extends i.SheetHandler<DictItemSheet> {
         if (oldItem) {
           t.assignment(oldItem, item);
         } else {
-          item.code = 'TsnowId()';
+          item.code = 'SsnowId()';
         }
         onItemCompleted();
       }
@@ -171,7 +171,7 @@ export class ClassifyItemHandler extends i.SheetHandler<ClassifyItemSheet> {
       if (species.items[row.info]) {
         t.assignment(species.items[row.info], row);
       } else {
-        row.code = 'TsnowId()';
+        row.code = 'SsnowId()';
       }
       onItemCompleted();
     }

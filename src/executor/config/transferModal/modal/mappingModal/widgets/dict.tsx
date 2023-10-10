@@ -3,9 +3,10 @@ import { model, schema } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
 import { IForm, ISpecies, ITransfer } from '@/ts/core';
 import { ShareIdSet } from '@/ts/core/public/entity';
-import { Radio, Space, Tag } from 'antd';
+import { Radio, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';
+import { getMappingField } from './util';
 
 interface IProps {
   transfer: ITransfer;
@@ -35,6 +36,7 @@ export const getSpecies = async (
 };
 
 const Dict: React.FC<IProps> = ({ transfer, node, current, target }) => {
+  const { sourceField, targetField } = getMappingField(node.mappingType);
   const [species, setSpecies] = useState<ISpecies>();
   const [value, setValue] = useState<string>('');
   const [items, setItems] = useState<schema.XSpeciesItem[]>([]);
@@ -59,7 +61,16 @@ const Dict: React.FC<IProps> = ({ transfer, node, current, target }) => {
     getSpecies(node, current, target).then((res) => {
       setSpecies(res);
       const used = new Set(current.mappings?.map((item) => item[target]));
-      setItems(res?.items.filter((item) => !used.has(item.id)) ?? []);
+      setItems(
+        res?.items.filter((item) => {
+          switch (target) {
+            case 'source':
+              return !used.has(item[sourceField]);
+            case 'target':
+              return !used.has(item[targetField]);
+          }
+        }) ?? [],
+      );
     });
   };
   return (
@@ -79,8 +90,7 @@ const Dict: React.FC<IProps> = ({ transfer, node, current, target }) => {
                     transfer.command.emitter('items', 'choose', [target, item]);
                   }}>
                   <Space>
-                    <Tag color="cyan">{item?.info}</Tag>
-                    {item.name + ' ' + item?.name}
+                    {item.info + ' ' + item?.name}
                   </Space>
                 </Radio>
               );

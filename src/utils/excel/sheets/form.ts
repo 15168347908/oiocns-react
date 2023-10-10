@@ -142,7 +142,7 @@ export class FormHandler extends i.SheetHandler<FormSheet> {
         } else {
           newAttr.id = 'snowId()';
           newAttr.authId = t.orgAuth.SuperAuthId;
-          newAttr.code = newAttr.code ?? 'SsnowId()';
+          newAttr.code = newAttr.code ?? 'TsnowId()';
           row.attributes.push(newAttr);
         }
         onItemCompleted();

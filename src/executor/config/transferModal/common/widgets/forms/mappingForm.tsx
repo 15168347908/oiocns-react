@@ -72,6 +72,24 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         rules: [{ required: true, message: '编码为必填项' }],
       },
     },
+    {
+      title: '映射类型',
+      dataIndex: 'mappingType',
+      valueType: 'select',
+      colProps: { span: 24 },
+      initialValue: 'OToI',
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+      fieldProps: {
+        options: [
+          { label: '外部系统 => 内部系统', value: 'OToI' },
+          { label: '内部系统 => 内部系统', value: 'IToI' },
+          { label: '内部系统 => 外部系统', value: 'IToO' },
+          { label: '外部系统 => 外部系统', value: 'OToO' },
+        ],
+      },
+    },
     selector('源表单', 'source'),
     selector('目标表单', 'target'),
     {

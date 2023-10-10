@@ -1043,6 +1043,8 @@ export type Mapping = {
   idName: string;
   // 原 Name 字段名称
   nameName: string;
+  // 映射类型
+  mappingType: MappingType;
   // 映射
   mappings: SubMapping[];
 } & Node;
@@ -1123,6 +1125,9 @@ export type NodeType = '表单' | '表格' | '请求' | '子图' | '映射' | '�
 
 // 脚本位置
 export type Pos = 'pre' | 'post';
+
+// 映射类型（外部系统 => 内部系统，外部系统 => 外部系统，内部系统 => 外部系统，内部系统 => 内部系统）
+export type MappingType = 'OToI' | 'OToO' | 'IToO' | 'IToI';
 
 // 键值对
 export type KeyValue = { [key: string]: string | undefined };
