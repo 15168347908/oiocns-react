@@ -292,21 +292,24 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 
   async reading(node: model.Node): Promise<boolean> {
+    return new Promise(() => {});
     // const table = node as model.Tables;
-    // if (table.file) { }
-    return false;
+    // if (table.file) {
+    //   const url = `/orginone/kernel/load/${table.file.shareLink}?download=1`;
+    //   const res = await axios.request({
+    //     method: 'GET',
+    //     url: url,
+    //     responseType: 'blob',
+    //   });
+    //   const sheets = await this.template<any>(node);
+    //   readXlsx(res.data as Blob, sheets);
+    // }
+    // return false;
   }
 
   async inputting(node: model.Node): Promise<any> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       try {
-        const formNode = node as model.Form;
-        const form = ShareIdSet.get(formNode.formId + '*') as IForm;
-        if (form) {
-          await form.loadContent();
-        } else {
-          throw new Error('未获取到表单信息！');
-        }
         const id = this.command.subscribe((type, cmd, args) => {
           if (type == 'data' && cmd == 'inputCall') {
             const { value, formNode } = args;
@@ -323,7 +326,15 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
             resolve(data);
           }
         });
-        this.command.emitter('data', 'input', { form, formNode });
+        const formNode = node as model.Form;
+        const form = ShareIdSet.get(formNode.formId + '*') as IForm;
+        if (form) {
+          form.loadContent().then(() => {
+            this.command.emitter('data', 'input', { form, formNode });
+          });
+        } else {
+          throw new Error('未获取到表单信息！');
+        }
       } catch (error) {
         reject(error);
       }

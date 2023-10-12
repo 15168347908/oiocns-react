@@ -45,7 +45,7 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
           if (!node.isLeaf) {
             let forms = (node.item as IDirectory).forms;
             if (forms.length > 0) {
-              setTreeData([loadFormsMenu(transfer.directory)]);
+              setTreeData([loadFormsMenu(transfer.directory.target.directory)]);
             }
           }
         },

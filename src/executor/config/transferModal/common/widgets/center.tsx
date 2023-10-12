@@ -1,19 +1,19 @@
-import { ITransfer } from '@/ts/core';
-import React, { ReactNode, useEffect, useState } from 'react';
+import LabelsModal from '@/executor/config/operateModal/labelsModal';
+import OfficeView from '@/executor/data/open/office';
 import { model } from '@/ts/base';
+import { generateUuid } from '@/ts/base/common';
+import { ITransfer } from '@/ts/core';
+import { ShareIdSet } from '@/ts/core/public/entity';
+import { message } from 'antd';
+import React, { ReactNode, useEffect, useState } from 'react';
 import {
+  InputModal,
   MappingModal,
   RequestModal,
+  SelectionModal,
   StoreModal,
   TransferRunning,
-  InputModal,
-  SelectionModal,
 } from '../..';
-import OfficeView from '@/executor/data/open/office';
-import { message } from 'antd';
-import LabelsModal from '@/executor/config/operateModal/labelsModal';
-import { ShareIdSet } from '@/ts/core/public/entity';
-import { generateUuid } from '@/ts/base/common';
 
 interface IProps {
   current: ITransfer;
@@ -60,47 +60,46 @@ export const Center: React.FC<IProps> = ({ current }) => {
                   );
                   break;
                 case '子图':
-                  const nextTransfer = current.getTransfer(args.nextId);
-                  if (nextTransfer) {
-                    setCenter(
-                      <TransferRunning
-                        key={generateUuid()}
-                        current={nextTransfer}
-                        finished={setEmpty}
-                      />,
-                    );
-                  } else {
-                    message.error('未绑定迁移配置');
-                  }
+                  setCenter(
+                    <TransferRunning
+                      key={generateUuid()}
+                      current={current.getTransfer(args.nextId)!}
+                      finished={setEmpty}
+                    />,
+                  );
                   break;
                 case '表格':
-                  const tables = args as model.Tables;
-                  if (tables.file) {
-                    setCenter(
-                      <OfficeView
-                        key={generateUuid()}
-                        share={tables.file}
-                        finished={setEmpty}
-                        current={current.directory}
-                      />,
-                    );
-                  } else {
-                    message.error('未上传文件');
+                  {
+                    const tables = args as model.Tables;
+                    if (tables.file) {
+                      setCenter(
+                        <OfficeView
+                          key={generateUuid()}
+                          share={tables.file}
+                          finished={setEmpty}
+                          current={current.directory}
+                        />,
+                      );
+                    } else {
+                      message.error('未上传文件');
+                    }
                   }
                   break;
                 case '表单':
-                  const formNode = args as model.Form;
-                  const form = ShareIdSet.get(formNode.formId + '*');
-                  if (form) {
-                    setCenter(
-                      <LabelsModal
-                        key={generateUuid()}
-                        current={form}
-                        finished={setEmpty}
-                      />,
-                    );
-                  } else {
-                    message.error('未绑定表单');
+                  {
+                    const formNode = args as model.Form;
+                    const form = ShareIdSet.get(formNode.formId + '*');
+                    if (form) {
+                      setCenter(
+                        <LabelsModal
+                          key={generateUuid()}
+                          current={form}
+                          finished={setEmpty}
+                        />,
+                      );
+                    } else {
+                      message.error('未绑定表单');
+                    }
                   }
                   break;
               }
@@ -108,39 +107,59 @@ export const Center: React.FC<IProps> = ({ current }) => {
             case 'open':
               break;
           }
+          break;
         case 'data':
-          switch (cmd) {
-            case 'input': {
-              const { form, formNode } = args;
-              setCenter(
-                <InputModal
-                  key={generateUuid()}
-                  current={form}
-                  finished={(value) => {
-                    setEmpty();
-                    current.command.emitter('data', 'inputCall', { value, formNode });
-                  }}
-                />,
-              );
-              break;
-            }
-            case 'selection': {
-              const { form, data, selectionNode } = args;
-              setCenter(
-                <SelectionModal
-                  key={generateUuid()}
-                  form={form}
-                  data={data}
-                  node={selectionNode}
-                  finished={(value) =>
-                    current.command.emitter('data', 'selectionCall', {
-                      value,
-                      selectionNode,
-                    })
-                  }
-                />,
-              );
-              break;
+          {
+            switch (cmd) {
+              case 'input':
+                {
+                  const { form, formNode } = args;
+                  setCenter(
+                    <InputModal
+                      key={generateUuid()}
+                      current={form}
+                      finished={(value) => {
+                        setEmpty();
+                        current.command.emitter('data', 'inputCall', { value, formNode });
+                      }}
+                    />,
+                  );
+                }
+                break;
+              case 'selection':
+                {
+                  const { form, data, selectionNode } = args;
+                  setCenter(
+                    <SelectionModal
+                      key={generateUuid()}
+                      form={form}
+                      data={data}
+                      node={selectionNode}
+                      finished={(value) =>
+                        current.command.emitter('data', 'selectionCall', {
+                          value,
+                          selectionNode,
+                        })
+                      }
+                    />,
+                  );
+                }
+                break;
+              case 'reading':
+                {
+                  // const table = args as model.Tables;
+                  // if (table.file) {
+                  //   const url = `/orginone/kernel/load/${table.file.shareLink}?download=1`;
+                  //   const res = await axios.request({
+                  //     method: 'GET',
+                  //     url: url,
+                  //     responseType: 'blob',
+                  //   });
+                  //   const sheets = await this.template<any>(node);
+                  //   readXlsx(res.data as Blob, sheets);
+                  // }
+                }
+                break;
             }
           }
           break;
