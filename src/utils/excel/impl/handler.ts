@@ -12,7 +12,10 @@ export abstract class SheetHandler<S extends t.model.Sheet<any>>
     this.sheet = sheet;
   }
 
-  assert(index: number | number[], asserts: { res: boolean; error: string }[]): t.Error[] {
+  assert(
+    index: number | number[],
+    asserts: { res: boolean; error: string }[],
+  ): t.Error[] {
     let errors: t.Error[] = [];
     asserts.forEach((item) => {
       if (item.res) {
